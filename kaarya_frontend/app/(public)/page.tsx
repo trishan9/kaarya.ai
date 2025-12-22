@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="p-4">
+    <div>
       <h1>Hello World, I am Landing Page</h1>
       <Link href="/sign-in" className="text-blue-400">
         Sign In
