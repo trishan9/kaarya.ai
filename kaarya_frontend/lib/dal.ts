@@ -1,6 +1,9 @@
 import { cookies } from "next/headers";
 
-export async function getCurrentUser() {
+export async function getCurrentUser(): Promise<{
+  id: number;
+  name: string;
+} | null> {
   const token = (await cookies()).get("access_token");
 
   if (!token) return null;
