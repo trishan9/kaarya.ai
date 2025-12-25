@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/dal";
 import kaaryaLogo from "@/assets/kaarya.png";
+import { FeatureCarousel } from "./_components/features-carousel";
 
 export default async function AuthLayout({
   children,
@@ -35,7 +36,9 @@ export default async function AuthLayout({
       </div>
 
       <div className="relative hidden lg:block p-4 bg-secondary col-span-7">
-        <div className="h-full w-full">Kaarya Slider</div>
+        <div className="h-full w-full">
+          <FeatureCarousel />
+        </div>
       </div>
     </main>
   );

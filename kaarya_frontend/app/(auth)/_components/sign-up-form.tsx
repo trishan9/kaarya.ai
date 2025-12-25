@@ -44,13 +44,6 @@ export function SignupForm() {
   return (
     <form id="sign-up-form" onSubmit={form.handleSubmit(onSubmit)}>
       <FieldGroup>
-        <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">Create your account</h1>
-          <p className="text-muted-foreground text-sm text-balance">
-            Welcome to Kaarya! Let’s get started by creating your account.
-          </p>
-        </div>
-
         <div className="flex gap-4">
           <Controller
             name="firstName"

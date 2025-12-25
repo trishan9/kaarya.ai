@@ -42,13 +42,6 @@ export function SigninForm() {
   return (
     <form id="sign-in-form" onSubmit={form.handleSubmit(onSubmit)}>
       <FieldGroup>
-        <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">Welcome back to Kaarya!</h1>
-          <p className="text-muted-foreground text-sm text-balance">
-            Enter your username and password to access your account
-          </p>
-        </div>
-
         <Controller
           name="email"
           control={form.control}
