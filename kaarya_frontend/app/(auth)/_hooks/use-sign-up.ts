@@ -25,13 +25,7 @@ export const useSignUp = () => {
   async function onSubmit(data: z.infer<typeof signupSchema>) {
     startTransition(async () => {
       await signupAction(data);
-      toast("Your new accoun", {
-        description: `
-        <pre className="bg-gray-600 mt-2 w-xs overflow-x-auto rounded-md p-4">
-          <code>${JSON.stringify(data, null, 2)}</code>
-        </pre>
-        `,
-      });
+      toast("Account created succesfully!");
     });
   }
 
