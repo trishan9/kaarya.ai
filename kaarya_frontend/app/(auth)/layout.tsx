@@ -17,7 +17,7 @@ export default async function AuthLayout({
 
   return (
     <main className="grid min-h-svh lg:grid-cols-12 gap-3 p-3 bg-accent">
-      <div className="flex flex-col gap-4 p-4 md:p-10 bg-white col-span-5">
+      <div className="flex flex-col gap-6 p-4 md:p-10 bg-white col-span-5">
         <Link href="/" className="flex items-center gap-4 font-medium">
           <Image
             src={kaaryaLogo}
@@ -27,7 +27,7 @@ export default async function AuthLayout({
             className="h-10 w-10 object-cover dark:brightness-[0.2] dark:grayscale"
           />
 
-          <span className="text-3xl">Kaarya</span>
+          <span className="text-3xl font-bold">Kaarya</span>
         </Link>
 
         <div className="flex flex-1 items-center justify-center">
