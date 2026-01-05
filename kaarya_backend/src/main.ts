@@ -9,6 +9,9 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { useContainer } from 'class-validator';
 import { AppModule } from './app.module';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { CONFIG_KEYS } from './constants/config.constants';
+import { PinoLoggerService } from './logger/pino-logger.service';
 import validationOptions from './utils/validation-options';
 import { ResolvePromisesInterceptor } from './utils/serializer.interceptor';
 import { AllConfigType } from './types/config.type';
@@ -20,10 +23,12 @@ async function bootstrap() {
 
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
 
+  app.useLogger(app.get(PinoLoggerService));
+
   app.enableShutdownHooks();
 
   app.setGlobalPrefix(
-    configService.getOrThrow('app.apiPrefix', { infer: true }),
+    configService.getOrThrow(CONFIG_KEYS.APP.API_PREFIX, { infer: true }),
     {
       exclude: ['/'],
     },
@@ -41,6 +46,8 @@ async function bootstrap() {
     new ResolvePromisesInterceptor(),
     new ClassSerializerInterceptor(app.get(Reflector)),
   );
+
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   const options = new DocumentBuilder()
     .setTitle('API')
@@ -60,6 +67,8 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('docs', app, document);
 
-  await app.listen(configService.getOrThrow('app.port', { infer: true }));
+  await app.listen(
+    configService.getOrThrow(CONFIG_KEYS.APP.PORT, { infer: true }),
+  );
 }
 void bootstrap();

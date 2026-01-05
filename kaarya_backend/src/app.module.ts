@@ -8,6 +8,7 @@ import { MongoDatabaseModule } from './database/mongodb.module';
 import appConfig from './config/app-config';
 import authConfig from './config/auth-config';
 import databaseConfig from './config/database-config';
+import { LoggerModule } from './logger/logger.module';
 
 const InfrastructureDatabaseModule = MongoDatabaseModule;
 
@@ -19,6 +20,7 @@ const InfrastructureDatabaseModule = MongoDatabaseModule;
       envFilePath: ['.env'],
     }),
     InfrastructureDatabaseModule,
+    LoggerModule,
     UserModule,
     AuthModule,
   ],
