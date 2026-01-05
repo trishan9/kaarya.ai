@@ -6,4 +6,5 @@ export type AppConfig = {
   backendDomain: string;
   port: number;
   apiPrefix: string;
+  logLevel?: string;
 };

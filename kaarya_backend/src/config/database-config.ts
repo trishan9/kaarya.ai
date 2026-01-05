@@ -1,5 +1,6 @@
 import { registerAs } from '@nestjs/config';
 import { IsInt, Min, Max, IsString, ValidateIf } from 'class-validator';
+import { CONFIG_NAMESPACE } from 'src/constants/config.constants';
 import { DatabaseConfig } from 'src/types/database-config.type';
 import validateConfig from 'src/utils/validate-config';
 
@@ -31,7 +32,7 @@ class EnvironmentVariablesValidator {
   DATABASE_USERNAME: string;
 }
 
-export default registerAs<DatabaseConfig>('database', () => {
+export default registerAs<DatabaseConfig>(CONFIG_NAMESPACE.DATABASE, () => {
   validateConfig(process.env, EnvironmentVariablesValidator);
 
   return {

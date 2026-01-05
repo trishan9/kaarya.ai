@@ -1,6 +1,7 @@
 import { registerAs } from '@nestjs/config';
-import { IsInt, IsString } from 'class-validator';
+import { IsString } from 'class-validator';
 import ms from 'ms';
+import { CONFIG_NAMESPACE } from 'src/constants/config.constants';
 import { AuthConfig } from 'src/types/auth-config.type';
 import validateConfig from 'src/utils/validate-config';
 
@@ -28,12 +29,9 @@ class EnvironmentVariablesValidator {
 
   @IsString()
   AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN: string;
-
-  @IsInt()
-  BCRYPT_SALT_ROUNDS: number;
 }
 
-export default registerAs<AuthConfig>('auth', () => {
+export default registerAs<AuthConfig>(CONFIG_NAMESPACE.AUTH, () => {
   validateConfig(process.env, EnvironmentVariablesValidator);
 
   return {
@@ -46,8 +44,5 @@ export default registerAs<AuthConfig>('auth', () => {
     confirmEmailSecret: process.env.AUTH_CONFIRM_EMAIL_SECRET,
     confirmEmailExpires: process.env
       .AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN as ms.StringValue,
-    bcryptSaltRounds: process.env.BCRYPT_SALT_ROUNDS
-      ? parseInt(process.env.BCRYPT_SALT_ROUNDS)
-      : 12,
   };
 });

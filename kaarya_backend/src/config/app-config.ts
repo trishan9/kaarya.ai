@@ -8,6 +8,7 @@ import {
   Min,
 } from 'class-validator';
 import { registerAs } from '@nestjs/config';
+import { CONFIG_NAMESPACE } from 'src/constants/config.constants';
 import { AppConfig } from 'src/types/app-config.type';
 import validateConfig from '.././utils/validate-config';
 
@@ -39,9 +40,13 @@ class EnvironmentVariablesValidator {
   @IsString()
   @IsOptional()
   API_PREFIX: string;
+
+  @IsString()
+  @IsOptional()
+  LOG_LEVEL: string;
 }
 
-export default registerAs<AppConfig>('app', () => {
+export default registerAs<AppConfig>(CONFIG_NAMESPACE.APP, () => {
   validateConfig(process.env, EnvironmentVariablesValidator);
 
   return {
@@ -56,5 +61,6 @@ export default registerAs<AppConfig>('app', () => {
         ? parseInt(process.env.PORT)
         : 3000,
     apiPrefix: process.env.API_PREFIX || 'api',
+    logLevel: process.env.LOG_LEVEL || 'info',
   };
 });

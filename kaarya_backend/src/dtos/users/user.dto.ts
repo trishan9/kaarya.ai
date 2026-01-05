@@ -5,6 +5,8 @@ export const CreateUserDTO = UserZodSchema.pick({
   name: true,
   email: true,
   password: true,
+  provider: true,
+  role: true,
 })
   .extend({
     confirmPassword: z.string(),
