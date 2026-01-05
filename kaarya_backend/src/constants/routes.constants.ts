@@ -6,7 +6,7 @@ export const ROUTES = {
     ME: 'me',
   },
   USER: {
-    BASE: 'user',
+    BASE: 'users',
     BY_ID: ':id',
   },
 } as const;

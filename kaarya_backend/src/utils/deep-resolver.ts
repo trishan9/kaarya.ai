@@ -13,6 +13,16 @@ async function deepResolvePromises(input) {
   }
 
   if (typeof input === 'object' && input !== null) {
+    const hasToJson =
+      typeof (input as { toJSON?: () => unknown }).toJSON === 'function';
+    const isPlainObject = Object.getPrototypeOf(input) === Object.prototype;
+    if (hasToJson && !isPlainObject) {
+      const json = (input as { toJSON: () => unknown }).toJSON();
+      return await deepResolvePromises(json);
+    }
+  }
+
+  if (typeof input === 'object' && input !== null) {
     const keys = Object.keys(input);
     const resolvedObject = {};
 

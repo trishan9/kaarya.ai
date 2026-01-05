@@ -8,7 +8,10 @@ export abstract class ACUserRepository {
   abstract create(payload: Partial<TUser>): Promise<UserSchemaDocument>;
   abstract findAll(): Promise<UserSchemaDocument[]>;
   abstract findById(id: string): Promise<UserSchemaDocument | null>;
-  abstract findByEmail(email: string): Promise<UserSchemaDocument | null>;
+  abstract findByEmail(
+    email: string,
+    options?: { includePassword?: boolean },
+  ): Promise<UserSchemaDocument | null>;
 }
 
 @Injectable()
@@ -32,8 +35,15 @@ export class UserRepository implements ACUserRepository {
     return await this.userModel.findById(id).exec();
   }
 
-  async findByEmail(email: string): Promise<UserSchemaDocument | null> {
+  async findByEmail(
+    email: string,
+    options?: { includePassword?: boolean },
+  ): Promise<UserSchemaDocument | null> {
     if (!email) return null;
-    return await this.userModel.findOne({ email });
+    const query = this.userModel.findOne({ email });
+    if (options?.includePassword) {
+      query.select('+password');
+    }
+    return await query.exec();
   }
 }

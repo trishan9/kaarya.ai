@@ -2,6 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import argon2 from 'argon2';
 import { ApiError } from 'src/common/errors/api-error';
+import { sanitizeUser } from 'src/common/utils/sanitize-user';
 import {
   AUTH_MESSAGES,
   LOG_MESSAGES,
@@ -38,11 +39,13 @@ export class AuthService {
       password: hashedPassword,
     });
 
-    return user;
+    return sanitizeUser(user);
   }
 
   async login(payload: TLoginDTO) {
-    const user = await this.userService.getUserByEmail(payload.email);
+    const user = await this.userService.getUserByEmail(payload.email, {
+      includePassword: true,
+    });
 
     if (!user) {
       throw new ApiError({
@@ -82,7 +85,7 @@ export class AuthService {
     );
 
     return {
-      user,
+      user: sanitizeUser(user),
       accessToken,
     };
   }
@@ -95,10 +98,11 @@ export class AuthService {
       });
     }
 
-    return this.userService.getUserById(id);
+    const user = await this.userService.getUserById(id);
+    return user;
   }
 
   private async signAccessToken(userId: string, email: string, role: UserRole) {
-    return this.jwtService.signAsync({ sub: userId, email, role });
+    return await this.jwtService.signAsync({ sub: userId, email, role });
   }
 }
