@@ -7,6 +7,7 @@ import {
   Max,
   Min,
 } from 'class-validator';
+import { registerAs } from '@nestjs/config';
 import { AppConfig } from 'src/types/app-config.type';
 import validateConfig from '.././utils/validate-config';
 
@@ -40,7 +41,7 @@ class EnvironmentVariablesValidator {
   API_PREFIX: string;
 }
 
-export const appConfig = (): AppConfig => {
+export default registerAs<AppConfig>('app', () => {
   validateConfig(process.env, EnvironmentVariablesValidator);
 
   return {
@@ -56,4 +57,4 @@ export const appConfig = (): AppConfig => {
         : 3000,
     apiPrefix: process.env.API_PREFIX || 'api',
   };
-};
+});

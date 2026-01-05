@@ -30,9 +30,7 @@ services:
     environment:
       ME_CONFIG_BASICAUTH_USERNAME: ${DATABASE_USERNAME}
       ME_CONFIG_BASICAUTH_PASSWORD: ${DATABASE_PASSWORD}
-      ME_CONFIG_MONGODB_ADMINUSERNAME: ${DATABASE_USERNAME}
-      ME_CONFIG_MONGODB_ADMINPASSWORD: ${DATABASE_PASSWORD}
-      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_URL: mongodb://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@mongo:${DATABASE_PORT}/
     depends_on:
       - mongo
     networks:
@@ -42,9 +40,6 @@ services:
     build:
       context: .
       dockerfile: document.Dockerfile
-    restart: unless-stopped
-    env_file:
-      - .env
     ports:
       - '${APP_PORT}:${APP_PORT}'
     depends_on:

@@ -1,3 +1,4 @@
+import { registerAs } from '@nestjs/config';
 import { IsInt, IsString } from 'class-validator';
 import ms from 'ms';
 import { AuthConfig } from 'src/types/auth-config.type';
@@ -32,7 +33,7 @@ class EnvironmentVariablesValidator {
   BCRYPT_SALT_ROUNDS: number;
 }
 
-export const authConfig = (): AuthConfig => {
+export default registerAs<AuthConfig>('auth', () => {
   validateConfig(process.env, EnvironmentVariablesValidator);
 
   return {
@@ -49,4 +50,4 @@ export const authConfig = (): AuthConfig => {
       ? parseInt(process.env.BCRYPT_SALT_ROUNDS)
       : 12,
   };
-};
+});
