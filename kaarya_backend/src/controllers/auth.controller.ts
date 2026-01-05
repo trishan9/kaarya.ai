@@ -13,7 +13,7 @@ import { buildSuccessResponse } from 'src/common/utils/api-response';
 import { AUTH_MESSAGES } from 'src/constants/messages.constants';
 import { ROUTES } from 'src/constants/routes.constants';
 import { AuthService } from 'src/services/auth.service';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import {
   CreateUserDTO,
   LoginDTO,
@@ -23,6 +23,10 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import z from 'zod';
 import { ApiError } from 'src/common/errors/api-error';
+import {
+  CreateUserSwaggerDTO,
+  LoginSwaggerDTO,
+} from 'src/dtos/swagger/users/user.swagger.dto';
 
 @ApiTags('Auth')
 @Controller({
@@ -33,6 +37,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post(ROUTES.AUTH.SIGNUP)
+  @ApiBody({ type: CreateUserSwaggerDTO })
   @HttpCode(HttpStatus.OK)
   async signup(@Body() payload: TCreateUserDTO) {
     return asyncHandler(async () => {
@@ -51,6 +56,7 @@ export class AuthController {
   }
 
   @Post(ROUTES.AUTH.LOGIN)
+  @ApiBody({ type: LoginSwaggerDTO })
   @HttpCode(HttpStatus.OK)
   async login(@Body() payload: TLoginDTO) {
     return asyncHandler(async () => {
@@ -68,9 +74,11 @@ export class AuthController {
     });
   }
 
+  @ApiBearerAuth('access-token')
   @Get(ROUTES.AUTH.ME)
   @UseGuards(AuthGuard('jwt'))
-  getCurrentUser(@Request() request) {
+  @HttpCode(HttpStatus.OK)
+  async me(@Request() request) {
     return asyncHandler(async () => {
       const user = await this.authService.me(request.user.id);
       return buildSuccessResponse(user, AUTH_MESSAGES.CURRENT_USER_SUCCESS);
