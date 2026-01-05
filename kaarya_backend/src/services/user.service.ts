@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { TCreateUserDTO } from 'src/dtos/users/user.dto';
-import { IUserRepository } from 'src/repositories/user.repository';
+import { ACUserRepository } from 'src/repositories/user.repository';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: IUserRepository) {}
+  constructor(private readonly userRepository: ACUserRepository) {}
 
   async createUser(payload: TCreateUserDTO) {
     return this.userRepository.create(payload);

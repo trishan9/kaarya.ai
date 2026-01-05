@@ -30,7 +30,7 @@ export class AuthService {
     }
 
     const hashedPassword = await argon2.hash(payload.password, {
-      type: argon2.argon2d,
+      type: argon2.argon2id,
     });
 
     const user = await this.userService.createUser({

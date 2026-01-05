@@ -4,15 +4,15 @@ import { Model } from 'mongoose';
 import { UserSchemaClass, UserSchemaDocument } from 'src/entities/user.schema';
 import { TUser } from 'src/types/user.type';
 
-export interface IUserRepository {
-  create(payload: Partial<TUser>): Promise<UserSchemaDocument>;
-  findAll(): Promise<UserSchemaDocument[]>;
-  findById(id: string): Promise<UserSchemaDocument | null>;
-  findByEmail(email: string): Promise<UserSchemaDocument | null>;
+export abstract class ACUserRepository {
+  abstract create(payload: Partial<TUser>): Promise<UserSchemaDocument>;
+  abstract findAll(): Promise<UserSchemaDocument[]>;
+  abstract findById(id: string): Promise<UserSchemaDocument | null>;
+  abstract findByEmail(email: string): Promise<UserSchemaDocument | null>;
 }
 
 @Injectable()
-export class UserRepository implements IUserRepository {
+export class UserRepository implements ACUserRepository {
   constructor(
     @InjectModel(UserSchemaClass.name)
     private readonly userModel: Model<UserSchemaClass>,

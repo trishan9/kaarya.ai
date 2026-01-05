@@ -21,24 +21,14 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       }),
     });
   }
-
-  async validate(payload) {
-    if (!payload.id) {
-      throw new ApiError({
-        statusCode: HttpStatus.UNAUTHORIZED,
-        message: AUTH_MESSAGES.INVALID_TOKEN,
-      });
-    }
-
-    const user = await this.userService.getUserById(payload.id);
-
+  async validate(payload: { sub: string }) {
+    const user = await this.userService.getUserById(payload.sub);
     if (!user) {
       throw new ApiError({
         statusCode: HttpStatus.UNAUTHORIZED,
         message: AUTH_MESSAGES.INVALID_TOKEN,
       });
     }
-
     return user;
   }
 }

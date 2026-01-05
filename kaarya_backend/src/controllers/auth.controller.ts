@@ -47,7 +47,7 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   getCurrentUser(@Request() request) {
     return asyncHandler(async () => {
-      const user = await this.authService.me(request.user);
+      const user = await this.authService.me(request.user.id);
       return buildSuccessResponse(user, AUTH_MESSAGES.CURRENT_USER_SUCCESS);
     });
   }
