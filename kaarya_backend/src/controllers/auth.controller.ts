@@ -14,8 +14,15 @@ import { AUTH_MESSAGES } from 'src/constants/messages.constants';
 import { ROUTES } from 'src/constants/routes.constants';
 import { AuthService } from 'src/services/auth.service';
 import { ApiTags } from '@nestjs/swagger';
-import { TCreateUserDTO, TLoginDTO } from 'src/dtos/users/user.dto';
+import {
+  CreateUserDTO,
+  LoginDTO,
+  TCreateUserDTO,
+  TLoginDTO,
+} from 'src/dtos/users/user.dto';
 import { AuthGuard } from '@nestjs/passport';
+import z from 'zod';
+import { ApiError } from 'src/common/errors/api-error';
 
 @ApiTags('Auth')
 @Controller({
@@ -29,7 +36,16 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async signup(@Body() payload: TCreateUserDTO) {
     return asyncHandler(async () => {
-      const data = await this.authService.signup(payload);
+      const parsedData = CreateUserDTO.safeParse(payload);
+
+      if (!parsedData.success) {
+        throw new ApiError({
+          message: z.prettifyError(parsedData.error),
+          statusCode: HttpStatus.BAD_REQUEST,
+        });
+      }
+
+      const data = await this.authService.signup(parsedData.data);
       return buildSuccessResponse(data, AUTH_MESSAGES.SIGNUP_SUCCESS);
     });
   }
@@ -38,7 +54,16 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async login(@Body() payload: TLoginDTO) {
     return asyncHandler(async () => {
-      const data = await this.authService.login(payload);
+      const parsedData = LoginDTO.safeParse(payload);
+
+      if (!parsedData.success) {
+        throw new ApiError({
+          message: z.prettifyError(parsedData.error),
+          statusCode: HttpStatus.BAD_REQUEST,
+        });
+      }
+
+      const data = await this.authService.login(parsedData.data);
       return buildSuccessResponse(data, AUTH_MESSAGES.LOGIN_SUCCESS);
     });
   }
