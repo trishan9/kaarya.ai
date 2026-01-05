@@ -10,7 +10,7 @@ import authConfig from './config/auth-config';
 import databaseConfig from './config/database-config';
 import { LoggerModule } from './logger/logger.module';
 
-const InfrastructureDatabaseModule = MongoDatabaseModule;
+export const InfrastructureDatabaseModule = MongoDatabaseModule;
 
 @Module({
   imports: [

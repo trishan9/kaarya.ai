@@ -9,7 +9,6 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { useContainer } from 'class-validator';
 import { AppModule } from './app.module';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { CONFIG_KEYS } from './constants/config.constants';
 import { PinoLoggerService } from './logger/pino-logger.service';
 import validationOptions from './utils/validation-options';
@@ -46,8 +45,6 @@ async function bootstrap() {
     new ResolvePromisesInterceptor(),
     new ClassSerializerInterceptor(app.get(Reflector)),
   );
-
-  app.useGlobalFilters(new HttpExceptionFilter());
 
   const options = new DocumentBuilder()
     .setTitle('API')
