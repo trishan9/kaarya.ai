@@ -1,0 +1,60 @@
+version: '3.9'
+
+services:
+  maildev:
+    build:
+      context: .
+      dockerfile: maildev.Dockerfile
+    ports:
+      - ${MAIL_CLIENT_PORT}:1080
+      - ${MAIL_PORT}:1025
+
+  mongo:
+    image: mongo:8.0.15
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DATABASE_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - '${DATABASE_PORT}:27017'
+    networks:
+      - backend
+
+  mongo-express:
+    image: mongo-express
+    restart: unless-stopped
+    ports:
+      - '8081:8081'
+    environment:
+      ME_CONFIG_BASICAUTH_USERNAME: ${DATABASE_USERNAME}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${DATABASE_PASSWORD}
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${DATABASE_USERNAME}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${DATABASE_PASSWORD}
+      ME_CONFIG_MONGODB_SERVER: mongo
+    depends_on:
+      - mongo
+    networks:
+      - backend
+
+  api:
+    build:
+      context: .
+      dockerfile: document.Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - '${APP_PORT}:${APP_PORT}'
+    depends_on:
+      - mongo
+    networks:
+      - backend
+
+volumes:
+  mongo-data:
+
+networks:
+  backend:
+    driver: bridge
