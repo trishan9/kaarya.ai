@@ -38,12 +38,7 @@ export class UserSchemaClass {
   @Prop({
     type: String,
   })
-  firstName: string | null;
-
-  @Prop({
-    type: String,
-  })
-  lastName: string | null;
+  name: string | null;
 
   @Prop({
     type: String,

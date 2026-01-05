@@ -1,0 +1,21 @@
+import z from 'zod';
+
+export const UserZodSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Name can't be empty.")
+    .min(2, "Name can't be less than 2 characters."),
+  email: z
+    .email('Email address must be valid.')
+    .min(1, "Email address can't be empty."),
+  password: z
+    .string()
+    .min(1, "Password can't be empty.")
+    .min(8, 'Password must be between 8 to 16 characters.')
+    .max(16, 'Password must be between 8 to 16 characters.'),
+  role: z.enum(['user', 'admin']).optional(),
+  provider: z.enum(['email', 'google', 'facebook']).optional(),
+  socialId: z.string().nullable().optional(),
+});
+
+export type TUser = z.infer<typeof UserZodSchema>;
