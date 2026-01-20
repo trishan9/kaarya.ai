@@ -23,7 +23,7 @@ export const verifySession = cache(async () => {
     return null;
   }
 
-  return { isAuth: true, token, dummyUserId: "2" };
+  return { token };
 });
 
 export async function updateSession() {

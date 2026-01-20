@@ -10,10 +10,6 @@ export const getCurrentUser = cache(async (): Promise<TUser | null> => {
   if (!session) return null;
 
   try {
-    if (session.token !== "dummy_access_token") {
-      return null;
-    }
-
     const response = await authActions.auth.getMe();
     return response.data.data ?? null;
   } catch (_) {
