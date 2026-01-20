@@ -7,7 +7,12 @@ import { clearSession } from "../session";
 
 export async function signup(data: TSignupSchema) {
   try {
-    const response = await api.post(API_URLS.AUTH.SIGNUP, data);
+    const response = await api.post(API_URLS.AUTH.SIGNUP, {
+      fullName: `${data.firstName} ${data.lastName}`,
+      email: data.email,
+      password: data.password,
+      confirmPassword: data.confirmPassword,
+    });
     return response.data;
   } catch (error: Error | any) {
     return {
