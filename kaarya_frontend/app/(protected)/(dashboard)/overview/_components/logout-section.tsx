@@ -1,3 +1,5 @@
+"use client";
+
 import { Loader2 } from "lucide-react";
 import { useLogOut } from "@/app/(auth)/_hooks/use-log-out";
 import { Button } from "@/components/ui/button";

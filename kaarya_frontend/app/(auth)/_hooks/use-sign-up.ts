@@ -5,7 +5,7 @@ import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { authActions } from "@/lib/actions/auth-action";
+import { signup } from "@/lib/actions/auth-action";
 import { signupSchema, TSignupSchema } from "../_schemas";
 
 export const useSignUp = () => {
@@ -26,10 +26,10 @@ export const useSignUp = () => {
   async function onSubmit(data: TSignupSchema) {
     startTransition(async () => {
       try {
-        const response = await authActions.auth.signup(data);
+        const response = await signup(data);
         router.push("/auth/sign-in");
 
-        toast.success(response.data.message);
+        toast.success(response.message);
       } catch (error: Error | any) {
         const errorMessage =
           error?.response?.data?.message ||

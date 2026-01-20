@@ -1,9 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
-import { authActions } from "@/lib/actions/auth-action";
+import { logout } from "@/lib/actions/auth-action";
+import { useRouter } from "next/navigation";
 
 export const useLogOut = () => {
   const [isPending, startTransition] = useTransition();
@@ -13,9 +13,9 @@ export const useLogOut = () => {
     startTransition(async () => {
       try {
         await new Promise((resolve) => setTimeout(resolve, 2000));
+        await logout();
 
-        await authActions.auth.logout();
-        router.refresh();
+        router.push("/sign-in");
 
         toast.success("Successfully logged out.");
       } catch (error: Error | any) {

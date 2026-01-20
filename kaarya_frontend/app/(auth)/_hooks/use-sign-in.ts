@@ -5,8 +5,8 @@ import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { authActions } from "@/lib/actions/auth-action";
 import { createSession } from "@/lib/session";
+import { signin } from "@/lib/actions/auth-action";
 import { signinSchema, TSigninSchema } from "../_schemas";
 
 export const useSignIn = () => {
@@ -24,17 +24,21 @@ export const useSignIn = () => {
   async function onSubmit(data: TSigninSchema) {
     startTransition(async () => {
       try {
-        const response = await authActions.auth.signin(data);
+        const response = await signin(data);
+        const accessToken = response?.data?.accessToken;
 
-        const {
-          message,
-          data: { accessToken },
-        } = response.data;
+        if (!accessToken) {
+          const errorMessage =
+            response?.message ||
+            "Invalid credentials. Please check your email and password.";
+          toast.error(errorMessage);
+          return;
+        }
 
         await createSession(accessToken);
         router.refresh();
 
-        toast.success(message);
+        toast.success(response?.message || "Signed in successfully.");
       } catch (error: Error | any) {
         const errorMessage =
           error?.response?.data?.message ||
