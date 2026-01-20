@@ -8,16 +8,18 @@ import { clearSession } from "../session";
 export async function signup(data: TSignupSchema) {
   try {
     const response = await api.post(API_URLS.AUTH.SIGNUP, {
-      fullName: `${data.firstName} ${data.lastName}`,
+      name: `${data.firstName} ${data.lastName}`,
       email: data.email,
       password: data.password,
       confirmPassword: data.confirmPassword,
     });
     return response.data;
   } catch (error: Error | any) {
+    const errorMessage =
+      error?.response?.data?.message || error.message || "Signup failed";
     return {
       success: false,
-      message: error.message || "Signup failed",
+      message: errorMessage,
     };
   }
 }
@@ -45,9 +47,11 @@ export async function getMe() {
     const response = await api.get(API_URLS.AUTH.ME);
     return response.data;
   } catch (error: Error | any) {
+    const errorMessage =
+      error?.response?.data?.message || error.message || "Fetching user failed";
     return {
       success: false,
-      message: error.message || "Failed to fetch user data",
+      message: errorMessage,
     };
   }
 }

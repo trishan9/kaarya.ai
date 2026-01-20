@@ -27,9 +27,13 @@ export const useSignUp = () => {
     startTransition(async () => {
       try {
         const response = await signup(data);
-        router.push("/auth/sign-in");
+        if (!response?.success) {
+          toast.error(response?.message || "Signup failed. Please try again.");
+          return;
+        }
 
         toast.success(response.message);
+        router.push("/sign-in");
       } catch (error: Error | any) {
         const errorMessage =
           error?.response?.data?.message ||
