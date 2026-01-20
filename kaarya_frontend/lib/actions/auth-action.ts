@@ -3,7 +3,7 @@
 import { TSigninSchema, TSignupSchema } from "@/app/(auth)/_schemas";
 import { api } from "../api/axios-instance";
 import { API_URLS } from "../api/endpoints";
-import { deleteSession } from "../session";
+import { clearSession } from "../session";
 import { redirect } from "next/navigation";
 
 export const authActions = {
@@ -15,7 +15,7 @@ export const authActions = {
       return await api.post(API_URLS.AUTH.SIGNIN, credentials);
     },
     logout: async () => {
-      await deleteSession();
+      await clearSession();
       return redirect("/sign-in");
     },
     getMe: async () => {

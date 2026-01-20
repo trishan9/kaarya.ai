@@ -6,7 +6,7 @@ export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   const isPublicRoute = publicRoutes.some(
-    (route) => path === route || path.startsWith(route)
+    (route) => path === route || path.startsWith(route),
   );
 
   const token = request.cookies.get("access_token")?.value;

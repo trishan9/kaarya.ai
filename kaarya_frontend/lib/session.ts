@@ -1,4 +1,5 @@
 import "server-only";
+
 import { cookies } from "next/headers";
 import { cache } from "react";
 
@@ -42,7 +43,7 @@ export async function updateSession() {
   });
 }
 
-export async function deleteSession() {
+export async function clearSession() {
   const cookieStore = await cookies();
   cookieStore.delete("access_token");
 }
