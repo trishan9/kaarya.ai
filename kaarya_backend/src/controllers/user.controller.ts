@@ -17,9 +17,6 @@ import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from 'src/decorators/roles.decorator';
 
-@ApiBearerAuth('access-token')
-@Roles(UserRole.ADMIN)
-@UseGuards(AuthGuard('jwt'), RolesGuard)
 @ApiTags('Users')
 @Controller({
   path: ROUTES.USER.BASE,
@@ -29,6 +26,9 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
+  @ApiBearerAuth('access-token')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @HttpCode(HttpStatus.OK)
   async getAllUsers() {
     return asyncHandler(async () => {

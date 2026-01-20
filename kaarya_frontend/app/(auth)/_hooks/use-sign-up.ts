@@ -1,17 +1,18 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { useForm } from "react-hook-form";
-import z from "zod";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signupSchema } from "../_schemas";
-import { signupAction } from "../_actions/signup";
+import { signup } from "@/lib/actions/auth-action";
+import { signupSchema, TSignupSchema } from "../_schemas";
 
 export const useSignUp = () => {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
-  const form = useForm<z.infer<typeof signupSchema>>({
+  const form = useForm<TSignupSchema>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
       firstName: "",
@@ -22,10 +23,24 @@ export const useSignUp = () => {
     },
   });
 
-  async function onSubmit(data: z.infer<typeof signupSchema>) {
+  async function onSubmit(data: TSignupSchema) {
     startTransition(async () => {
-      await signupAction(data);
-      toast("Account created succesfully!");
+      try {
+        const response = await signup(data);
+        if (!response?.success) {
+          toast.error(response?.message || "Signup failed. Please try again.");
+          return;
+        }
+
+        toast.success(response.message);
+        router.push("/sign-in");
+      } catch (error: Error | any) {
+        const errorMessage =
+          error?.response?.data?.message ||
+          error.message ||
+          "An unexpected error occurred while signing up. Please try again.";
+        toast.error(errorMessage);
+      }
     });
   }
 

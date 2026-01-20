@@ -1,4 +1,5 @@
-import "server-only";
+"use server";
+
 import { cookies } from "next/headers";
 import { cache } from "react";
 
@@ -22,7 +23,7 @@ export const verifySession = cache(async () => {
     return null;
   }
 
-  return { isAuth: true, token, dummyUserId: "2" };
+  return { token };
 });
 
 export async function updateSession() {
@@ -42,7 +43,7 @@ export async function updateSession() {
   });
 }
 
-export async function deleteSession() {
+export async function clearSession() {
   const cookieStore = await cookies();
   cookieStore.delete("access_token");
 }
