@@ -1,19 +1,18 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { useForm } from "react-hook-form";
-import z from "zod";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signupSchema } from "../_schemas";
-import { useRouter } from "next/navigation";
 import { authActions } from "@/lib/actions/auth-action";
+import { signupSchema, TSignupSchema } from "../_schemas";
 
 export const useSignUp = () => {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
-  const form = useForm<z.infer<typeof signupSchema>>({
+  const form = useForm<TSignupSchema>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
       firstName: "",
@@ -24,11 +23,12 @@ export const useSignUp = () => {
     },
   });
 
-  async function onSubmit(data: z.infer<typeof signupSchema>) {
+  async function onSubmit(data: TSignupSchema) {
     startTransition(async () => {
       try {
         const response = await authActions.auth.signup(data);
         router.push("/auth/sign-in");
+
         toast.success(response.data.message);
       } catch (error: Error | any) {
         const errorMessage =

@@ -38,7 +38,7 @@ export function FeatureCarousel() {
   useEffect(() => {
     const timer = setInterval(
       () => setIndex((prev) => (prev + 1) % FEATURES.length),
-      AUTOPLAY_INTERVAL
+      AUTOPLAY_INTERVAL,
     );
 
     return () => clearInterval(timer);
