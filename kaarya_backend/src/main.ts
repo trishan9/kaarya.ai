@@ -15,11 +15,16 @@ import { ResolvePromisesInterceptor } from './utils/serializer.interceptor';
 import { AllConfigType } from './types/config.type';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create(AppModule);
 
   const configService = app.get(ConfigService<AllConfigType>);
 
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
+
+  app.enableCors({
+    origin: process.env.FRONTEND_DOMAIN,
+    credentials: true,
+  });
 
   app.useLogger(app.get(PinoLoggerService));
 
