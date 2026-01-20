@@ -40,7 +40,7 @@ export const useSignIn = () => {
         const errorMessage =
           error?.response?.data?.message ||
           error.message ||
-          "An unexpected error occurred. Please try again.";
+          "An unexpected error occurred while signing in. Please try again.";
         toast.error(errorMessage);
       }
     });

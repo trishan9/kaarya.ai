@@ -12,7 +12,7 @@ export const getCurrentUser = cache(async (): Promise<TUser | null> => {
   try {
     const response = await authActions.auth.getMe();
     return response.data.data ?? null;
-  } catch (_) {
+  } catch {
     console.log("Failed to fetch user");
     return null;
   }
