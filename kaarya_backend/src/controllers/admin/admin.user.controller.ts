@@ -1,15 +1,23 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 import argon2 from 'argon2';
 import { memoryStorage } from 'multer';
 import z from 'zod';
@@ -24,27 +32,27 @@ import { CreateUserDTO, TCreateUserDTO } from 'src/dtos/users/user.dto';
 import { CreateAdminUserSwaggerDTO } from 'src/dtos/swagger/users/user.swagger.dto';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { CloudinaryService } from 'src/services/cloudinary.service';
-import { UserService } from 'src/services/user.service';
 import { UserRole } from 'src/types/user-role.enum';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { USER_MESSAGES } from 'src/constants/messages.constants';
 import { ROUTES } from 'src/constants/routes.constants';
+import { AdminUserService } from 'src/services/admin/admin.user.service';
 
-@ApiTags('Admin Users')
+@ApiTags('User Management - Admin')
 @Controller({
   path: `${ROUTES.ADMIN.BASE}/${ROUTES.USER.BASE}`,
   version: '1',
 })
+@ApiBearerAuth('access-token')
+@Roles(UserRole.ADMIN)
+@UseGuards(AuthGuard('jwt'), RolesGuard)
 export class AdminUserController {
   constructor(
-    private readonly userService: UserService,
+    private readonly userService: AdminUserService,
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   @Post()
-  @ApiBearerAuth('access-token')
-  @Roles(UserRole.ADMIN)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @UseInterceptors(
     FileInterceptor('photo', {
       storage: memoryStorage(),
@@ -117,6 +125,29 @@ export class AdminUserController {
         sanitizeUser(user),
         USER_MESSAGES.CREATE_SUCCESS,
       );
+    });
+  }
+
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  async getAllUsers() {
+    return asyncHandler(async () => {
+      const data = await this.userService.getAllUsers();
+      return buildSuccessResponse(data, USER_MESSAGES.FETCH_ALL_SUCCESS);
+    });
+  }
+
+  @Get(ROUTES.USER.BY_ID)
+  @HttpCode(HttpStatus.OK)
+  @ApiParam({
+    name: 'id',
+    type: String,
+    required: true,
+  })
+  async getUserById(@Param('id') id: string) {
+    return asyncHandler(async () => {
+      const data = await this.userService.getUserById(id);
+      return buildSuccessResponse(data, USER_MESSAGES.FETCH_BY_ID_SUCCESS);
     });
   }
 }
