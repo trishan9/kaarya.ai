@@ -16,6 +16,7 @@ export abstract class ACUserRepository {
     id: string,
     payload: Partial<TUser>,
   ): Promise<UserSchemaDocument | null>;
+  abstract deleteById(id: string): Promise<UserSchemaDocument | null>;
 }
 
 @Injectable()
@@ -59,5 +60,10 @@ export class UserRepository implements ACUserRepository {
     return await this.userModel
       .findByIdAndUpdate(id, payload, { new: true })
       .exec();
+  }
+
+  async deleteById(id: string): Promise<UserSchemaDocument | null> {
+    if (!id) return null;
+    return await this.userModel.findByIdAndDelete(id).exec();
   }
 }

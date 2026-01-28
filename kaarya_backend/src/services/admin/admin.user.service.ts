@@ -28,4 +28,8 @@ export class AdminUserService {
   async updateUser(id: string, payload: TUpdateUserDTO) {
     return await this.userRepository.updateById(id, payload);
   }
+
+  async deleteUser(id: string) {
+    return await this.userRepository.deleteById(id);
+  }
 }

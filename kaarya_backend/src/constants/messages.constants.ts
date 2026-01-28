@@ -15,6 +15,7 @@ export const USER_MESSAGES = {
   FETCH_BY_ID_SUCCESS: 'User fetched successfully.',
   CREATE_SUCCESS: 'User created successfully.',
   UPDATE_SUCCESS: 'User updated successfully.',
+  DELETE_SUCCESS: 'User deleted successfully.',
 } as const;
 
 export const RESPONSE_MESSAGES = {

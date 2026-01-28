@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -248,6 +249,30 @@ export class AdminUserController {
       return buildSuccessResponse(
         sanitizeUser(user),
         USER_MESSAGES.UPDATE_SUCCESS,
+      );
+    });
+  }
+
+  @Delete(ROUTES.USER.BY_ID)
+  @ApiParam({
+    name: 'id',
+    type: String,
+    required: true,
+  })
+  @HttpCode(HttpStatus.OK)
+  async deleteUser(@Param('id') id: string) {
+    return asyncHandler(async () => {
+      const deletedUser = await this.userService.deleteUser(id);
+      if (!deletedUser) {
+        throw new ApiError({
+          statusCode: HttpStatus.NOT_FOUND,
+          message: USER_MESSAGES.NOT_FOUND,
+        });
+      }
+
+      return buildSuccessResponse(
+        sanitizeUser(deletedUser),
+        USER_MESSAGES.DELETE_SUCCESS,
       );
     });
   }
