@@ -12,6 +12,10 @@ export abstract class ACUserRepository {
     email: string,
     options?: { includePassword?: boolean },
   ): Promise<UserSchemaDocument | null>;
+  abstract updateById(
+    id: string,
+    payload: Partial<TUser>,
+  ): Promise<UserSchemaDocument | null>;
 }
 
 @Injectable()
@@ -45,5 +49,15 @@ export class UserRepository implements ACUserRepository {
       query.select('+password');
     }
     return await query.exec();
+  }
+
+  async updateById(
+    id: string,
+    payload: Partial<TUser>,
+  ): Promise<UserSchemaDocument | null> {
+    if (!id) return null;
+    return await this.userModel
+      .findByIdAndUpdate(id, payload, { new: true })
+      .exec();
   }
 }
