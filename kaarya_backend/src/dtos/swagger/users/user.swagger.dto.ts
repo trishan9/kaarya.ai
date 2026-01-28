@@ -39,9 +39,6 @@ export class UpdateAdminUserSwaggerDTO {
   @ApiProperty({ example: 'Password123!', required: false })
   password?: string;
 
-  @ApiProperty({ example: 'Password123!', required: false })
-  confirmPassword?: string;
-
   @ApiProperty({ example: 'user', required: false })
   role?: string;
 
