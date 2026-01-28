@@ -13,6 +13,7 @@ export const USER_MESSAGES = {
   FETCH_ALL_SUCCESS: 'Users fetched.',
   FETCH_BY_EMAIL_SUCCESS: 'User fetched.',
   FETCH_BY_ID_SUCCESS: 'User fetched.',
+  CREATE_SUCCESS: 'User created.',
 } as const;
 
 export const RESPONSE_MESSAGES = {

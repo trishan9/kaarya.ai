@@ -5,6 +5,9 @@ export const ROUTES = {
     SIGNUP: 'signup',
     ME: 'me',
   },
+  ADMIN: {
+    BASE: 'admin',
+  },
   USER: {
     BASE: 'users',
     BY_ID: ':id',

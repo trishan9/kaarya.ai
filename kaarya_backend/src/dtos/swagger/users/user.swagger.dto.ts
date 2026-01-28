@@ -14,6 +14,21 @@ export class CreateUserSwaggerDTO {
   confirmPassword: string;
 }
 
+export class CreateAdminUserSwaggerDTO extends CreateUserSwaggerDTO {
+  @ApiProperty({ example: 'user', required: false })
+  role?: string;
+
+  @ApiProperty({ example: 'email', required: false })
+  provider?: string;
+
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+    required: false,
+  })
+  photo?: string;
+}
+
 export class LoginSwaggerDTO {
   @ApiProperty({ example: 'trishan@example.com' })
   email: string;
