@@ -1,4 +1,5 @@
 import { UserSchemaDocument } from 'src/entities/user.schema';
+import { TUser } from 'src/types/user.type';
 
 type UserInput =
   | UserSchemaDocument
@@ -9,15 +10,15 @@ type UserInput =
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
 
-export const sanitizeUser = (user: UserInput) => {
-  if (!user) return user;
+export const sanitizeUser = (user: UserInput): Partial<TUser> | null => {
+  if (!user) return null;
 
   const raw =
     typeof (user as { toJSON?: () => unknown }).toJSON === 'function'
       ? (user as { toJSON: () => unknown }).toJSON()
       : ((user as { _doc?: unknown })._doc ?? user);
 
-  if (!isObject(raw)) return raw;
+  if (!isObject(raw)) return null;
 
   const data: Record<string, unknown> = { ...raw };
   const id =

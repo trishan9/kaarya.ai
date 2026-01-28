@@ -10,10 +10,11 @@ export const AUTH_MESSAGES = {
 export const USER_MESSAGES = {
   NOT_FOUND: 'User not found.',
   INVALID_ID: 'Invalid user id.',
-  FETCH_ALL_SUCCESS: 'Users fetched.',
-  FETCH_BY_EMAIL_SUCCESS: 'User fetched.',
-  FETCH_BY_ID_SUCCESS: 'User fetched.',
-  CREATE_SUCCESS: 'User created.',
+  FETCH_ALL_SUCCESS: 'Users fetched successfully.',
+  FETCH_BY_EMAIL_SUCCESS: 'User fetched successfully.',
+  FETCH_BY_ID_SUCCESS: 'User fetched successfully.',
+  CREATE_SUCCESS: 'User created successfully.',
+  UPDATE_SUCCESS: 'User updated successfully.',
 } as const;
 
 export const RESPONSE_MESSAGES = {

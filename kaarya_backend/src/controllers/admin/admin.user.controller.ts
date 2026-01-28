@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Put,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -28,8 +29,16 @@ import { buildSuccessResponse } from 'src/common/utils/api-response';
 import { sanitizeUser } from 'src/common/utils/sanitize-user';
 import { AUTH_MESSAGES } from 'src/constants/messages.constants';
 import { Roles } from 'src/decorators/roles.decorator';
-import { CreateUserDTO, TCreateUserDTO } from 'src/dtos/users/user.dto';
-import { CreateAdminUserSwaggerDTO } from 'src/dtos/swagger/users/user.swagger.dto';
+import {
+  CreateUserDTO,
+  TCreateUserDTO,
+  TUpdateUserDTO,
+  UpdateUserDTO,
+} from 'src/dtos/users/user.dto';
+import {
+  CreateAdminUserSwaggerDTO,
+  UpdateAdminUserSwaggerDTO,
+} from 'src/dtos/swagger/users/user.swagger.dto';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { CloudinaryService } from 'src/services/cloudinary.service';
 import { UserRole } from 'src/types/user-role.enum';
@@ -148,6 +157,98 @@ export class AdminUserController {
     return asyncHandler(async () => {
       const data = await this.userService.getUserById(id);
       return buildSuccessResponse(data, USER_MESSAGES.FETCH_BY_ID_SUCCESS);
+    });
+  }
+
+  @Put(ROUTES.USER.BY_ID)
+  @UseInterceptors(
+    FileInterceptor('photo', {
+      storage: memoryStorage(),
+      limits: {
+        fileSize: 5 * 1024 * 1024,
+      },
+      fileFilter: (_req, file, cb) => {
+        if (!file.mimetype.startsWith('image/')) {
+          cb(
+            new ApiError({
+              statusCode: HttpStatus.BAD_REQUEST,
+              message: 'Only image files are allowed.',
+            }),
+            false,
+          );
+          return;
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ type: UpdateAdminUserSwaggerDTO })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    required: true,
+  })
+  @HttpCode(HttpStatus.OK)
+  async updateUser(
+    @Param('id') id: string,
+    @Body() payload: TUpdateUserDTO,
+    @UploadedFile() photo?: Express.Multer.File,
+  ) {
+    return asyncHandler(async () => {
+      const parsedData = UpdateUserDTO.safeParse(payload);
+
+      if (!parsedData.success) {
+        throw new ApiError({
+          message: z.prettifyError(parsedData.error),
+          statusCode: HttpStatus.BAD_REQUEST,
+        });
+      }
+
+      const existingUser = await this.userService.getUserById(id);
+      if (!existingUser) {
+        throw new ApiError({
+          statusCode: HttpStatus.NOT_FOUND,
+          message: USER_MESSAGES.NOT_FOUND,
+        });
+      }
+
+      const userPayload = parsedData.data;
+
+      if (userPayload.email && userPayload.email !== existingUser.email) {
+        const emailOwner = await this.userService.getUserByEmail(
+          userPayload.email,
+        );
+        if (emailOwner) {
+          throw new ApiError({
+            statusCode: HttpStatus.CONFLICT,
+            message: AUTH_MESSAGES.EMAIL_IN_USE,
+          });
+        }
+      }
+
+      if (userPayload.password) {
+        userPayload.password = await argon2.hash(userPayload.password, {
+          type: argon2.argon2id,
+        });
+      }
+
+      if (photo) {
+        userPayload.photo = await this.cloudinaryService.uploadImage(photo);
+      }
+
+      const user = await this.userService.updateUser(id, userPayload);
+      if (!user) {
+        throw new ApiError({
+          statusCode: HttpStatus.NOT_FOUND,
+          message: USER_MESSAGES.NOT_FOUND,
+        });
+      }
+
+      return buildSuccessResponse(
+        sanitizeUser(user),
+        USER_MESSAGES.UPDATE_SUCCESS,
+      );
     });
   }
 }
