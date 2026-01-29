@@ -8,7 +8,7 @@ import {
   adminUpdateUserSchema,
   TAdminUpdateUserSchema,
 } from "@/app/(protected)/admin/_schemas";
-import { updateAdminUser } from "@/lib/actions/admin-user-actions";
+import { updateAdminUser } from "@/lib/actions/admin/admin-user-actions";
 
 export const useUpdateUser = (
   userId: string,

@@ -18,3 +18,9 @@ api.interceptors.request.use(
   },
   (error) => Promise.reject(error),
 );
+
+export const MULTIPART_FORM_DATA_CONFIG = {
+  headers: {
+    "Content-Type": "multipart/form-data",
+  },
+};

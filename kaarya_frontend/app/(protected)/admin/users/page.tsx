@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getAdminUsers } from "@/lib/actions/admin-user-actions";
+import { getAdminUsers } from "@/lib/actions/admin/admin-user-actions";
 import { Button } from "@/components/ui/button";
 import { TUser } from "@/lib/definitions";
 import Image from "next/image";

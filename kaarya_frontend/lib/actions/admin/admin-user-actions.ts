@@ -1,6 +1,6 @@
 "use server";
 
-import { api } from "@/lib/api/axios-instance";
+import { api, MULTIPART_FORM_DATA_CONFIG } from "@/lib/api/axios-instance";
 import { API_URLS } from "@/lib/api/endpoints";
 
 export type AdminUserPayload = {
@@ -65,7 +65,11 @@ export async function getAdminUserById(id: string) {
 export async function createAdminUser(payload: AdminUserPayload) {
   try {
     const formData = buildUserFormData(payload);
-    const response = await api.post(API_URLS.ADMIN.USERS, formData);
+    const response = await api.post(
+      API_URLS.ADMIN.USERS,
+      formData,
+      MULTIPART_FORM_DATA_CONFIG,
+    );
     return response.data;
   } catch (error: Error | any) {
     const errorMessage =
@@ -82,7 +86,11 @@ export async function createAdminUser(payload: AdminUserPayload) {
 export async function updateAdminUser(id: string, payload: AdminUserPayload) {
   try {
     const formData = buildUserFormData(payload);
-    const response = await api.put(API_URLS.ADMIN.USER_BY_ID(id), formData);
+    const response = await api.put(
+      API_URLS.ADMIN.USER_BY_ID(id),
+      formData,
+      MULTIPART_FORM_DATA_CONFIG,
+    );
     return response.data;
   } catch (error: Error | any) {
     const errorMessage =

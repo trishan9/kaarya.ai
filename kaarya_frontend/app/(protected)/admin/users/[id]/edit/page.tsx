@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { getAdminUserById } from "@/lib/actions/admin-user-actions";
+import { getAdminUserById } from "@/lib/actions/admin/admin-user-actions";
 import { TUser } from "@/lib/definitions";
 import { EditUserForm } from "../../_components/edit-user-form";
 

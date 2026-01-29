@@ -8,7 +8,7 @@ import {
   adminCreateUserSchema,
   TAdminCreateUserSchema,
 } from "@/app/(protected)/admin/_schemas";
-import { createAdminUser } from "@/lib/actions/admin-user-actions";
+import { createAdminUser } from "@/lib/actions/admin/admin-user-actions";
 
 export const useCreateUser = () => {
   const router = useRouter();

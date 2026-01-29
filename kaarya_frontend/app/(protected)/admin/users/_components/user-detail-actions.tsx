@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
-import { deleteAdminUser } from "@/lib/actions/admin-user-actions";
+import { deleteAdminUser } from "@/lib/actions/admin/admin-user-actions";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
