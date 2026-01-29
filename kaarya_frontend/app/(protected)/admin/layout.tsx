@@ -1,6 +1,6 @@
+import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/dal";
 import { Role } from "@/lib/definitions";
-import { redirect } from "next/navigation";
 
 export default async function AdminLayout({
   children,

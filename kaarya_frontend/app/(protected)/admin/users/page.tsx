@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { getAdminUsers } from "@/lib/actions/admin/admin-user-actions";
-import { Button } from "@/components/ui/button";
-import { TUser } from "@/lib/definitions";
 import Image from "next/image";
+import { getAdminUsers } from "@/lib/actions/admin/admin-user-actions";
+import { TUser } from "@/lib/definitions";
+import { Button } from "@/components/ui/button";
 
 export default async function AdminUsersPage() {
   const response = await getAdminUsers();
@@ -17,8 +17,10 @@ export default async function AdminUsersPage() {
           <p className="text-sm uppercase tracking-wide text-muted-foreground">
             Admin Panel
           </p>
+
           <h1 className="text-2xl font-semibold">Users</h1>
         </div>
+
         <Button asChild className="transition hover:-translate-y-0.5">
           <Link href="/admin/users/create">Create user</Link>
         </Button>
@@ -37,6 +39,7 @@ export default async function AdminUsersPage() {
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
+
             <tbody>
               {errorMessage && (
                 <tr>
@@ -45,6 +48,7 @@ export default async function AdminUsersPage() {
                   </td>
                 </tr>
               )}
+
               {!errorMessage && users.length === 0 && (
                 <tr>
                   <td className="px-4 py-8 text-muted-foreground" colSpan={5}>
@@ -52,6 +56,7 @@ export default async function AdminUsersPage() {
                   </td>
                 </tr>
               )}
+
               {users.map((user) => (
                 <tr
                   key={user.id}
@@ -75,34 +80,42 @@ export default async function AdminUsersPage() {
                           </div>
                         )}
                       </div>
+
                       <div>
                         <p className="font-medium">{user.name}</p>
+
                         <p className="text-xs text-muted-foreground">
                           {user.id}
                         </p>
                       </div>
                     </div>
                   </td>
+
                   <td className="px-4 py-4">{user.email ?? "-"}</td>
+
                   <td className="px-4 py-4">
                     <span className="rounded-full border px-2.5 py-1 text-xs font-medium capitalize">
                       {user.role}
                     </span>
                   </td>
+
                   <td className="px-4 py-4">
                     {user.createdAt
                       ? new Date(user.createdAt).toLocaleDateString()
                       : "-"}
                   </td>
+
                   <td className="px-4 py-4">
                     {user.updatedAt
                       ? new Date(user.updatedAt).toLocaleDateString()
                       : "-"}
                   </td>
+
                   <td className="px-4 py-4 text-right">
                     <Button variant="ghost" size="sm" asChild>
                       <Link href={`/admin/users/${user.id}`}>View</Link>
                     </Button>
+
                     <Button variant="ghost" size="sm" asChild>
                       <Link href={`/admin/users/${user.id}/edit`}>Edit</Link>
                     </Button>
