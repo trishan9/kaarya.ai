@@ -13,6 +13,7 @@ import { PinoLoggerService } from './logger/pino-logger.service';
 import validationOptions from './utils/validation-options';
 import { ResolvePromisesInterceptor } from './utils/serializer.interceptor';
 import { AllConfigType } from './types/config.type';
+import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -49,6 +50,8 @@ async function bootstrap() {
     new ResolvePromisesInterceptor(),
     new ClassSerializerInterceptor(app.get(Reflector)),
   );
+
+  app.useGlobalFilters(new GlobalExceptionFilter());
 
   const options = new DocumentBuilder()
     .setTitle('Kaarya API')
