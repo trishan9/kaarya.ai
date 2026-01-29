@@ -51,8 +51,8 @@ async function bootstrap() {
   );
 
   const options = new DocumentBuilder()
-    .setTitle('API')
-    .setDescription('API docs')
+    .setTitle('Kaarya API')
+    .setDescription('Kaarya API Documentation')
     .setVersion('1.0')
     .addBearerAuth()
     .addGlobalParameters({
