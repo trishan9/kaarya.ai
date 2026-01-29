@@ -60,3 +60,18 @@ export class LoginSwaggerDTO {
   @ApiProperty({ example: 'Password123!' })
   password: string;
 }
+
+export class UpdateMeSwaggerDTO {
+  @ApiProperty({ example: 'Trishan Wagle', required: false })
+  name?: string;
+
+  @ApiProperty({ example: 'trishan@example.com', required: false })
+  email?: string;
+
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+    required: false,
+  })
+  photo?: string;
+}

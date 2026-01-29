@@ -9,6 +9,7 @@ import { AuthService } from 'src/services/auth.service';
 import { JwtStrategy } from 'src/strategies/jwt.strategy';
 import { AllConfigType } from 'src/types/config.type';
 import { UserModule } from './user.module';
+import { CloudinaryService } from 'src/services/cloudinary.service';
 
 @Module({
   imports: [
@@ -28,7 +29,7 @@ import { UserModule } from './user.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, CloudinaryService],
   exports: [AuthService],
 })
 export class AuthModule {}

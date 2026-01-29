@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { sanitizeUser } from 'src/common/utils/sanitize-user';
-import { TCreateUserDTO } from 'src/dtos/users/user.dto';
+import { TCreateUserDTO, TUpdateMeDTO } from 'src/dtos/users/user.dto';
 import { ACUserRepository } from 'src/repositories/user.repository';
 
 @Injectable()
@@ -9,6 +9,10 @@ export class UserService {
 
   async createUser(payload: TCreateUserDTO) {
     return await this.userRepository.create(payload);
+  }
+
+  async updateUser(id: string, payload: Partial<TUpdateMeDTO>) {
+    return await this.userRepository.updateById(id, payload);
   }
 
   async getUserByEmail(email: string, options?: { includePassword?: boolean }) {

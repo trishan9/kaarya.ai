@@ -4,6 +4,7 @@ export const ROUTES = {
     LOGIN: 'login',
     SIGNUP: 'signup',
     ME: 'me',
+    UPDATE_ME: 'update-me',
   },
   ADMIN: {
     BASE: 'admin',
