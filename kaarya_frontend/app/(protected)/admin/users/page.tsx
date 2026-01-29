@@ -3,6 +3,7 @@ import Image from "next/image";
 import { getAdminUsers } from "@/lib/actions/admin/admin-user-actions";
 import { TUser } from "@/lib/definitions";
 import { Button } from "@/components/ui/button";
+import { AdminUsersAnalytics } from "./_components/user-analytics";
 
 export default async function AdminUsersPage() {
   const response = await getAdminUsers();
@@ -15,7 +16,7 @@ export default async function AdminUsersPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-sm uppercase tracking-wide text-muted-foreground">
-            Admin Panel
+            Kaarya Admin Panel
           </p>
 
           <h1 className="text-2xl font-semibold">Users</h1>
@@ -25,6 +26,8 @@ export default async function AdminUsersPage() {
           <Link href="/admin/users/create">Create user</Link>
         </Button>
       </div>
+
+      {!errorMessage && <AdminUsersAnalytics users={users} />}
 
       <div className="rounded-2xl border bg-card shadow-sm animate-in fade-in">
         <div className="overflow-x-auto">
@@ -43,7 +46,7 @@ export default async function AdminUsersPage() {
             <tbody>
               {errorMessage && (
                 <tr>
-                  <td className="px-4 py-8 text-muted-foreground" colSpan={5}>
+                  <td className="px-4 py-8 text-muted-foreground" colSpan={6}>
                     {errorMessage}
                   </td>
                 </tr>
@@ -51,7 +54,7 @@ export default async function AdminUsersPage() {
 
               {!errorMessage && users.length === 0 && (
                 <tr>
-                  <td className="px-4 py-8 text-muted-foreground" colSpan={5}>
+                  <td className="px-4 py-8 text-muted-foreground" colSpan={6}>
                     No users found.
                   </td>
                 </tr>

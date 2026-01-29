@@ -26,7 +26,9 @@ export default async function Home() {
             <p>Hello, {currentUser.name}</p>
 
             {currentUser?.role === Role.ADMIN && (
-              <p className="font-semibold">Only admins can see this text!!!</p>
+              <Button>
+                <Link href="/admin/users">User Management | Admin Panel</Link>
+              </Button>
             )}
           </>
         )}
