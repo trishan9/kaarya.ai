@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { TAdminCreateUserSchema } from "@/app/(protected)/admin/_schemas";
-import { useCreateUser } from "../_hooks/use-admin-user-form";
+import { useCreateUser } from "../_hooks/use-create-user";
 
 export function CreateUserForm() {
   const { form, onSubmit, isSubmitting } = useCreateUser();
