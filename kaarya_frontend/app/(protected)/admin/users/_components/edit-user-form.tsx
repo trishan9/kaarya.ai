@@ -27,9 +27,8 @@ export function EditUserForm({
 }: EditUserFormProps) {
   const { form, onSubmit, isSubmitting } = useUpdateUser(userId, initialValues);
 
-  const submitHandler = (values: TAdminUpdateUserSchema) => {
-    onSubmit(values);
-  };
+  const submitHandler = async (values: TAdminUpdateUserSchema) =>
+    await onSubmit(values);
 
   return (
     <form onSubmit={form.handleSubmit(submitHandler)} className="space-y-6">

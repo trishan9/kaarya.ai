@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -13,7 +12,6 @@ import { createAdminUser } from "@/lib/actions/admin-user-actions";
 
 export const useCreateUser = () => {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
 
   const form = useForm<TAdminCreateUserSchema>({
     resolver: zodResolver(adminCreateUserSchema),
@@ -29,22 +27,20 @@ export const useCreateUser = () => {
   });
 
   async function onSubmit(values: TAdminCreateUserSchema) {
-    startTransition(async () => {
-      const response = await createAdminUser(values);
-      if (!response?.success) {
-        toast.error(response?.message || "Failed to create user.");
-        return;
-      }
+    const response = await createAdminUser(values);
+    if (!response?.success) {
+      toast.error(response?.message || "Failed to create user.");
+      return;
+    }
 
-      toast.success(response?.message || "User created.");
-      router.push("/admin/users");
-      router.refresh();
-    });
+    toast.success(response?.message || "User created.");
+    router.push("/admin/users");
+    router.refresh();
   }
 
   return {
     form,
     onSubmit,
-    isSubmitting: form.formState.isSubmitting || isPending,
+    isSubmitting: form.formState.isSubmitting,
   };
 };

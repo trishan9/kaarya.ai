@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -16,7 +15,6 @@ export const useUpdateUser = (
   initialValues: Partial<TAdminUpdateUserSchema>,
 ) => {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
 
   const form = useForm<TAdminUpdateUserSchema>({
     resolver: zodResolver(adminUpdateUserSchema),
@@ -32,22 +30,20 @@ export const useUpdateUser = (
   });
 
   async function onSubmit(values: TAdminUpdateUserSchema) {
-    startTransition(async () => {
-      const response = await updateAdminUser(userId, values);
-      if (!response?.success) {
-        toast.error(response?.message || "Failed to update user.");
-        return;
-      }
+    const response = await updateAdminUser(userId, values);
+    if (!response?.success) {
+      toast.error(response?.message || "Failed to update user.");
+      return;
+    }
 
-      toast.success(response?.message || "User updated.");
-      router.push(`/admin/users/${userId}`);
-      router.refresh();
-    });
+    toast.success(response?.message || "User updated.");
+    router.push(`/admin/users/${userId}`);
+    router.refresh();
   }
 
   return {
     form,
     onSubmit,
-    isSubmitting: form.formState.isSubmitting || isPending,
+    isSubmitting: form.formState.isSubmitting,
   };
 };

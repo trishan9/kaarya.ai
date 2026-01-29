@@ -17,9 +17,8 @@ import { useCreateUser } from "../_hooks/use-create-user";
 export function CreateUserForm() {
   const { form, onSubmit, isSubmitting } = useCreateUser();
 
-  const submitHandler = (values: TAdminCreateUserSchema) => {
-    onSubmit(values);
-  };
+  const submitHandler = async (values: TAdminCreateUserSchema) =>
+    await onSubmit(values);
 
   return (
     <form onSubmit={form.handleSubmit(submitHandler)} className="space-y-6">
