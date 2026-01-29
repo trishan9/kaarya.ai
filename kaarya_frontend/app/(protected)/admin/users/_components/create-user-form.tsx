@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, useRef, useState } from "react";
 import { Controller } from "react-hook-form";
 import { Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,12 +14,41 @@ import {
 import { Input } from "@/components/ui/input";
 import { TAdminCreateUserSchema } from "@/app/(protected)/admin/_schemas";
 import { useCreateUser } from "../_hooks/use-create-user";
+import Image from "next/image";
 
 export function CreateUserForm() {
   const { form, onSubmit, isSubmitting } = useCreateUser();
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const submitHandler = async (values: TAdminCreateUserSchema) =>
     await onSubmit(values);
+
+  const showPreview = useMemo(() => !!previewImage, [previewImage]);
+
+  const handleImageChange = (
+    file: File | undefined,
+    onChange: (file: File | null) => void,
+  ) => {
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setPreviewImage(null);
+    }
+    onChange(file ?? null);
+  };
+
+  const handleDismissImage = (onChange?: (file: File | null) => void) => {
+    setPreviewImage(null);
+    onChange?.(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   return (
     <form onSubmit={form.handleSubmit(submitHandler)} className="space-y-6">
@@ -160,19 +190,49 @@ export function CreateUserForm() {
             render={({ field, fieldState }) => (
               <Field>
                 <FieldLabel htmlFor="photo">Profile photo</FieldLabel>
-                <Input
-                  id="photo"
-                  type="file"
-                  accept="image/*"
-                  aria-invalid={fieldState.invalid}
-                  onChange={(event) => {
-                    const file = event.target.files?.[0] ?? null;
-                    field.onChange(file);
-                  }}
-                />
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <Input
+                    id="photo"
+                    type="file"
+                    accept="image/*"
+                    aria-invalid={fieldState.invalid}
+                    ref={fileInputRef}
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      handleImageChange(file, field.onChange);
+                    }}
+                  />
+                  {showPreview && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="sm:self-stretch"
+                      onClick={() => handleDismissImage(field.onChange)}
+                    >
+                      Remove
+                    </Button>
+                  )}
+                </div>
                 <FieldDescription>
                   Optional. JPG, PNG, or WebP up to 5MB.
                 </FieldDescription>
+
+                {showPreview && (
+                  <div className="mt-2 flex items-center gap-3">
+                    <div className="size-16 overflow-hidden rounded-lg border bg-muted">
+                      <Image
+                        width={100}
+                        height={100}
+                        src={previewImage ?? ""}
+                        alt="New profile preview"
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      Preview
+                    </span>
+                  </div>
+                )}
 
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />

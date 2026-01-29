@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, useRef, useState } from "react";
 import { Controller } from "react-hook-form";
 import { Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { TAdminUpdateUserSchema } from "@/app/(protected)/admin/_schemas";
 import { useUpdateUser } from "../_hooks/use-update-user";
+import Image from "next/image";
 
 type EditUserFormProps = {
   userId: string;
@@ -26,9 +28,41 @@ export function EditUserForm({
   imageUrl,
 }: EditUserFormProps) {
   const { form, onSubmit, isSubmitting } = useUpdateUser(userId, initialValues);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const submitHandler = async (values: TAdminUpdateUserSchema) =>
     await onSubmit(values);
+
+  const showPreview = useMemo(() => !!previewImage, [previewImage]);
+  const showExisting = useMemo(
+    () => !!imageUrl && !previewImage,
+    [imageUrl, previewImage],
+  );
+
+  const handleImageChange = (
+    file: File | undefined,
+    onChange: (file: File | null) => void,
+  ) => {
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setPreviewImage(null);
+    }
+    onChange(file ?? null);
+  };
+
+  const handleDismissImage = (onChange?: (file: File | null) => void) => {
+    setPreviewImage(null);
+    onChange?.(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   return (
     <form onSubmit={form.handleSubmit(submitHandler)} className="space-y-6">
@@ -175,32 +209,48 @@ export function EditUserForm({
             render={({ field, fieldState }) => (
               <Field>
                 <FieldLabel htmlFor="photo">Profile photo</FieldLabel>
-                <Input
-                  id="photo"
-                  type="file"
-                  accept="image/*"
-                  aria-invalid={fieldState.invalid}
-                  onChange={(event) => {
-                    const file = event.target.files?.[0] ?? null;
-                    field.onChange(file);
-                  }}
-                />
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <Input
+                    id="photo"
+                    type="file"
+                    accept="image/*"
+                    aria-invalid={fieldState.invalid}
+                    ref={fileInputRef}
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      handleImageChange(file, field.onChange);
+                    }}
+                  />
+                  {(showPreview || showExisting) && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="sm:self-stretch"
+                      onClick={() => handleDismissImage(field.onChange)}
+                    >
+                      Remove
+                    </Button>
+                  )}
+                </div>
                 <FieldDescription>
                   Optional. JPG, PNG, or WebP up to 5MB.
                 </FieldDescription>
 
-                {imageUrl && (
-                  <FieldDescription>
-                    Current image:{" "}
-                    <a
-                      className="underline underline-offset-4"
-                      href={imageUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      View
-                    </a>
-                  </FieldDescription>
+                {(showPreview || showExisting) && (
+                  <div className="mt-2 flex items-center gap-3">
+                    <div className="size-16 overflow-hidden rounded-lg border bg-muted">
+                      <Image
+                        width={100}
+                        height={100}
+                        src={previewImage ?? imageUrl ?? ""}
+                        alt="Profile preview"
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {showPreview ? "New preview" : "Current photo"}
+                    </span>
+                  </div>
                 )}
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
