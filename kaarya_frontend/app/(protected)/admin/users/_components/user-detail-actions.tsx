@@ -4,7 +4,7 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
-import { Trash2 } from "lucide-react";
+import { Trash2, Pencil } from "lucide-react";
 import { deleteAdminUser } from "@/lib/actions/admin/admin-user-actions";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,14 +43,22 @@ export function UserDetailActions({ userId }: UserDetailActionsProps) {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Button asChild variant="outline">
-        <Link href={`/admin/users/${userId}/edit`}>Edit</Link>
+      <Button asChild variant="outline" size="sm" className="gap-2">
+        <Link href={`/admin/users/${userId}/edit`}>
+          <Pencil className="h-4 w-4" />
+          Edit
+        </Link>
       </Button>
 
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button variant="destructive" disabled={isPending}>
-            <Trash2 />
+          <Button
+            variant="destructive"
+            size="sm"
+            disabled={isPending}
+            className="gap-2"
+          >
+            <Trash2 className="h-4 w-4" />
             Delete
           </Button>
         </AlertDialogTrigger>
@@ -58,20 +66,19 @@ export function UserDetailActions({ userId }: UserDetailActionsProps) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this user?</AlertDialogTitle>
-
             <AlertDialogDescription>
-              This action permanently removes the user record.
+              This action permanently removes the user record from the system.
+              This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {isPending ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
