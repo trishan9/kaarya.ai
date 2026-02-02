@@ -1,7 +1,7 @@
 "use client";
 
-import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function ProfileHeader() {
@@ -12,6 +12,7 @@ export function ProfileHeader() {
           <ArrowLeft className="w-5 h-5" />
         </Button>
       </Link>
+
       <h1 className="text-2xl font-semibold">Profile Settings</h1>
     </div>
   );

@@ -43,11 +43,13 @@ export function GeneralInformationForm({
             <Camera className="h-5 w-5" />
             Profile Picture
           </CardTitle>
+
           <CardDescription>
             Upload a profile picture. This will be displayed across the
             platform.
           </CardDescription>
         </CardHeader>
+
         <CardContent>
           <ProfilePictureUpload
             form={form}
@@ -63,10 +65,12 @@ export function GeneralInformationForm({
             <User className="h-5 w-5" />
             Personal Information
           </CardTitle>
+
           <CardDescription>
             Update your personal details and contact information.
           </CardDescription>
         </CardHeader>
+
         <CardContent>
           <FieldGroup>
             <Controller
@@ -75,15 +79,18 @@ export function GeneralInformationForm({
               render={({ field, fieldState }) => (
                 <Field>
                   <FieldLabel htmlFor="name">Full Name</FieldLabel>
+
                   <Input
                     {...field}
                     id="name"
                     placeholder="John Doe"
                     aria-invalid={fieldState.invalid}
                   />
+
                   <FieldDescription>
                     Your full name as you&apos;d like it to appear.
                   </FieldDescription>
+
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
                   )}
@@ -100,6 +107,7 @@ export function GeneralInformationForm({
                     <Mail className="w-4 h-4 inline mr-1" />
                     Email Address
                   </FieldLabel>
+
                   <Input
                     {...field}
                     id="email"
@@ -107,9 +115,11 @@ export function GeneralInformationForm({
                     placeholder="john.doe@example.com"
                     aria-invalid={fieldState.invalid}
                   />
+
                   <FieldDescription>
                     Your email address for account notifications.
                   </FieldDescription>
+
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
                   )}

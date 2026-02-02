@@ -1,10 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
 import { updateProfileSchema, TUpdateProfileSchema } from "../_schemas";
 import { TUser } from "@/lib/definitions";
 import { updateProfile } from "@/lib/actions/auth-action";

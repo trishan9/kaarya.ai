@@ -1,5 +1,6 @@
 "use client";
 
+import { TrendingUp } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -8,7 +9,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp } from "lucide-react";
 
 export function ProfileRating() {
   return (
@@ -18,16 +18,20 @@ export function ProfileRating() {
           <TrendingUp className="h-5 w-5" />
           Profile Rating
         </CardTitle>
+
         <CardDescription>Your profile completion score</CardDescription>
       </CardHeader>
+
       <CardContent>
         <div className="space-y-4">
           <div className="flex items-end gap-3">
             <span className="text-5xl font-bold text-primary">76%</span>
+
             <Badge variant="secondary" className="mb-2">
               STANDARD
             </Badge>
           </div>
+
           <p className="text-sm text-muted-foreground leading-relaxed">
             Your profile looks great! Complete more sections to reach a higher
             rating and impress recruiters.

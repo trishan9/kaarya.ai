@@ -1,12 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import { useRef, useState } from "react";
 import { Upload, X } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { TUpdateProfileSchema } from "../_schemas";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
 
 interface ProfilePictureUploadProps {
   form: UseFormReturn<TUpdateProfileSchema>;
@@ -14,10 +14,7 @@ interface ProfilePictureUploadProps {
   userName: string;
 }
 
-export function ProfilePictureUpload({
-  form,
-  currentPhoto,
-}: ProfilePictureUploadProps) {
+export function ProfilePictureUpload({ form }: ProfilePictureUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -93,6 +90,7 @@ export function ProfilePictureUpload({
                 className="h-full w-full object-cover"
               />
             </div>
+
             <Button
               type="button"
               variant="destructive"
@@ -103,12 +101,15 @@ export function ProfilePictureUpload({
               <X className="h-4 w-4" />
             </Button>
           </div>
+
           <div className="text-center">
             <p className="text-sm font-medium">Preview</p>
+
             <p className="text-xs text-muted-foreground">
               Click the button below to change the image
             </p>
           </div>
+
           <Button
             type="button"
             variant="outline"
@@ -139,14 +140,17 @@ export function ProfilePictureUpload({
             onChange={(e) => handleFileChange(e.target.files?.[0])}
             className="hidden"
           />
+
           <div className="flex flex-col items-center gap-4 text-center">
             <div className="rounded-full bg-muted p-4">
               <Upload className="h-8 w-8 text-muted-foreground" />
             </div>
+
             <div>
               <p className="text-sm font-medium">
                 Click to upload or drag and drop
               </p>
+
               <p className="text-xs text-muted-foreground mt-1">
                 JPG, PNG, or WebP (max. 5MB)
               </p>
@@ -154,6 +158,7 @@ export function ProfilePictureUpload({
           </div>
         </div>
       )}
+
       {form.formState.errors.photo && (
         <p className="text-sm text-destructive">
           {form.formState.errors.photo.message}

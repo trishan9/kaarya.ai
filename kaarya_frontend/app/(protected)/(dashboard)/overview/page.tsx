@@ -1,6 +1,6 @@
+import Link from "next/link";
 import { getCurrentUser } from "@/lib/dal";
 import { LogoutSection } from "./_components/logout-section";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export default async function OverviewPage() {
