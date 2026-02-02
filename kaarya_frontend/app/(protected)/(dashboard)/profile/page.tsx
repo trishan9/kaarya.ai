@@ -24,17 +24,17 @@ export default async function ProfilePage() {
         <ProfileHeader />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
-          <div className="lg:col-span-8 flex flex-col lg:flex-row space-y-6 lg:space-y-0 lg:space-x-6">
-            <div className="w-full">
-              <ProfileOverview user={user} />
-            </div>
-            <div className="w-full lg:w-auto">
-              <ProfileRating />
-            </div>
+          <div className="lg:col-span-8 space-y-6">
+            <ProfileOverview user={user} />
           </div>
-          <div className="lg:col-span-4 w-full">
-            <ProfileForm user={user} />
+
+          <div className="lg:col-span-4 space-y-6">
+            <ProfileRating />
           </div>
+        </div>
+
+        <div className="mt-6">
+          <ProfileForm user={user} />
         </div>
       </div>
     </div>
