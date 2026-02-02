@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/dal";
-import { Role } from "@/lib/definitions";
 
 export default async function Home() {
   const currentUser = await getCurrentUser();
@@ -22,15 +21,7 @@ export default async function Home() {
             </Button>
           </>
         ) : (
-          <>
-            <p>Hello, {currentUser.name}</p>
-
-            {currentUser?.role === Role.ADMIN && (
-              <Button>
-                <Link href="/admin/users">User Management | Admin Panel</Link>
-              </Button>
-            )}
-          </>
+          <p>Hello, {currentUser.name}</p>
         )}
       </div>
     </section>

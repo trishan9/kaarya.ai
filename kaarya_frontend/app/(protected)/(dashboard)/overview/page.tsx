@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/dal";
 import { LogoutSection } from "./_components/logout-section";
 import { Button } from "@/components/ui/button";
+import { Role } from "@/lib/definitions";
 
 export default async function OverviewPage() {
   const user = await getCurrentUser();
@@ -18,6 +19,12 @@ export default async function OverviewPage() {
         <Link href="/profile">
           <Button variant="outline">Go to Profile</Button>
         </Link>
+
+        {user?.role === Role.ADMIN && (
+          <Button variant="outline">
+            <Link href="/admin/users">User Management | Admin Panel</Link>
+          </Button>
+        )}
 
         <LogoutSection />
       </div>
