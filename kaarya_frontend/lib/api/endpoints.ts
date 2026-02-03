@@ -4,5 +4,10 @@ export const API_URLS = {
     SIGNUP: "/auth/signup",
     SIGNIN: "/auth/login",
     ME: "/auth/me",
+    UPDATE_ME: "/auth/update-me",
+  },
+  ADMIN: {
+    USERS: "/admin/users",
+    USER_BY_ID: (id: string) => `/admin/users/${id}`,
   },
 };

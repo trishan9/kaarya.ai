@@ -16,6 +16,7 @@ export const UserZodSchema = z.object({
   role: z.enum(['user', 'admin']).optional(),
   provider: z.enum(['email', 'google', 'facebook']).optional(),
   socialId: z.string().nullable().optional(),
+  photo: z.string().nullable().optional(),
 });
 
 export type TUser = z.infer<typeof UserZodSchema>;

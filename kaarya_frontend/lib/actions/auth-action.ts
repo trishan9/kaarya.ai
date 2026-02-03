@@ -1,7 +1,7 @@
 "use server";
 
 import { TSigninSchema, TSignupSchema } from "@/app/(auth)/_schemas";
-import { api } from "../api/axios-instance";
+import { api, MULTIPART_FORM_DATA_CONFIG } from "../api/axios-instance";
 import { API_URLS } from "../api/endpoints";
 import { clearSession } from "../session";
 
@@ -49,6 +49,26 @@ export async function getMe() {
   } catch (error: Error | any) {
     const errorMessage =
       error?.response?.data?.message || error.message || "Fetching user failed";
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+}
+
+export async function updateProfile(formData: FormData) {
+  try {
+    const response = await api.put(
+      API_URLS.AUTH.UPDATE_ME,
+      formData,
+      MULTIPART_FORM_DATA_CONFIG,
+    );
+    return response.data;
+  } catch (error: Error | any) {
+    const errorMessage =
+      error?.response?.data?.message ||
+      error.message ||
+      "Failed to update profile";
     return {
       success: false,
       message: errorMessage,

@@ -8,7 +8,11 @@ import {
   LOG_MESSAGES,
   USER_MESSAGES,
 } from 'src/constants/messages.constants';
-import { TCreateUserDTO, TLoginDTO } from 'src/dtos/users/user.dto';
+import {
+  TCreateUserDTO,
+  TLoginDTO,
+  TUpdateMeDTO,
+} from 'src/dtos/users/user.dto';
 import { PinoLoggerService } from 'src/logger/pino-logger.service';
 import { UserService } from 'src/services/user.service';
 import { UserRole } from 'src/types/user-role.enum';
@@ -100,6 +104,43 @@ export class AuthService {
 
     const user = await this.userService.getUserById(id);
     return user;
+  }
+
+  async updateMe(id: string, payload: TUpdateMeDTO) {
+    if (!id) {
+      throw new ApiError({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        message: USER_MESSAGES.INVALID_ID,
+      });
+    }
+
+    const currentUser = await this.userService.getUserById(id);
+    if (!currentUser) {
+      throw new ApiError({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: USER_MESSAGES.NOT_FOUND,
+      });
+    }
+
+    if (payload.email && payload.email !== currentUser.email) {
+      const existingUser = await this.userService.getUserByEmail(payload.email);
+      if (existingUser) {
+        throw new ApiError({
+          statusCode: HttpStatus.CONFLICT,
+          message: AUTH_MESSAGES.EMAIL_IN_USE,
+        });
+      }
+    }
+
+    const user = await this.userService.updateUser(id, payload);
+    if (!user) {
+      throw new ApiError({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: USER_MESSAGES.NOT_FOUND,
+      });
+    }
+
+    return sanitizeUser(user);
   }
 
   private async signAccessToken(userId: string, email: string, role: UserRole) {
