@@ -32,9 +32,20 @@ const buildUserFormData = (payload: AdminUserPayload) => {
   return formData;
 };
 
-export async function getAdminUsers() {
+export async function getAdminUsers(params?: {
+  page?: number;
+  size?: number;
+  search?: string;
+}) {
   try {
-    const response = await api.get(API_URLS.ADMIN.USERS);
+    const response = await api.get(API_URLS.ADMIN.USERS, {
+      params: {
+        page: params?.page,
+        size: params?.size,
+        search: params?.search,
+      },
+    });
+
     return response.data;
   } catch (error: Error | any) {
     const errorMessage =
