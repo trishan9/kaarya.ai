@@ -26,7 +26,7 @@ export default async function AdminUsersPage({
   const response = await getAdminUsers({ page, size, search });
   const responseData = response?.data;
   const users = (
-    Array.isArray(responseData) ? responseData : (responseData?.data ?? [])
+    Array.isArray(responseData) ? responseData : (responseData?.users ?? [])
   ) as TUser[];
 
   const errorMessage =

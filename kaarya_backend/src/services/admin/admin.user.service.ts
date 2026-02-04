@@ -48,7 +48,7 @@ export class AdminUserService {
     const totalPages = Math.ceil(total / size);
 
     return {
-      data: users.map((user) => sanitizeUser(user)),
+      users: users.map((user) => sanitizeUser(user)),
       meta: {
         page,
         size,
