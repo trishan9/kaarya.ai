@@ -3,6 +3,18 @@ export type PaginationQueryParams = {
   size?: string | number | null;
 };
 
+export type PaginationMeta = {
+  page: number;
+  size: number;
+  totalItems: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  nextPage: number | null;
+  prevPage: number | null;
+  search: string | null;
+};
+
 export const parsePaginationParams = (
   params?: PaginationQueryParams,
 ): { page?: number; size?: number } => {

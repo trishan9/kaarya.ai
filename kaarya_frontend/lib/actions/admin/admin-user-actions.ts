@@ -59,6 +59,22 @@ export async function getAdminUsers(params?: {
   }
 }
 
+export async function getAdminUsersAnalytics() {
+  try {
+    const response = await api.get(API_URLS.ADMIN.USERS_ANALYTICS);
+    return response.data;
+  } catch (error: Error | any) {
+    const errorMessage =
+      error?.response?.data?.message ||
+      error.message ||
+      "Failed to fetch users analytics";
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+}
+
 export async function getAdminUserById(id: string) {
   try {
     const response = await api.get(API_URLS.ADMIN.USER_BY_ID(id));

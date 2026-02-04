@@ -8,6 +8,7 @@ export const API_URLS = {
   },
   ADMIN: {
     USERS: "/admin/users",
+    USERS_ANALYTICS: "admin/users/analytics",
     USER_BY_ID: (id: string) => `/admin/users/${id}`,
   },
 };
