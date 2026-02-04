@@ -6,7 +6,11 @@ import { TUser } from 'src/types/user.type';
 
 export abstract class ACUserRepository {
   abstract create(payload: Partial<TUser>): Promise<UserSchemaDocument>;
-  abstract findAll(): Promise<UserSchemaDocument[]>;
+  abstract findAll(options: {
+    page: number;
+    size: number;
+    search?: string;
+  }): Promise<{ users: UserSchemaDocument[]; total: number }>;
   abstract findById(id: string): Promise<UserSchemaDocument | null>;
   abstract findByEmail(
     email: string,
@@ -31,8 +35,49 @@ export class UserRepository implements ACUserRepository {
     return await user.save();
   }
 
-  async findAll(): Promise<UserSchemaDocument[]> {
-    return await this.userModel.find().exec();
+  private escapeRegex(value: string) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  async findAll(options: {
+    page: number;
+    size: number;
+    search?: string;
+  }): Promise<{ users: UserSchemaDocument[]; total: number }> {
+    const { page, size, search } = options;
+    const skip = (page - 1) * size;
+
+    const filter =
+      search && search.trim().length > 0
+        ? {
+            $or: [
+              {
+                name: {
+                  $regex: this.escapeRegex(search.trim()),
+                  $options: 'i',
+                },
+              },
+              {
+                email: {
+                  $regex: this.escapeRegex(search.trim()),
+                  $options: 'i',
+                },
+              },
+            ],
+          }
+        : {};
+
+    const [users, total] = await Promise.all([
+      this.userModel
+        .find(filter)
+        .sort({ createdAt: -1, _id: -1 })
+        .skip(skip)
+        .limit(size)
+        .exec(),
+      this.userModel.countDocuments(filter).exec(),
+    ]);
+
+    return { users, total };
   }
 
   async findById(id: string): Promise<UserSchemaDocument | null> {
