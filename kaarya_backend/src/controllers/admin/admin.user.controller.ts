@@ -20,6 +20,7 @@ import {
   ApiConsumes,
   ApiParam,
   ApiQuery,
+  ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
 import argon2 from 'argon2';
@@ -161,6 +162,18 @@ export class AdminUserController {
       }
 
       const data = await this.userService.getAllUsers(parsedQuery.data);
+      return buildSuccessResponse(data, USER_MESSAGES.FETCH_ALL_SUCCESS);
+    });
+  }
+
+  @Get('analytics')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Get user analytics',
+  })
+  async getUsersAnalytics() {
+    return asyncHandler(async () => {
+      const data = await this.userService.getUsersAnalytics();
       return buildSuccessResponse(data, USER_MESSAGES.FETCH_ALL_SUCCESS);
     });
   }

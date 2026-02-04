@@ -6,6 +6,7 @@ import { sanitizeUser } from 'src/common/utils/sanitize-user';
 import { USER_MESSAGES } from 'src/constants/messages.constants';
 import { TCreateUserDTO, TUpdateUserDTO } from 'src/dtos/users/user.dto';
 import { ACUserRepository } from 'src/repositories/user.repository';
+import { UserRole } from 'src/types/user-role.enum';
 
 @Injectable()
 export class AdminUserService {
@@ -54,6 +55,44 @@ export class AdminUserService {
         totalItems: total,
         search,
       }),
+    };
+  }
+
+  async getUsersAnalytics() {
+    const analytics = await this.userRepository.getAnalytics();
+
+    const totalStandardUsers = Math.max(
+      0,
+      analytics.totalUsers - analytics.totalAdmins,
+    );
+
+    const now = new Date();
+    const monthFormatter = new Intl.DateTimeFormat('en-US', { month: 'short' });
+    const buckets = Array.from({ length: 6 }).map((_, index) => {
+      const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
+      return {
+        key: `${date.getFullYear()}-${date.getMonth() + 1}`,
+        label: monthFormatter.format(date),
+        value: 0,
+      };
+    });
+
+    analytics.signupTrend.forEach((item) => {
+      const key = `${item.year}-${item.month}`;
+      const bucket = buckets.find((b) => b.key === key);
+      if (bucket) bucket.value = item.value;
+    });
+
+    return {
+      totalUsers: analytics.totalUsers,
+      totalAdmins: analytics.totalAdmins,
+      totalStandardUsers,
+      newThisWeek: analytics.newThisWeek,
+      roleBreakdown: [
+        { name: UserRole.ADMIN, value: analytics.totalAdmins },
+        { name: UserRole.USER, value: totalStandardUsers },
+      ],
+      signupTrend: buckets.map(({ label, value }) => ({ label, value })),
     };
   }
 
