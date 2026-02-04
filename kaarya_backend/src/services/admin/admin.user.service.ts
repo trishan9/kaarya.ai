@@ -1,6 +1,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { isValidObjectId } from 'mongoose';
 import { ApiError } from 'src/common/errors/api-error';
+import { buildPaginationMeta } from 'src/common/utils/pagination';
 import { sanitizeUser } from 'src/common/utils/sanitize-user';
 import { USER_MESSAGES } from 'src/constants/messages.constants';
 import { TCreateUserDTO, TUpdateUserDTO } from 'src/dtos/users/user.dto';
@@ -45,21 +46,14 @@ export class AdminUserService {
       search,
     });
 
-    const totalPages = Math.ceil(total / size);
-
     return {
       users: users.map((user) => sanitizeUser(user)),
-      meta: {
+      meta: buildPaginationMeta({
         page,
         size,
         totalItems: total,
-        totalPages,
-        hasNextPage: totalPages > 0 && page < totalPages,
-        hasPrevPage: totalPages > 0 && page > 1,
-        nextPage: totalPages > 0 && page < totalPages ? page + 1 : null,
-        prevPage: totalPages > 0 && page > 1 ? page - 1 : null,
-        search: search ?? null,
-      },
+        search,
+      }),
     };
   }
 
