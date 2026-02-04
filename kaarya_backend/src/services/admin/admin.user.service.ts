@@ -37,9 +37,30 @@ export class AdminUserService {
     return await this.userRepository.findByEmail(email, options);
   }
 
-  async getAllUsers() {
-    const users = await this.userRepository.findAll();
-    return users.map((user) => sanitizeUser(user));
+  async getAllUsers(options: { page: number; size: number; search?: string }) {
+    const { page, size, search } = options;
+    const { users, total } = await this.userRepository.findAll({
+      page,
+      size,
+      search,
+    });
+
+    const totalPages = Math.ceil(total / size);
+
+    return {
+      data: users.map((user) => sanitizeUser(user)),
+      meta: {
+        page,
+        size,
+        totalItems: total,
+        totalPages,
+        hasNextPage: totalPages > 0 && page < totalPages,
+        hasPrevPage: totalPages > 0 && page > 1,
+        nextPage: totalPages > 0 && page < totalPages ? page + 1 : null,
+        prevPage: totalPages > 0 && page > 1 ? page - 1 : null,
+        search: search ?? null,
+      },
+    };
   }
 
   async updateUser(id: string, payload: TUpdateUserDTO) {
