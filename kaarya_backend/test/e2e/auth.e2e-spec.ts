@@ -14,6 +14,10 @@ describe('Auth routes (e2e)', () => {
     context = await createE2EApp();
   });
 
+  beforeEach(() => {
+    context.cloudinary.uploadImage.mockClear();
+  });
+
   afterAll(async () => {
     await closeE2EApp(context);
   });
@@ -110,6 +114,46 @@ describe('Auth routes (e2e)', () => {
           name: 'E2E Updated',
           photo: 'https://img.test/photo',
         }),
+      }),
+    );
+  });
+
+  it('should update the current user without uploading a photo', async () => {
+    const response = await request(context.app.getHttpServer())
+      .put(`${base}/${ROUTES.AUTH.UPDATE_ME}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .field('name', 'E2E Updated Again')
+      .expect(200);
+
+    expect(context.cloudinary.uploadImage).not.toHaveBeenCalled();
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        success: true,
+        message: USER_MESSAGES.UPDATE_SUCCESS,
+        data: expect.objectContaining({
+          id: userId,
+          name: 'E2E Updated Again',
+        }),
+      }),
+    );
+  });
+
+  it('should reject non-image uploads', async () => {
+    const response = await request(context.app.getHttpServer())
+      .put(`${base}/${ROUTES.AUTH.UPDATE_ME}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .field('name', 'Invalid Upload')
+      .attach('photo', Buffer.from('not-an-image'), {
+        filename: 'not-image.txt',
+        contentType: 'text/plain',
+      })
+      .expect(400);
+
+    expect(context.cloudinary.uploadImage).not.toHaveBeenCalled();
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        success: false,
+        message: 'Only image files are allowed.',
       }),
     );
   });
