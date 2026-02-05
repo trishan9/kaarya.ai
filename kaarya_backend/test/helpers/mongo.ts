@@ -12,6 +12,8 @@ export const startInMemoryMongo = async (): Promise<TestMongo> => {
 
   process.env.DATABASE_URL = uri;
   process.env.DATABASE_NAME = 'kaarya_test';
+  delete process.env.DATABASE_USERNAME;
+  delete process.env.DATABASE_PASSWORD;
 
   return { server, uri };
 };
@@ -22,8 +24,17 @@ export const stopInMemoryMongo = async (mongo: TestMongo) => {
 };
 
 export const clearDatabase = async () => {
-  const collections = mongoose.connection.collections;
-  for (const collection of Object.values(collections)) {
-    await collection.deleteMany({});
-  }
+  const connections = mongoose.connections.length
+    ? mongoose.connections
+    : [mongoose.connection];
+
+  await Promise.all(
+    connections.map(async (connection) => {
+      if (connection.readyState !== 1) return;
+      const collections = Object.values(connection.collections);
+      await Promise.all(
+        collections.map((collection) => collection.deleteMany({})),
+      );
+    }),
+  );
 };

@@ -1,7 +1,10 @@
+import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { AppModule } from 'src/app.module';
+import { Types } from 'mongoose';
+import { ApiError } from 'src/common/errors/api-error';
 import { AdminUserService } from 'src/services/admin/admin.user.service';
 import { UserRole } from 'src/types/user-role.enum';
+import { USER_MESSAGES } from 'src/constants/messages.constants';
 import {
   startInMemoryMongo,
   stopInMemoryMongo,
@@ -16,6 +19,7 @@ describe('AdminUserService (integration)', () => {
 
   beforeAll(async () => {
     mongo = await startInMemoryMongo();
+    const { AppModule } = await import('src/app.module');
 
     module = await Test.createTestingModule({
       imports: [AppModule],
@@ -73,6 +77,32 @@ describe('AdminUserService (integration)', () => {
     expect(result.meta.totalPages).toBe(2);
   });
 
+  it('should search users by name', async () => {
+    await adminService.createUser({
+      name: 'Find Me',
+      email: 'findme@example.com',
+      password: 'Password123',
+      confirmPassword: 'Password123',
+      provider: 'email',
+    });
+    await adminService.createUser({
+      name: 'Another',
+      email: 'another@example.com',
+      password: 'Password123',
+      confirmPassword: 'Password123',
+      provider: 'email',
+    });
+
+    const result = await adminService.getAllUsers({
+      page: 1,
+      size: 10,
+      search: 'find',
+    });
+
+    expect(result.users).toHaveLength(1);
+    expect(result?.users?.[0]?.email).toBe('findme@example.com');
+  });
+
   it('should return analytics summaries', async () => {
     await adminService.createUser({
       name: 'Admin',
@@ -104,6 +134,53 @@ describe('AdminUserService (integration)', () => {
       ]),
     );
     expect(analytics.signupTrend).toHaveLength(6);
+  });
+
+  it('should throw for invalid user ids', async () => {
+    try {
+      await adminService.getUserById('invalid-id');
+      throw new Error('Expected getUserById to throw');
+    } catch (error) {
+      const err = error as ApiError;
+      expect(err.getStatus()).toBe(HttpStatus.BAD_REQUEST);
+      expect(err.getResponse()).toMatchObject({
+        message: USER_MESSAGES.INVALID_ID,
+      });
+    }
+  });
+
+  it('should throw for missing users', async () => {
+    const missingId = new Types.ObjectId().toString();
+
+    try {
+      await adminService.getUserById(missingId);
+      throw new Error('Expected getUserById to throw');
+    } catch (error) {
+      const err = error as ApiError;
+      expect(err.getStatus()).toBe(HttpStatus.NOT_FOUND);
+      expect(err.getResponse()).toMatchObject({
+        message: USER_MESSAGES.NOT_FOUND,
+      });
+    }
+  });
+
+  it('should include password when requested', async () => {
+    await adminService.createUser({
+      name: 'With Password',
+      email: 'with-password@example.com',
+      password: 'Password123',
+      confirmPassword: 'Password123',
+      provider: 'email',
+    });
+
+    const found = await adminService.getUserByEmail(
+      'with-password@example.com',
+      {
+        includePassword: true,
+      },
+    );
+
+    expect(found?.password).toBeDefined();
   });
 
   it('should update and delete users', async () => {

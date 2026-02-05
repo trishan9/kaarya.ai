@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import { AppModule } from 'src/app.module';
 import { CloudinaryService } from 'src/services/cloudinary.service';
 import { configureTestApp } from './app';
 import {
@@ -19,6 +18,7 @@ export type E2EApp = {
 
 export const createE2EApp = async (): Promise<E2EApp> => {
   const mongo = await startInMemoryMongo();
+  const { AppModule } = await import('src/app.module');
 
   const cloudinary = {
     uploadImage: jest.fn().mockResolvedValue('https://img.test/photo'),
