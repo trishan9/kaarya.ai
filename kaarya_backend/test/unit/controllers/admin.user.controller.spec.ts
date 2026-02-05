@@ -100,6 +100,39 @@ describe('AdminUserController', () => {
     });
   });
 
+  it('should create a user without uploading when no photo is provided', async () => {
+    mockedArgon2.hash.mockResolvedValue('hashed');
+
+    userService.getUserByEmail.mockResolvedValue(null);
+    userService.createUser.mockResolvedValue({
+      id: 'user-1',
+      email: 'admin@example.com',
+      name: 'Admin',
+    } as never);
+
+    const response = await controller.createUser({
+      name: 'Admin',
+      email: 'admin@example.com',
+      password: 'Password123',
+      confirmPassword: 'Password123',
+    });
+
+    expect(cloudinaryService.uploadImage).not.toHaveBeenCalled();
+    expect(userService.createUser).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: 'admin@example.com',
+        password: 'hashed',
+        photo: undefined,
+      }),
+    );
+
+    expect(response).toEqual({
+      success: true,
+      message: USER_MESSAGES.CREATE_SUCCESS,
+      data: { id: 'user-1', email: 'admin@example.com', name: 'Admin' },
+    });
+  });
+
   it('should reject creation when email is already in use', async () => {
     userService.getUserByEmail.mockResolvedValue({ id: 'user-1' } as never);
 

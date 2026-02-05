@@ -146,6 +146,27 @@ describe('AuthController', () => {
     });
   });
 
+  it('should update the current user without uploading when no photo is provided', async () => {
+    authService.updateMe.mockResolvedValue({ id: 'user-1', name: 'Updated' });
+
+    const response = await controller.updateMe(
+      { user: { id: 'user-1' } },
+      { name: 'Updated' },
+      undefined,
+    );
+
+    expect(cloudinaryService.uploadImage).not.toHaveBeenCalled();
+    expect(authService.updateMe).toHaveBeenCalledWith('user-1', {
+      name: 'Updated',
+    });
+
+    expect(response).toEqual({
+      success: true,
+      message: USER_MESSAGES.UPDATE_SUCCESS,
+      data: { id: 'user-1', name: 'Updated' },
+    });
+  });
+
   it('should reject invalid update payloads', async () => {
     await expect(
       controller.updateMe(
