@@ -58,6 +58,10 @@ describe('Admin user routes (e2e)', () => {
     userToken = userLogin.body.data.accessToken;
   });
 
+  beforeEach(() => {
+    context.cloudinary.uploadImage.mockClear();
+  });
+
   afterAll(async () => {
     await closeE2EApp(context);
   });
@@ -77,12 +81,20 @@ describe('Admin user routes (e2e)', () => {
       .field('email', 'managed@example.com')
       .field('password', 'Password123')
       .field('confirmPassword', 'Password123')
+      .attach('photo', Buffer.from('fake-image'), {
+        filename: 'avatar.png',
+        contentType: 'image/png',
+      })
       .expect(200);
 
+    expect(context.cloudinary.uploadImage).toHaveBeenCalledTimes(1);
     expect(response.body).toEqual(
       expect.objectContaining({
         success: true,
         message: USER_MESSAGES.CREATE_SUCCESS,
+        data: expect.objectContaining({
+          photo: 'https://img.test/photo',
+        }),
       }),
     );
 
@@ -154,11 +166,32 @@ describe('Admin user routes (e2e)', () => {
       .attach('photo', Buffer.from('fake-image'), 'avatar.png')
       .expect(200);
 
+    expect(context.cloudinary.uploadImage).toHaveBeenCalledTimes(1);
     expect(response.body).toEqual(
       expect.objectContaining({
         success: true,
         message: USER_MESSAGES.UPDATE_SUCCESS,
         data: expect.objectContaining({ id: createdUserId }),
+      }),
+    );
+  });
+
+  it('should reject non-image uploads on update', async () => {
+    const response = await request(context.app.getHttpServer())
+      .put(`${base}/${createdUserId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .field('name', 'Invalid Update')
+      .attach('photo', Buffer.from('not-an-image'), {
+        filename: 'not-image.txt',
+        contentType: 'text/plain',
+      })
+      .expect(400);
+
+    expect(context.cloudinary.uploadImage).not.toHaveBeenCalled();
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        success: false,
+        message: 'Only image files are allowed.',
       }),
     );
   });
