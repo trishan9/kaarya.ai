@@ -18,7 +18,8 @@ export const InfrastructureDatabaseModule = MongoDatabaseModule;
     ConfigModule.forRoot({
       isGlobal: true,
       load: [appConfig, authConfig, databaseConfig, cloudinaryConfig],
-      envFilePath: ['.env'],
+      envFilePath: process.env.NODE_ENV === 'test' ? [] : ['.env'],
+      ignoreEnvFile: process.env.NODE_ENV === 'test',
     }),
     InfrastructureDatabaseModule,
     LoggerModule,
