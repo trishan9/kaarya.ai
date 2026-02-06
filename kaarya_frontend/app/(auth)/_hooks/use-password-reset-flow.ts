@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -36,9 +36,20 @@ const INITIAL_CONTEXT: ResetContext = {
 
 export const usePasswordResetFlow = () => {
   const router = useRouter();
-  const [step, setStep] = useState<PasswordResetStep>("verify");
+  const searchParams = useSearchParams();
+  const linkToken = (searchParams.get("token") ?? "").trim();
+  const [step, setStep] = useState<PasswordResetStep>(
+    linkToken ? "reset" : "verify"
+  );
   const [activeAction, setActiveAction] = useState<PasswordResetAction>(null);
-  const [context, setContext] = useState<ResetContext>(INITIAL_CONTEXT);
+  const [context, setContext] = useState<ResetContext>(() =>
+    linkToken
+      ? {
+          ...INITIAL_CONTEXT,
+          token: linkToken,
+        }
+      : INITIAL_CONTEXT
+  );
   const [resetError, setResetError] = useState("");
   const [sendCodeError, setSendCodeError] = useState("");
   const [sendCodeInfo, setSendCodeInfo] = useState("");
@@ -46,6 +57,7 @@ export const usePasswordResetFlow = () => {
   const [resendSecondsLeft, setResendSecondsLeft] = useState(0);
   const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const resendIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const handledLinkTokenRef = useRef(linkToken);
 
   const verifyForm = useForm<TVerifyPasswordResetOtpSchema>({
     resolver: zodResolver(verifyPasswordResetOtpSchema),
@@ -159,6 +171,38 @@ export const usePasswordResetFlow = () => {
       });
     }, 1000);
   }
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current);
+        redirectTimeoutRef.current = null;
+      }
+      if (resendIntervalRef.current) {
+        clearInterval(resendIntervalRef.current);
+        resendIntervalRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!linkToken || handledLinkTokenRef.current === linkToken) {
+      return;
+    }
+
+    handledLinkTokenRef.current = linkToken;
+    verifyForm.setValue("otp", "", { shouldValidate: false });
+    setContext((previous) => ({
+      ...previous,
+      token: linkToken,
+    }));
+    setHasSentCode(false);
+    clearResendCooldown();
+    setSendCodeError("");
+    setSendCodeInfo("");
+    setResetError("");
+    setStep("reset");
+  }, [linkToken, verifyForm]);
 
   function onRequestCode() {
     void runAction("request", async () => {

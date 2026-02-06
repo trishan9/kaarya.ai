@@ -152,7 +152,8 @@ export function ForgotPasswordFlow() {
                   />
 
                   <FieldDescription>
-                    Request a verification code, then enter the OTP below.
+                    We will email both a secure reset link and a verification
+                    code.
                   </FieldDescription>
 
                   {fieldState.invalid && (
@@ -285,7 +286,7 @@ export function ForgotPasswordFlow() {
 
                   <FieldDescription>
                     Use 12+ characters with uppercase, lowercase, number, and
-                    symbol.
+                    symbol. This works for both OTP and secure link flows.
                   </FieldDescription>
 
                   {fieldState.invalid && (
