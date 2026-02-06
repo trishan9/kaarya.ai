@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ApiError } from 'src/common/errors/api-error';
+import { sanitizeUser } from 'src/common/utils/sanitize-user';
 import { CONFIG_KEYS } from 'src/constants/config.constants';
 import { AUTH_MESSAGES } from 'src/constants/messages.constants';
 import { UserService } from 'src/services/user.service';
@@ -21,14 +22,31 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       }),
     });
   }
-  async validate(payload: { sub: string }) {
-    const user = await this.userService.getUserById(payload.sub);
-    if (!user) {
+  async validate(payload: { sub: string; iat?: number }) {
+    let user;
+    try {
+      user = await this.userService.getUserByIdRaw(payload.sub);
+    } catch {
       throw new ApiError({
         statusCode: HttpStatus.UNAUTHORIZED,
         message: AUTH_MESSAGES.INVALID_TOKEN,
       });
     }
-    return user;
+
+    if (
+      user.passwordChangedAt &&
+      payload.iat &&
+      user.passwordChangedAt instanceof Date
+    ) {
+      const issuedAt = payload.iat * 1000;
+      if (issuedAt < user.passwordChangedAt.getTime()) {
+        throw new ApiError({
+          statusCode: HttpStatus.UNAUTHORIZED,
+          message: AUTH_MESSAGES.INVALID_TOKEN,
+        });
+      }
+    }
+
+    return sanitizeUser(user);
   }
 }
