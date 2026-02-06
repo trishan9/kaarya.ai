@@ -49,7 +49,7 @@ describe('Auth uploads (integration)', () => {
   });
 
   beforeEach(async () => {
-    await resetE2EDatabase();
+    await resetE2EDatabase(context);
     context.cloudinary.uploadImage.mockClear();
     const seed = await seedUser();
     accessToken = seed.accessToken;
