@@ -41,6 +41,7 @@ export class AuthService {
     const user = await this.userService.createUser({
       ...payload,
       password: hashedPassword,
+      passwordChangedAt: new Date(),
     });
 
     return sanitizeUser(user);
