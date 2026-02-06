@@ -38,8 +38,11 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       payload.iat &&
       user.passwordChangedAt instanceof Date
     ) {
-      const issuedAt = payload.iat * 1000;
-      if (issuedAt < user.passwordChangedAt.getTime()) {
+      const issuedAtSeconds = payload.iat;
+      const passwordChangedAtSeconds = Math.floor(
+        user.passwordChangedAt.getTime() / 1000,
+      );
+      if (issuedAtSeconds < passwordChangedAtSeconds) {
         throw new ApiError({
           statusCode: HttpStatus.UNAUTHORIZED,
           message: AUTH_MESSAGES.INVALID_TOKEN,
