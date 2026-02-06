@@ -4,7 +4,9 @@ import nodemailer, { type Transporter } from 'nodemailer';
 import { ApiError } from 'src/common/errors/api-error';
 import { CONFIG_KEYS } from 'src/constants/config.constants';
 import { PinoLoggerService } from 'src/logger/pino-logger.service';
+import { buildOnboardingWelcomeEmail } from 'src/templates/email/onboarding-welcome.template';
 import { buildPasswordResetEmail } from 'src/templates/email/password-reset.template';
+import { buildPasswordResetSuccessEmail } from 'src/templates/email/password-reset-success.template';
 import { AllConfigType } from 'src/types/config.type';
 import { EmailProvider } from 'src/types/email-provider.type';
 
@@ -114,6 +116,46 @@ export class EmailService {
       brandName: this.brandName,
       otp,
       expiresInMinutes,
+      supportUrl: this.supportUrl,
+      logoUrl: this.logoUrl,
+      primaryColor: this.primaryColor,
+    });
+
+    await this.sendEmail({ to, subject, html, text });
+  }
+
+  async sendPasswordResetSuccess(
+    to: string,
+    options: {
+      userName?: string | null;
+      occurredAt?: Date;
+      ipAddress?: string;
+      userAgent?: string;
+    },
+  ) {
+    const { subject, html, text } = buildPasswordResetSuccessEmail({
+      brandName: this.brandName,
+      userName: options.userName,
+      occurredAt: options.occurredAt,
+      ipAddress: options.ipAddress,
+      userAgent: options.userAgent,
+      supportUrl: this.supportUrl,
+      logoUrl: this.logoUrl,
+      primaryColor: this.primaryColor,
+    });
+
+    await this.sendEmail({ to, subject, html, text });
+  }
+
+  async sendOnboardingEmail(
+    to: string,
+    options: {
+      userName?: string | null;
+    },
+  ) {
+    const { subject, html, text } = buildOnboardingWelcomeEmail({
+      brandName: this.brandName,
+      userName: options.userName,
       supportUrl: this.supportUrl,
       logoUrl: this.logoUrl,
       primaryColor: this.primaryColor,
