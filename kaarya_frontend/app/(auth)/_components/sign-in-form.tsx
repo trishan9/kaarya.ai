@@ -62,7 +62,7 @@ export function SigninForm() {
 
                 <FieldDescription className="ml-auto">
                   <Link
-                    href="/"
+                    href="/forgot-password"
                     className="text-sm underline-offset-4 hover:underline"
                   >
                     Forgot Password?
