@@ -9,6 +9,8 @@ import appConfig from './config/app-config';
 import authConfig from './config/auth-config';
 import cloudinaryConfig from './config/cloudinary-config';
 import databaseConfig from './config/database-config';
+import emailConfig from './config/email-config';
+import redisConfig from './config/redis-config';
 import { LoggerModule } from './logger/logger.module';
 
 export const InfrastructureDatabaseModule = MongoDatabaseModule;
@@ -17,7 +19,14 @@ export const InfrastructureDatabaseModule = MongoDatabaseModule;
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, authConfig, databaseConfig, cloudinaryConfig],
+      load: [
+        appConfig,
+        authConfig,
+        databaseConfig,
+        cloudinaryConfig,
+        emailConfig,
+        redisConfig,
+      ],
       envFilePath: process.env.NODE_ENV === 'test' ? [] : ['.env'],
       ignoreEnvFile: process.env.NODE_ENV === 'test',
     }),
