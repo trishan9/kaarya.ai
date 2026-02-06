@@ -59,6 +59,10 @@ describe('Auth password reset (integration)', () => {
 
     expect(context.email.sendPasswordResetOtp).toHaveBeenCalledTimes(1);
     const otp = context.email.sendPasswordResetOtp.mock.calls[0][1] as string;
+    const resetLink = context.email.sendPasswordResetOtp.mock.calls[0][3] as
+      | string
+      | undefined;
+    expect(resetLink).toContain('/forgot-password?token=');
 
     const verify = await request(context.app.getHttpServer())
       .post(`${base}/${ROUTES.AUTH.PASSWORD_RESET_VERIFY}`)
@@ -97,6 +101,37 @@ describe('Auth password reset (integration)', () => {
         userName: 'Reset User',
         ipAddress: expect.any(String),
         occurredAt: expect.any(Date),
+      }),
+    );
+  });
+
+  it('should reset password directly with the link token from email', async () => {
+    await request(context.app.getHttpServer())
+      .post(`${base}/${ROUTES.AUTH.PASSWORD_RESET_REQUEST}`)
+      .send({ email: 'reset.integration@example.com' })
+      .expect(200);
+
+    const resetLink = context.email.sendPasswordResetOtp.mock.calls[0][3] as
+      | string
+      | undefined;
+    expect(resetLink).toBeDefined();
+    const resetToken = new URL(resetLink as string).searchParams.get('token');
+    expect(resetToken).toBeTruthy();
+
+    const confirm = await request(context.app.getHttpServer())
+      .post(`${base}/${ROUTES.AUTH.PASSWORD_RESET_CONFIRM}`)
+      .send({
+        token: resetToken,
+        password: 'NewPassword!123',
+        confirmPassword: 'NewPassword!123',
+      })
+      .expect(200);
+
+    expect(confirm.body).toEqual(
+      expect.objectContaining({
+        success: true,
+        message: AUTH_MESSAGES.PASSWORD_RESET_SUCCESS,
+        data: { reset: true },
       }),
     );
   });

@@ -45,6 +45,10 @@ describe('Password reset routes (e2e)', () => {
 
     expect(context.email.sendPasswordResetOtp).toHaveBeenCalledTimes(1);
     const otp = context.email.sendPasswordResetOtp.mock.calls[0][1] as string;
+    const resetLink = context.email.sendPasswordResetOtp.mock.calls[0][3] as
+      | string
+      | undefined;
+    expect(resetLink).toContain('/forgot-password?token=');
 
     const verify = await request(context.app.getHttpServer())
       .post(`${base}/${ROUTES.AUTH.PASSWORD_RESET_VERIFY}`)
@@ -78,6 +82,47 @@ describe('Password reset routes (e2e)', () => {
         occurredAt: expect.any(Date),
       }),
     );
+  });
+
+  it('should allow resetting password directly from the emailed reset link token', async () => {
+    await request(context.app.getHttpServer())
+      .post(`${base}/${ROUTES.AUTH.SIGNUP}`)
+      .send({
+        name: 'Reset Link E2E',
+        email: 'reset.link.e2e@example.com',
+        password: 'Password123',
+        confirmPassword: 'Password123',
+      })
+      .expect(200);
+
+    await request(context.app.getHttpServer())
+      .post(`${base}/${ROUTES.AUTH.PASSWORD_RESET_REQUEST}`)
+      .send({ email: 'reset.link.e2e@example.com' })
+      .expect(200);
+
+    const resetLink = context.email.sendPasswordResetOtp.mock.calls[0][3] as
+      | string
+      | undefined;
+    expect(resetLink).toBeDefined();
+    const resetToken = new URL(resetLink as string).searchParams.get('token');
+    expect(resetToken).toBeTruthy();
+
+    await request(context.app.getHttpServer())
+      .post(`${base}/${ROUTES.AUTH.PASSWORD_RESET_CONFIRM}`)
+      .send({
+        token: resetToken,
+        password: 'NewPassword!123',
+        confirmPassword: 'NewPassword!123',
+      })
+      .expect(200);
+
+    await request(context.app.getHttpServer())
+      .post(`${base}/${ROUTES.AUTH.LOGIN}`)
+      .send({
+        email: 'reset.link.e2e@example.com',
+        password: 'NewPassword!123',
+      })
+      .expect(200);
   });
 
   it('should reject invalid reset tokens', async () => {

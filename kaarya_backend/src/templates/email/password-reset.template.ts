@@ -2,6 +2,7 @@ type PasswordResetEmailParams = {
   brandName: string;
   otp: string;
   expiresInMinutes: number;
+  resetUrl?: string;
   supportUrl?: string;
   logoUrl?: string;
   primaryColor?: string;
@@ -11,6 +12,7 @@ export const buildPasswordResetEmail = (params: PasswordResetEmailParams) => {
   const brandName = params.brandName || 'Kaarya';
   const primaryColor = params.primaryColor || '#0b67c2';
   const supportUrl = params.supportUrl;
+  const resetUrl = params.resetUrl;
   const logoUrl =
     params.logoUrl ||
     'https://res.cloudinary.com/dnqet3vq1/image/upload/v1770357829/kaarya/tl0x4mtzklebkdsbl50b.png';
@@ -47,7 +49,7 @@ export const buildPasswordResetEmail = (params: PasswordResetEmailParams) => {
                   </tr>
                 </table>
                 <h1 style="margin:18px 0 6px;font-size:22px;line-height:1.3;">Reset your password</h1>
-                <p style="margin:0;font-size:14px;line-height:1.6;color:#dbeafe;">Use the verification code below to continue.</p>
+                <p style="margin:0;font-size:14px;line-height:1.6;color:#dbeafe;">Use the secure link below or the verification code to continue.</p>
               </td>
             </tr>
             <tr>
@@ -56,10 +58,23 @@ export const buildPasswordResetEmail = (params: PasswordResetEmailParams) => {
                   We received a request to reset the password for your ${brandName} account.
                   This code expires in ${params.expiresInMinutes} minutes.
                 </p>
+                ${
+                  resetUrl
+                    ? `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;margin-bottom:16px;">
+                  <tr style="border-radius:14px;">
+                    <td style="padding:18px;border-radius:14px;background:#eff6ff;border:1px solid #bfdbfe;">
+                      <div style="font-size:13px;color:#1e3a8a;font-weight:600;margin-bottom:10px;">Option 1: Reset with one click</div>
+                      <a href="${resetUrl}" style="display:inline-block;background:${primaryColor};color:#ffffff;text-decoration:none;font-weight:600;border-radius:10px;padding:11px 18px;">Reset Password</a>
+                      <div style="margin-top:10px;font-size:12px;color:#64748b;word-break:break-all;">${resetUrl}</div>
+                    </td>
+                  </tr>
+                </table>`
+                    : ''
+                }
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
-                  <tr>
+                  <tr style="border-radius:14px;">
                     <td style="padding:16px;border:1px dashed #cbd5f5;border-radius:14px;background:#f8fafc;text-align:center;">
-                      <div style="font-size:12px;text-transform:uppercase;letter-spacing:1.6px;color:#64748b;">Verification Code</div>
+                      <div style="font-size:12px;text-transform:uppercase;letter-spacing:1.6px;color:#64748b;">Option 2: Verification Code</div>
                       <div style="font-size:32px;font-weight:700;letter-spacing:8px;color:#0f172a;margin:10px 0 4px;">${params.otp}</div>
                       <div style="font-size:12px;color:#94a3b8;">Valid for ${params.expiresInMinutes} minutes</div>
                     </td>
@@ -94,7 +109,7 @@ export const buildPasswordResetEmail = (params: PasswordResetEmailParams) => {
 
   const text = `Password reset requested for ${brandName}
 
-Your verification code: ${params.otp}
+${resetUrl ? `Reset link: ${resetUrl}\n` : ''}Your verification code: ${params.otp}
 This code expires in ${params.expiresInMinutes} minutes.
 
 If you did not request this reset, ignore this email. Your password will remain unchanged.

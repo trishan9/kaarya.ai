@@ -111,11 +111,13 @@ export class EmailService {
     to: string,
     otp: string,
     expiresInMinutes: number,
+    resetUrl?: string,
   ) {
     const { subject, html, text } = buildPasswordResetEmail({
       brandName: this.brandName,
       otp,
       expiresInMinutes,
+      resetUrl,
       supportUrl: this.supportUrl,
       logoUrl: this.logoUrl,
       primaryColor: this.primaryColor,

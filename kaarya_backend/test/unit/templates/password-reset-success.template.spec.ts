@@ -16,9 +16,11 @@ describe('Password reset success email template', () => {
     expect(result.subject).toBe('Kaarya password changed successfully');
     expect(result.html).toContain('10.0.0.8');
     expect(result.html).toContain('Mozilla/5.0');
+    expect(result.html).toContain('GMT+5:45 (KTM)');
     expect(result.html).toContain('https://img.example.com/logo.png');
     expect(result.html).toContain('Contact support');
     expect(result.html).toContain('#123456');
+    expect(result.text).toContain('GMT+5:45 (KTM)');
     expect(result.text).toContain('Support: https://support.example.com');
   });
 

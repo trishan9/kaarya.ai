@@ -1,6 +1,8 @@
 process.env.NODE_ENV = 'test';
 process.env.APP_PORT = process.env.APP_PORT || '3001';
 process.env.API_PREFIX = process.env.API_PREFIX || 'api';
+process.env.FRONTEND_DOMAIN =
+  process.env.FRONTEND_DOMAIN || 'http://localhost:3000';
 
 process.env.AUTH_JWT_SECRET = process.env.AUTH_JWT_SECRET || 'test-jwt-secret';
 process.env.AUTH_JWT_TOKEN_EXPIRES_IN =

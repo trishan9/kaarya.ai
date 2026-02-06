@@ -11,6 +11,7 @@ export const CONFIG_KEYS = {
   APP: {
     API_PREFIX: `${CONFIG_NAMESPACE.APP}.apiPrefix`,
     PORT: `${CONFIG_NAMESPACE.APP}.port`,
+    FRONTEND_DOMAIN: `${CONFIG_NAMESPACE.APP}.frontendDomain`,
     LOG_LEVEL: `${CONFIG_NAMESPACE.APP}.logLevel`,
   },
   AUTH: {

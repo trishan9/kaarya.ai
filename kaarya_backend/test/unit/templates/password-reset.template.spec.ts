@@ -6,6 +6,7 @@ describe('Password reset email template', () => {
       brandName: 'Kaarya',
       otp: '123456',
       expiresInMinutes: 10,
+      resetUrl: 'https://app.example.com/forgot-password?token=jwt.token',
       supportUrl: 'https://support.example.com',
       logoUrl: 'https://img.example.com/logo.png',
       primaryColor: '#123456',
@@ -15,8 +16,13 @@ describe('Password reset email template', () => {
     expect(result.html).toContain('123456');
     expect(result.html).toContain('https://img.example.com/logo.png');
     expect(result.html).toContain('Contact support');
+    expect(result.html).toContain('Reset Password');
+    expect(result.html).toContain('https://app.example.com/forgot-password?token=jwt.token');
     expect(result.html).toContain('#123456');
     expect(result.text).toContain('Support: https://support.example.com');
+    expect(result.text).toContain(
+      'Reset link: https://app.example.com/forgot-password?token=jwt.token',
+    );
   });
 
   it('should omit support links when none are provided', () => {

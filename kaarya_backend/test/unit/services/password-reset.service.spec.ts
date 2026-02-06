@@ -1,5 +1,4 @@
 import { HttpStatus } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import argon2 from 'argon2';
 import crypto from 'crypto';
 import { ConfigService } from '@nestjs/config';
@@ -24,7 +23,6 @@ jest.mock('argon2', () => ({
 type ServiceDeps = {
   service: PasswordResetService;
   userService: jest.Mocked<UserService>;
-  jwtService: jest.Mocked<JwtService>;
   emailService: jest.Mocked<EmailService>;
   redisService: jest.Mocked<RedisService>;
   rateLimitService: jest.Mocked<RateLimitService>;
@@ -64,11 +62,6 @@ const setup = (overrides: Record<string, unknown> = {}): ServiceDeps => {
     updatePassword: jest.fn(),
   } as unknown as jest.Mocked<UserService>;
 
-  const jwtService = {
-    signAsync: jest.fn(),
-    verifyAsync: jest.fn(),
-  } as unknown as jest.Mocked<JwtService>;
-
   const emailService = {
     sendPasswordResetOtp: jest.fn(),
     sendPasswordResetSuccess: jest.fn(),
@@ -93,7 +86,6 @@ const setup = (overrides: Record<string, unknown> = {}): ServiceDeps => {
 
   const service = new PasswordResetService(
     userService,
-    jwtService,
     emailService,
     redisService,
     rateLimitService,
@@ -104,7 +96,6 @@ const setup = (overrides: Record<string, unknown> = {}): ServiceDeps => {
   return {
     service,
     userService,
-    jwtService,
     emailService,
     redisService,
     rateLimitService,
@@ -113,6 +104,9 @@ const setup = (overrides: Record<string, unknown> = {}): ServiceDeps => {
     redis,
   };
 };
+
+const hashResetToken = (token: string) =>
+  crypto.createHmac('sha256', 'forgot-secret').update(token).digest('hex');
 
 describe('PasswordResetService', () => {
   const mockedArgon2 = argon2 as unknown as { hash: jest.Mock };
@@ -177,6 +171,7 @@ describe('PasswordResetService', () => {
       'user@example.com',
       '123456',
       5,
+      undefined,
     );
 
     const emailHash = crypto
@@ -203,6 +198,27 @@ describe('PasswordResetService', () => {
         maxAttempts: 3,
       }),
     );
+    expect(await redis.get('kaarya:reset:token:user:user-1')).toBeTruthy();
+  });
+
+  it('should include a direct reset link when frontend domain is configured', async () => {
+    const { service, userService, emailService } = setup({
+      [CONFIG_KEYS.APP.FRONTEND_DOMAIN]: 'https://app.example.com',
+    });
+    userService.getUserByEmail.mockResolvedValue({ id: 'user-1' } as never);
+    const tokenBytes = Buffer.alloc(32, 7);
+    const expectedToken = tokenBytes.toString('base64url');
+    jest.spyOn(crypto, 'randomBytes').mockReturnValue(tokenBytes);
+    jest.spyOn(crypto, 'randomInt').mockReturnValue(123456);
+
+    await service.requestReset('user@example.com', { ip: '10.0.0.15' });
+
+    expect(emailService.sendPasswordResetOtp).toHaveBeenCalledWith(
+      'user@example.com',
+      '123456',
+      10,
+      `https://app.example.com/forgot-password?token=${expectedToken}`,
+    );
   });
 
   it('should fall back to default expiry when configured value is invalid', async () => {
@@ -218,6 +234,7 @@ describe('PasswordResetService', () => {
       'user@example.com',
       '123456',
       10,
+      undefined,
     );
   });
 
@@ -354,7 +371,7 @@ describe('PasswordResetService', () => {
   });
 
   it('should clear OTP state and issue a reset token on success', async () => {
-    const { service, redis, jwtService } = setup();
+    const { service, redis } = setup();
     const emailHash = crypto
       .createHash('sha256')
       .update('user@example.com')
@@ -375,16 +392,44 @@ describe('PasswordResetService', () => {
       { EX: 60 },
     );
 
-    jest.spyOn(crypto, 'randomUUID').mockReturnValue('jti-1');
-    jwtService.signAsync.mockResolvedValue('reset.jwt');
+    const tokenBytes = Buffer.alloc(32, 4);
+    const expectedToken = tokenBytes.toString('base64url');
+    const tokenHash = hashResetToken(expectedToken);
+    jest.spyOn(crypto, 'randomBytes').mockReturnValue(tokenBytes);
 
     const result = await service.verifyOtp('user@example.com', '123456', {
       ip: '10.0.0.6',
     });
 
-    expect(result).toEqual({ resetToken: 'reset.jwt' });
+    expect(result).toEqual({ resetToken: expectedToken });
     expect(await redis.get(`kaarya:reset:otp:${emailHash}`)).toBeNull();
-    expect(await redis.get('kaarya:reset:token:jti-1')).toBe('user-1');
+    expect(await redis.get(`kaarya:reset:token:${tokenHash}`)).toBe('user-1');
+    expect(await redis.get('kaarya:reset:token:user:user-1')).toBe(tokenHash);
+  });
+
+  it('should invalidate the previous reset token when issuing a new one', async () => {
+    const { service, userService, redis } = setup();
+    userService.getUserByEmail.mockResolvedValue({ id: 'user-1' } as never);
+    jest.spyOn(crypto, 'randomInt').mockReturnValue(123456);
+    const oldTokenBytes = Buffer.alloc(32, 10);
+    const newTokenBytes = Buffer.alloc(32, 11);
+    const oldTokenHash = hashResetToken(oldTokenBytes.toString('base64url'));
+    const newTokenHash = hashResetToken(newTokenBytes.toString('base64url'));
+    jest
+      .spyOn(crypto, 'randomBytes')
+      .mockReturnValueOnce(oldTokenBytes)
+      .mockReturnValueOnce(newTokenBytes);
+
+    await service.requestReset('user@example.com', { ip: '10.0.0.16' });
+    await service.requestReset('user@example.com', { ip: '10.0.0.17' });
+
+    expect(await redis.get(`kaarya:reset:token:${oldTokenHash}`)).toBeNull();
+    expect(await redis.get(`kaarya:reset:token:${newTokenHash}`)).toBe(
+      'user-1',
+    );
+    expect(await redis.get('kaarya:reset:token:user:user-1')).toBe(
+      newTokenHash,
+    );
   });
 
   it('should treat corrupted OTP state as invalid', async () => {
@@ -403,8 +448,7 @@ describe('PasswordResetService', () => {
   });
 
   it('should reject invalid reset tokens', async () => {
-    const { service, jwtService } = setup();
-    jwtService.verifyAsync.mockRejectedValue(new Error('bad token'));
+    const { service } = setup();
 
     try {
       await service.resetPassword('bad', 'NewPassword!123', {
@@ -424,43 +468,25 @@ describe('PasswordResetService', () => {
   });
 
   it('should reject reset tokens that are missing in redis', async () => {
-    const { service, jwtService } = setup();
-    jwtService.verifyAsync.mockResolvedValue({
-      sub: 'user-1',
-      scope: 'password-reset',
-      jti: 'missing',
-    });
+    const { service } = setup();
 
     await expect(
-      service.resetPassword('reset.jwt', 'NewPassword!123', {
+      service.resetPassword('opaque.token', 'NewPassword!123', {
         ip: '10.0.0.12',
       }),
     ).rejects.toBeInstanceOf(Error);
   });
 
-  it('should reject reset tokens with invalid payloads', async () => {
-    const { service, jwtService } = setup();
-    jwtService.verifyAsync.mockResolvedValue({
-      sub: 'user-1',
-      scope: 'other',
-      jti: 'jti-3',
-    });
-
-    await expect(
-      service.resetPassword('reset.jwt', 'NewPassword!123', {
-        ip: '10.0.0.14',
-      }),
-    ).rejects.toBeInstanceOf(Error);
-  });
-
   it('should reset the password, clear the reset token, and send a confirmation email', async () => {
-    const { service, jwtService, userService, redis, emailService } = setup();
-    jwtService.verifyAsync.mockResolvedValue({
-      sub: 'user-1',
-      scope: 'password-reset',
-      jti: 'jti-2',
+    const { service, userService, redis, emailService } = setup();
+    const resetToken = 'opaque.token';
+    const resetTokenHash = hashResetToken(resetToken);
+    await redis.set(`kaarya:reset:token:${resetTokenHash}`, 'user-1', {
+      EX: 60,
     });
-    await redis.set('kaarya:reset:token:jti-2', 'user-1', { EX: 60 });
+    await redis.set('kaarya:reset:token:user:user-1', resetTokenHash, {
+      EX: 60,
+    });
     userService.getUserByIdRaw.mockResolvedValue({
       id: 'user-1',
       email: 'user@example.com',
@@ -469,13 +495,14 @@ describe('PasswordResetService', () => {
     mockedArgon2.hash.mockResolvedValue('hashed');
     userService.updatePassword.mockResolvedValue(true as never);
 
-    await service.resetPassword('reset.jwt', 'NewPassword!123', {
+    await service.resetPassword(resetToken, 'NewPassword!123', {
       ip: '10.0.0.8',
       userAgent: 'Mozilla/5.0',
     });
 
     expect(userService.updatePassword).toHaveBeenCalledWith('user-1', 'hashed');
-    expect(await redis.get('kaarya:reset:token:jti-2')).toBeNull();
+    expect(await redis.get(`kaarya:reset:token:${resetTokenHash}`)).toBeNull();
+    expect(await redis.get('kaarya:reset:token:user:user-1')).toBeNull();
     expect(emailService.sendPasswordResetSuccess).toHaveBeenCalledWith(
       'user@example.com',
       expect.objectContaining({

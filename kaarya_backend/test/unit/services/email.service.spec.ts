@@ -71,7 +71,12 @@ describe('EmailService', () => {
     sendMailMock.mockResolvedValue(undefined);
     const service = new EmailService(configService, logger);
 
-    await service.sendPasswordResetOtp('user@example.com', '123456', 10);
+    await service.sendPasswordResetOtp(
+      'user@example.com',
+      '123456',
+      10,
+      'https://app.example.com/forgot-password?token=jwt.token',
+    );
 
     expect(nodemailer.createTransport).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -85,6 +90,9 @@ describe('EmailService', () => {
         to: 'user@example.com',
         subject: 'Kaarya password reset code',
         replyTo: 'support@example.com',
+        html: expect.stringContaining(
+          'https://app.example.com/forgot-password?token=jwt.token',
+        ),
       }),
     );
   });

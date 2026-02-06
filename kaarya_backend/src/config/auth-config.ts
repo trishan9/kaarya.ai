@@ -86,12 +86,12 @@ export default registerAs<AuthConfig>(CONFIG_NAMESPACE.AUTH, () => {
       '10m') as ms.StringValue,
     resetOtpMaxAttempts: process.env.AUTH_RESET_OTP_MAX_ATTEMPTS
       ? parseInt(process.env.AUTH_RESET_OTP_MAX_ATTEMPTS, 10)
-      : 5,
+      : 10,
     resetRequestWindow: (process.env.AUTH_RESET_REQUEST_WINDOW ??
       '1h') as ms.StringValue,
     resetRequestMax: process.env.AUTH_RESET_REQUEST_MAX
       ? parseInt(process.env.AUTH_RESET_REQUEST_MAX, 10)
-      : 5,
+      : 10,
     resetVerifyWindow: (process.env.AUTH_RESET_VERIFY_WINDOW ??
       '15m') as ms.StringValue,
     resetVerifyMax: process.env.AUTH_RESET_VERIFY_MAX
@@ -101,6 +101,6 @@ export default registerAs<AuthConfig>(CONFIG_NAMESPACE.AUTH, () => {
       '15m') as ms.StringValue,
     resetPasswordMax: process.env.AUTH_RESET_PASSWORD_MAX
       ? parseInt(process.env.AUTH_RESET_PASSWORD_MAX, 10)
-      : 5,
+      : 10,
   };
 });

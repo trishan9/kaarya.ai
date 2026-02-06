@@ -13,8 +13,8 @@ const formatResetTimestamp = (value: Date) => {
   return `${value.toLocaleString('en-US', {
     dateStyle: 'medium',
     timeStyle: 'short',
-    timeZone: 'UTC',
-  })} UTC`;
+    timeZone: 'Asia/Kathmandu',
+  })} GMT+5:45 (KTM)`;
 };
 
 export const buildPasswordResetSuccessEmail = (
@@ -73,7 +73,7 @@ export const buildPasswordResetSuccessEmail = (
                   Hi ${firstName}, your ${brandName} password was successfully reset on ${occurredAtLabel}.
                 </p>
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
-                  <tr>
+                  <tr style="border-radius:14px;">
                     <td style="padding:16px;border-radius:14px;background:#f8fafc;border:1px solid #e2e8f0;">
                       <div style="font-size:12px;text-transform:uppercase;letter-spacing:1.2px;color:#64748b;margin-bottom:10px;">Reset details</div>
                       <p style="margin:0 0 7px;font-size:13px;line-height:1.6;color:#334155;"><strong style="color:#0f172a;">Time:</strong> ${occurredAtLabel}</p>

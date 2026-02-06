@@ -1,6 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 import argon2 from 'argon2';
 import crypto from 'crypto';
 import ms from 'ms';
@@ -23,14 +22,6 @@ type ResetOtpState = {
   expiresAt: string;
 };
 
-type ResetTokenPayload = {
-  sub: string;
-  scope: 'password-reset';
-  jti: string;
-  iat?: number;
-  exp?: number;
-};
-
 type RequestMetadata = {
   ip: string;
   userAgent?: string;
@@ -50,11 +41,11 @@ export class PasswordResetService {
   private readonly resetPasswordWindowSeconds: number;
   private readonly resetPasswordMax: number;
   private readonly resetTokenTtlSeconds: number;
+  private readonly frontendDomain?: string;
   private readonly redisPrefix: string;
 
   constructor(
     private readonly userService: UserService,
-    private readonly jwtService: JwtService,
     private readonly emailService: EmailService,
     private readonly redisService: RedisService,
     private readonly rateLimitService: RateLimitService,
@@ -81,7 +72,7 @@ export class PasswordResetService {
     this.resetOtpMaxAttempts =
       this.configService.get(CONFIG_KEYS.AUTH.RESET_OTP_MAX_ATTEMPTS, {
         infer: true,
-      }) ?? 5;
+      }) ?? 10;
 
     const requestWindow = this.configService.get(
       CONFIG_KEYS.AUTH.RESET_REQUEST_WINDOW,
@@ -93,7 +84,7 @@ export class PasswordResetService {
     this.resetRequestMax =
       this.configService.get(CONFIG_KEYS.AUTH.RESET_REQUEST_MAX, {
         infer: true,
-      }) ?? 5;
+      }) ?? 10;
 
     const verifyWindow = this.configService.get(
       CONFIG_KEYS.AUTH.RESET_VERIFY_WINDOW,
@@ -117,7 +108,7 @@ export class PasswordResetService {
     this.resetPasswordMax =
       this.configService.get(CONFIG_KEYS.AUTH.RESET_PASSWORD_MAX, {
         infer: true,
-      }) ?? 5;
+      }) ?? 10;
 
     const resetTokenExpires = this.configService.get(
       CONFIG_KEYS.AUTH.FORGOT_EXPIRES,
@@ -125,6 +116,13 @@ export class PasswordResetService {
     );
     this.resetTokenTtlSeconds = Math.ceil(
       this.parseMs(resetTokenExpires, 30 * 60 * 1000) / 1000,
+    );
+
+    this.frontendDomain = this.configService.get(
+      CONFIG_KEYS.APP.FRONTEND_DOMAIN,
+      {
+        infer: true,
+      },
     );
 
     this.redisPrefix =
@@ -163,11 +161,15 @@ export class PasswordResetService {
     }
 
     await this.storeOtpState(emailHash, state, this.resetOtpTtlSeconds);
+    const resetToken = await this.issueResetToken(state.userId);
+    const resetUrl = this.buildResetUrl(resetToken);
+
     try {
       await this.emailService.sendPasswordResetOtp(
         normalizedEmail,
         otp,
         Math.ceil(this.resetOtpTtlMs / 60000),
+        resetUrl,
       );
     } catch (error) {
       this.logger.error(
@@ -234,29 +236,22 @@ export class PasswordResetService {
     this.ensureConfigured();
     await this.applyResetRateLimits(metadata.ip);
 
-    let payload: ResetTokenPayload;
-    try {
-      payload = await this.jwtService.verifyAsync<ResetTokenPayload>(token, {
-        secret: this.resetTokenSecret,
-      });
-    } catch {
+    const normalizedToken = token.trim();
+    if (!normalizedToken) {
       throw this.invalidResetTokenError();
     }
 
-    if (!payload?.sub || payload.scope !== 'password-reset' || !payload.jti) {
-      throw this.invalidResetTokenError();
-    }
-
-    const tokenKey = this.buildResetTokenKey(payload.jti);
+    const tokenHash = this.hashResetToken(normalizedToken);
+    const tokenKey = this.buildResetTokenKey(tokenHash);
     const client = await this.redisService.getClient();
-    const storedUserId = await client.get(tokenKey);
-    if (!storedUserId || storedUserId !== payload.sub) {
+    const userId = await client.get(tokenKey);
+    if (!userId) {
       throw this.invalidResetTokenError();
     }
 
     let user;
     try {
-      user = await this.userService.getUserByIdRaw(payload.sub);
+      user = await this.userService.getUserByIdRaw(userId);
     } catch {
       throw this.invalidResetTokenError();
     }
@@ -274,6 +269,11 @@ export class PasswordResetService {
     }
 
     await client.del(tokenKey);
+    const tokenUserKey = this.buildResetTokenUserKey(userId);
+    const activeTokenHash = await client.get(tokenUserKey);
+    if (activeTokenHash === tokenHash) {
+      await client.del(tokenUserKey);
+    }
 
     if (user.email) {
       try {
@@ -427,23 +427,19 @@ export class PasswordResetService {
   }
 
   private async issueResetToken(userId: string) {
-    const jti = crypto.randomUUID();
-    const payload: ResetTokenPayload = {
-      sub: userId,
-      scope: 'password-reset',
-      jti,
-    };
-
-    const token = await this.jwtService.signAsync(payload, {
-      secret: this.resetTokenSecret,
-      expiresIn: this.configService.get(CONFIG_KEYS.AUTH.FORGOT_EXPIRES, {
-        infer: true,
-      }),
-    });
-
-    const tokenKey = this.buildResetTokenKey(jti);
+    const token = this.generateResetToken();
+    const tokenHash = this.hashResetToken(token);
+    const tokenKey = this.buildResetTokenKey(tokenHash);
     const client = await this.redisService.getClient();
+    const tokenUserKey = this.buildResetTokenUserKey(userId);
+    const activeTokenHash = await client.get(tokenUserKey);
+    if (activeTokenHash && activeTokenHash !== tokenHash) {
+      await client.del(this.buildResetTokenKey(activeTokenHash));
+    }
     await client.set(tokenKey, userId, { EX: this.resetTokenTtlSeconds });
+    await client.set(tokenUserKey, tokenHash, {
+      EX: this.resetTokenTtlSeconds,
+    });
 
     return token;
   }
@@ -452,8 +448,37 @@ export class PasswordResetService {
     return `${this.redisPrefix}:reset:otp:${emailHash}`;
   }
 
-  private buildResetTokenKey(jti: string) {
-    return `${this.redisPrefix}:reset:token:${jti}`;
+  private generateResetToken() {
+    return crypto.randomBytes(32).toString('base64url');
+  }
+
+  private hashResetToken(token: string) {
+    return crypto
+      .createHmac('sha256', this.resetTokenSecret ?? 'reset')
+      .update(token)
+      .digest('hex');
+  }
+
+  private buildResetTokenKey(tokenHash: string) {
+    return `${this.redisPrefix}:reset:token:${tokenHash}`;
+  }
+
+  private buildResetTokenUserKey(userId: string) {
+    return `${this.redisPrefix}:reset:token:user:${userId}`;
+  }
+
+  private buildResetUrl(token: string) {
+    if (!this.frontendDomain) {
+      return undefined;
+    }
+
+    try {
+      const resetUrl = new URL('/forgot-password', this.frontendDomain);
+      resetUrl.searchParams.set('token', token);
+      return resetUrl.toString();
+    } catch {
+      return undefined;
+    }
   }
 
   private buildRateLimitKey(
