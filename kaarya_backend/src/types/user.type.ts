@@ -13,6 +13,7 @@ export const UserZodSchema = z.object({
     .min(1, "Password can't be empty.")
     .min(8, 'Password must be between 8 to 16 characters.')
     .max(16, 'Password must be between 8 to 16 characters.'),
+  passwordChangedAt: z.date().optional(),
   role: z.enum(['user', 'admin']).optional(),
   provider: z.enum(['email', 'google', 'facebook']).optional(),
   socialId: z.string().nullable().optional(),

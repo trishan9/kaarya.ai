@@ -9,4 +9,13 @@ export type AuthConfig = {
   forgotExpires?: ms.StringValue;
   confirmEmailSecret?: string;
   confirmEmailExpires?: ms.StringValue;
+  resetOtpSecret?: string;
+  resetOtpExpires?: ms.StringValue;
+  resetOtpMaxAttempts?: number;
+  resetRequestWindow?: ms.StringValue;
+  resetRequestMax?: number;
+  resetVerifyWindow?: ms.StringValue;
+  resetVerifyMax?: number;
+  resetPasswordWindow?: ms.StringValue;
+  resetPasswordMax?: number;
 };
