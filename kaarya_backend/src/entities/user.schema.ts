@@ -23,6 +23,9 @@ export class UserSchemaClass {
   @Prop({ select: false })
   password?: string;
 
+  @Prop({ type: Date, default: null })
+  passwordChangedAt?: Date | null;
+
   @Prop({
     type: String,
     enum: Object.values(AuthProvider),
