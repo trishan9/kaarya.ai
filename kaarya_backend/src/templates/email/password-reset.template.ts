@@ -11,6 +11,12 @@ export const buildPasswordResetEmail = (params: PasswordResetEmailParams) => {
   const brandName = params.brandName || 'Kaarya';
   const primaryColor = params.primaryColor || '#0b67c2';
   const supportUrl = params.supportUrl;
+  const logoUrl =
+    params.logoUrl ||
+    'https://res.cloudinary.com/dnqet3vq1/image/upload/v1770357829/kaarya/tl0x4mtzklebkdsbl50b.png';
+
+  console.log('logoUrl', logoUrl);
+  console.log('params.logoUrl', params.logoUrl);
 
   const subject = `${brandName} password reset code`;
 
@@ -32,8 +38,8 @@ export const buildPasswordResetEmail = (params: PasswordResetEmailParams) => {
                   <tr>
                     <td align="left" style="vertical-align:middle;">
                       ${
-                        params.logoUrl
-                          ? `<img src="${params.logoUrl}" alt="${brandName} logo" style="height:32px;width:auto;border-radius:8px;vertical-align:middle;display:inline-block;margin-right:10px;" />`
+                        logoUrl
+                          ? `<img src="${logoUrl}" alt="${brandName} logo" style="height:32px;width:auto;border-radius:8px;vertical-align:middle;display:inline-block;margin-right:10px;" />`
                           : ''
                       }
                       <span style="font-size:16px;font-weight:700;letter-spacing:0.3px;vertical-align:middle;display:inline-block;">${brandName}</span>
