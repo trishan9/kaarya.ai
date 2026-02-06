@@ -2,6 +2,13 @@ export const AUTH_MESSAGES = {
   EMAIL_IN_USE: 'Email already in use.',
   INVALID_CREDENTIALS: 'Invalid email or password.',
   INVALID_TOKEN: 'Invalid token.',
+  INVALID_RESET_CODE: 'Invalid or expired verification code.',
+  INVALID_RESET_TOKEN: 'Invalid or expired reset token.',
+  PASSWORD_RESET_REQUESTED:
+    'If an account exists for this email, a reset code has been sent.',
+  PASSWORD_RESET_VERIFIED: 'Reset code verified.',
+  PASSWORD_RESET_SUCCESS: 'Password reset successful.',
+  TOO_MANY_REQUESTS: 'Too many attempts. Please try again later.',
   LOGIN_SUCCESS: 'Login successful.',
   SIGNUP_SUCCESS: 'Signup successful.',
   CURRENT_USER_SUCCESS: 'Current user fetched.',
@@ -26,4 +33,7 @@ export const RESPONSE_MESSAGES = {
 export const LOG_MESSAGES = {
   LOGIN_SUCCESS: 'Login completed.',
   SIGNUP_SUCCESS: 'Signup completed.',
+  PASSWORD_RESET_REQUEST: 'Password reset requested.',
+  PASSWORD_RESET_VERIFIED: 'Password reset code verified.',
+  PASSWORD_RESET_COMPLETED: 'Password reset completed.',
 } as const;

@@ -35,6 +35,7 @@ export const sanitizeUser = (user: UserInput): TSanitizedUser => {
   delete data._id;
   delete data.__v;
   delete data.password;
+  delete data.passwordChangedAt;
 
   return data;
 };
