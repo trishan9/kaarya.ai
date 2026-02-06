@@ -202,4 +202,96 @@ describe('AuthController', () => {
       controller.me({ user: { id: 'user-1' } }),
     ).rejects.toBeInstanceOf(ApiError);
   });
+
+  it('should reject invalid password reset request payloads', async () => {
+    await expect(
+      controller.requestPasswordReset({ ip: '127.0.0.1' }, {
+        email: 'not-an-email',
+      } as never),
+    ).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it('should request a password reset and return a success response', async () => {
+    passwordResetService.requestReset.mockResolvedValue(undefined);
+
+    const response = await controller.requestPasswordReset(
+      { ip: '127.0.0.1', headers: { 'user-agent': 'jest' } },
+      { email: 'User@Example.com' },
+    );
+
+    expect(passwordResetService.requestReset).toHaveBeenCalledWith(
+      'User@Example.com',
+      { ip: '127.0.0.1', userAgent: 'jest' },
+    );
+    expect(response).toEqual({
+      success: true,
+      message: AUTH_MESSAGES.PASSWORD_RESET_REQUESTED,
+      data: { submitted: true },
+    });
+  });
+
+  it('should reject invalid password reset verification payloads', async () => {
+    await expect(
+      controller.verifyPasswordResetOtp({ ip: '127.0.0.1' }, {
+        email: 'test@example.com',
+        otp: '12',
+      } as never),
+    ).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it('should verify a password reset code', async () => {
+    passwordResetService.verifyOtp.mockResolvedValue({
+      resetToken: 'reset-token',
+    });
+
+    const response = await controller.verifyPasswordResetOtp(
+      { ip: '127.0.0.1' },
+      { email: 'test@example.com', otp: '123456' },
+    );
+
+    expect(passwordResetService.verifyOtp).toHaveBeenCalledWith(
+      'test@example.com',
+      '123456',
+      { ip: '127.0.0.1', userAgent: undefined },
+    );
+    expect(response).toEqual({
+      success: true,
+      message: AUTH_MESSAGES.PASSWORD_RESET_VERIFIED,
+      data: { resetToken: 'reset-token' },
+    });
+  });
+
+  it('should reject invalid password reset payloads', async () => {
+    await expect(
+      controller.resetPassword({ ip: '127.0.0.1' }, {
+        token: '',
+        password: 'weak',
+        confirmPassword: 'weak',
+      } as never),
+    ).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it('should reset the password and return a success response', async () => {
+    passwordResetService.resetPassword.mockResolvedValue(undefined);
+
+    const response = await controller.resetPassword(
+      { ip: '127.0.0.1' },
+      {
+        token: 'reset.jwt.token',
+        password: 'NewPassword!123',
+        confirmPassword: 'NewPassword!123',
+      },
+    );
+
+    expect(passwordResetService.resetPassword).toHaveBeenCalledWith(
+      'reset.jwt.token',
+      'NewPassword!123',
+      { ip: '127.0.0.1', userAgent: undefined },
+    );
+    expect(response).toEqual({
+      success: true,
+      message: AUTH_MESSAGES.PASSWORD_RESET_SUCCESS,
+      data: { reset: true },
+    });
+  });
 });
