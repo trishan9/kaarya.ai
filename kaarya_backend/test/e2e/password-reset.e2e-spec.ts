@@ -14,6 +14,8 @@ describe('Password reset routes (e2e)', () => {
 
   beforeEach(() => {
     context.email.sendPasswordResetOtp.mockClear();
+    context.email.sendPasswordResetSuccess.mockClear();
+    context.email.sendOnboardingEmail.mockClear();
   });
 
   afterAll(async () => {
@@ -30,6 +32,11 @@ describe('Password reset routes (e2e)', () => {
         confirmPassword: 'Password123',
       })
       .expect(200);
+    expect(context.email.sendOnboardingEmail).toHaveBeenCalledTimes(1);
+    expect(context.email.sendOnboardingEmail).toHaveBeenCalledWith(
+      'reset.e2e@example.com',
+      { userName: 'Reset E2E' },
+    );
 
     await request(context.app.getHttpServer())
       .post(`${base}/${ROUTES.AUTH.PASSWORD_RESET_REQUEST}`)
@@ -62,6 +69,15 @@ describe('Password reset routes (e2e)', () => {
         password: 'NewPassword!123',
       })
       .expect(200);
+    expect(context.email.sendPasswordResetSuccess).toHaveBeenCalledTimes(1);
+    expect(context.email.sendPasswordResetSuccess).toHaveBeenCalledWith(
+      'reset.e2e@example.com',
+      expect.objectContaining({
+        userName: 'Reset E2E',
+        ipAddress: expect.any(String),
+        occurredAt: expect.any(Date),
+      }),
+    );
   });
 
   it('should reject invalid reset tokens', async () => {
@@ -80,5 +96,6 @@ describe('Password reset routes (e2e)', () => {
         message: AUTH_MESSAGES.INVALID_RESET_TOKEN,
       }),
     );
+    expect(context.email.sendPasswordResetSuccess).not.toHaveBeenCalled();
   });
 });

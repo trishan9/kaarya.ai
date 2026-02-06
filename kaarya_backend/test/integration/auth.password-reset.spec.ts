@@ -36,7 +36,11 @@ describe('Auth password reset (integration)', () => {
   beforeEach(async () => {
     await resetE2EDatabase(context);
     context.email.sendPasswordResetOtp.mockClear();
+    context.email.sendPasswordResetSuccess.mockClear();
+    context.email.sendOnboardingEmail.mockClear();
     await seedUser();
+    context.email.sendPasswordResetOtp.mockClear();
+    context.email.sendPasswordResetSuccess.mockClear();
   });
 
   it('should complete the password reset flow', async () => {
@@ -86,6 +90,15 @@ describe('Auth password reset (integration)', () => {
         data: { reset: true },
       }),
     );
+    expect(context.email.sendPasswordResetSuccess).toHaveBeenCalledTimes(1);
+    expect(context.email.sendPasswordResetSuccess).toHaveBeenCalledWith(
+      'reset.integration@example.com',
+      expect.objectContaining({
+        userName: 'Reset User',
+        ipAddress: expect.any(String),
+        occurredAt: expect.any(Date),
+      }),
+    );
   });
 
   it('should reject invalid reset codes', async () => {
@@ -105,5 +118,6 @@ describe('Auth password reset (integration)', () => {
         message: AUTH_MESSAGES.INVALID_RESET_CODE,
       }),
     );
+    expect(context.email.sendPasswordResetSuccess).not.toHaveBeenCalled();
   });
 });

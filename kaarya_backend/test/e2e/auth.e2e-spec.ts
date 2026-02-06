@@ -16,6 +16,7 @@ describe('Auth routes (e2e)', () => {
 
   beforeEach(() => {
     context.cloudinary.uploadImage.mockClear();
+    context.email.sendOnboardingEmail.mockClear();
   });
 
   afterAll(async () => {
@@ -38,6 +39,7 @@ describe('Auth routes (e2e)', () => {
         success: false,
       }),
     );
+    expect(context.email.sendOnboardingEmail).not.toHaveBeenCalled();
   });
 
   it('should sign up a new user', async () => {
@@ -56,6 +58,11 @@ describe('Auth routes (e2e)', () => {
         success: true,
         message: AUTH_MESSAGES.SIGNUP_SUCCESS,
       }),
+    );
+    expect(context.email.sendOnboardingEmail).toHaveBeenCalledTimes(1);
+    expect(context.email.sendOnboardingEmail).toHaveBeenCalledWith(
+      'e2e.user@example.com',
+      { userName: 'E2E User' },
     );
 
     userId = response.body.data.id;
