@@ -11,7 +11,7 @@ describe('JwtStrategy', () => {
     } as unknown as ConfigService;
 
     const userService = {
-      getUserById: jest.fn().mockResolvedValue({ id: 'user-1' }),
+      getUserByIdRaw: jest.fn().mockResolvedValue({ id: 'user-1' }),
     } as unknown as jest.Mocked<UserService>;
 
     const strategy = new JwtStrategy(configService, userService);
@@ -19,7 +19,7 @@ describe('JwtStrategy', () => {
     const result = await strategy.validate({ sub: 'user-1' });
 
     expect(result).toEqual({ id: 'user-1' });
-    expect(userService.getUserById).toHaveBeenCalledWith('user-1');
+    expect(userService.getUserByIdRaw).toHaveBeenCalledWith('user-1');
   });
 
   it('should throw when the user is missing', async () => {
@@ -28,7 +28,7 @@ describe('JwtStrategy', () => {
     } as unknown as ConfigService;
 
     const userService = {
-      getUserById: jest.fn().mockResolvedValue(null),
+      getUserByIdRaw: jest.fn().mockRejectedValue(new Error('Not found')),
     } as unknown as jest.Mocked<UserService>;
 
     const strategy = new JwtStrategy(configService, userService);

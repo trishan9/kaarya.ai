@@ -3,6 +3,7 @@ import { HttpStatus } from '@nestjs/common';
 import { AuthController } from 'src/controllers/auth.controller';
 import { AuthService } from 'src/services/auth.service';
 import { CloudinaryService } from 'src/services/cloudinary.service';
+import { PasswordResetService } from 'src/services/password-reset.service';
 import { ApiError } from 'src/common/errors/api-error';
 import { AUTH_MESSAGES, USER_MESSAGES } from 'src/constants/messages.constants';
 
@@ -10,6 +11,11 @@ describe('AuthController', () => {
   let controller: AuthController;
   let authService: jest.Mocked<AuthService>;
   let cloudinaryService: { uploadImage: jest.Mock };
+  let passwordResetService: {
+    requestReset: jest.Mock;
+    verifyOtp: jest.Mock;
+    resetPassword: jest.Mock;
+  };
 
   beforeEach(async () => {
     authService = {
@@ -23,11 +29,18 @@ describe('AuthController', () => {
       uploadImage: jest.fn(),
     };
 
+    passwordResetService = {
+      requestReset: jest.fn(),
+      verifyOtp: jest.fn(),
+      resetPassword: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
       providers: [
         { provide: AuthService, useValue: authService },
         { provide: CloudinaryService, useValue: cloudinaryService },
+        { provide: PasswordResetService, useValue: passwordResetService },
       ],
     }).compile();
 
