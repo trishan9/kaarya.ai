@@ -89,6 +89,57 @@ describe('EmailService', () => {
     );
   });
 
+  it('should send password reset success emails when configured', async () => {
+    const configService = buildConfigService({
+      [CONFIG_KEYS.EMAIL.PROVIDER]: 'nodemailer',
+      [CONFIG_KEYS.EMAIL.FROM]: 'no-reply@example.com',
+      [CONFIG_KEYS.EMAIL.BRAND_NAME]: 'Kaarya',
+      [CONFIG_KEYS.EMAIL.SMTP_HOST]: 'smtp.example.com',
+      [CONFIG_KEYS.EMAIL.SMTP_PORT]: 587,
+    });
+
+    sendMailMock.mockResolvedValue(undefined);
+    const service = new EmailService(configService, logger);
+
+    await service.sendPasswordResetSuccess('user@example.com', {
+      userName: 'Reset User',
+      ipAddress: '10.0.0.8',
+      userAgent: 'Mozilla/5.0',
+      occurredAt: new Date('2026-02-06T12:00:00.000Z'),
+    });
+
+    expect(sendMailMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: 'user@example.com',
+        subject: 'Kaarya password changed successfully',
+      }),
+    );
+  });
+
+  it('should send onboarding emails when configured', async () => {
+    const configService = buildConfigService({
+      [CONFIG_KEYS.EMAIL.PROVIDER]: 'nodemailer',
+      [CONFIG_KEYS.EMAIL.FROM]: 'no-reply@example.com',
+      [CONFIG_KEYS.EMAIL.BRAND_NAME]: 'Kaarya',
+      [CONFIG_KEYS.EMAIL.SMTP_HOST]: 'smtp.example.com',
+      [CONFIG_KEYS.EMAIL.SMTP_PORT]: 587,
+    });
+
+    sendMailMock.mockResolvedValue(undefined);
+    const service = new EmailService(configService, logger);
+
+    await service.sendOnboardingEmail('user@example.com', {
+      userName: 'New User',
+    });
+
+    expect(sendMailMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: 'user@example.com',
+        subject: 'Welcome to Kaarya',
+      }),
+    );
+  });
+
   it('should surface nodemailer errors', async () => {
     const configService = buildConfigService({
       [CONFIG_KEYS.EMAIL.PROVIDER]: 'nodemailer',

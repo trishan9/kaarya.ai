@@ -17,7 +17,11 @@ export type E2EApp = {
   module: TestingModule;
   mongo: TestMongo;
   cloudinary: { uploadImage: jest.Mock };
-  email: { sendPasswordResetOtp: jest.Mock };
+  email: {
+    sendPasswordResetOtp: jest.Mock;
+    sendPasswordResetSuccess: jest.Mock;
+    sendOnboardingEmail: jest.Mock;
+  };
   redis: InMemoryRedis;
 };
 
@@ -30,6 +34,8 @@ export const createE2EApp = async (): Promise<E2EApp> => {
   };
   const email = {
     sendPasswordResetOtp: jest.fn().mockResolvedValue(undefined),
+    sendPasswordResetSuccess: jest.fn().mockResolvedValue(undefined),
+    sendOnboardingEmail: jest.fn().mockResolvedValue(undefined),
   };
   const redis = new InMemoryRedis();
   const redisService = {

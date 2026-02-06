@@ -2,6 +2,7 @@ import { HttpStatus } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import argon2 from 'argon2';
 import { AuthService } from 'src/services/auth.service';
+import { EmailService } from 'src/services/email.service';
 import { UserService } from 'src/services/user.service';
 import { PinoLoggerService } from 'src/logger/pino-logger.service';
 import { AUTH_MESSAGES, USER_MESSAGES } from 'src/constants/messages.constants';
@@ -20,6 +21,7 @@ describe('AuthService', () => {
   let service: AuthService;
   let userService: jest.Mocked<UserService>;
   let jwtService: jest.Mocked<JwtService>;
+  let emailService: jest.Mocked<EmailService>;
   let logger: jest.Mocked<PinoLoggerService>;
   const mockedArgon2 = argon2 as unknown as {
     hash: jest.Mock;
@@ -39,11 +41,16 @@ describe('AuthService', () => {
       signAsync: jest.fn(),
     } as unknown as jest.Mocked<JwtService>;
 
+    emailService = {
+      sendOnboardingEmail: jest.fn(),
+    } as unknown as jest.Mocked<EmailService>;
+
     logger = {
       log: jest.fn(),
+      error: jest.fn(),
     } as unknown as jest.Mocked<PinoLoggerService>;
 
-    service = new AuthService(userService, jwtService, logger);
+    service = new AuthService(userService, jwtService, emailService, logger);
   });
 
   it('should prevent duplicate signups', async () => {
@@ -92,6 +99,10 @@ describe('AuthService', () => {
       expect.objectContaining({ id: 'user-1', email: 'user@example.com' }),
     );
     expect(result).not.toHaveProperty('password');
+    expect(emailService.sendOnboardingEmail).toHaveBeenCalledWith(
+      'user@example.com',
+      { userName: undefined },
+    );
   });
 
   it('should reject login when the user does not exist', async () => {

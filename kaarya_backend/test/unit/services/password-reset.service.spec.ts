@@ -71,6 +71,7 @@ const setup = (overrides: Record<string, unknown> = {}): ServiceDeps => {
 
   const emailService = {
     sendPasswordResetOtp: jest.fn(),
+    sendPasswordResetSuccess: jest.fn(),
   } as unknown as jest.Mocked<EmailService>;
 
   const redis = new InMemoryRedis();
@@ -452,23 +453,37 @@ describe('PasswordResetService', () => {
     ).rejects.toBeInstanceOf(Error);
   });
 
-  it('should reset the password and clear the reset token', async () => {
-    const { service, jwtService, userService, redis } = setup();
+  it('should reset the password, clear the reset token, and send a confirmation email', async () => {
+    const { service, jwtService, userService, redis, emailService } = setup();
     jwtService.verifyAsync.mockResolvedValue({
       sub: 'user-1',
       scope: 'password-reset',
       jti: 'jti-2',
     });
     await redis.set('kaarya:reset:token:jti-2', 'user-1', { EX: 60 });
-    userService.getUserByIdRaw.mockResolvedValue({ id: 'user-1' } as never);
+    userService.getUserByIdRaw.mockResolvedValue({
+      id: 'user-1',
+      email: 'user@example.com',
+      name: 'Reset User',
+    } as never);
     mockedArgon2.hash.mockResolvedValue('hashed');
     userService.updatePassword.mockResolvedValue(true as never);
 
     await service.resetPassword('reset.jwt', 'NewPassword!123', {
       ip: '10.0.0.8',
+      userAgent: 'Mozilla/5.0',
     });
 
     expect(userService.updatePassword).toHaveBeenCalledWith('user-1', 'hashed');
     expect(await redis.get('kaarya:reset:token:jti-2')).toBeNull();
+    expect(emailService.sendPasswordResetSuccess).toHaveBeenCalledWith(
+      'user@example.com',
+      expect.objectContaining({
+        userName: 'Reset User',
+        ipAddress: '10.0.0.8',
+        userAgent: 'Mozilla/5.0',
+        occurredAt: expect.any(Date),
+      }),
+    );
   });
 });
