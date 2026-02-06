@@ -14,6 +14,7 @@ import {
   TUpdateMeDTO,
 } from 'src/dtos/users/user.dto';
 import { PinoLoggerService } from 'src/logger/pino-logger.service';
+import { EmailService } from 'src/services/email.service';
 import { UserService } from 'src/services/user.service';
 import { UserRole } from 'src/types/user-role.enum';
 
@@ -22,6 +23,7 @@ export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
+    private readonly emailService: EmailService,
     private readonly logger: PinoLoggerService,
   ) {}
 
@@ -43,6 +45,22 @@ export class AuthService {
       password: hashedPassword,
       passwordChangedAt: new Date(),
     });
+
+    if (user.email) {
+      try {
+        await this.emailService.sendOnboardingEmail(user.email, {
+          userName: user.name,
+        });
+      } catch (error) {
+        this.logger.error(
+          `Onboarding email failed for ${user.id}: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+          undefined,
+          AuthService.name,
+        );
+      }
+    }
 
     return sanitizeUser(user);
   }

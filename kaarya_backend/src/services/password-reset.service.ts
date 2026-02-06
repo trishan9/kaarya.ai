@@ -275,6 +275,25 @@ export class PasswordResetService {
 
     await client.del(tokenKey);
 
+    if (user.email) {
+      try {
+        await this.emailService.sendPasswordResetSuccess(user.email, {
+          userName: user.name,
+          occurredAt: new Date(),
+          ipAddress: metadata.ip,
+          userAgent: metadata.userAgent,
+        });
+      } catch (error) {
+        this.logger.error(
+          `Password reset success email failed for ${user.id}: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+          undefined,
+          PasswordResetService.name,
+        );
+      }
+    }
+
     this.logger.warn(
       `${LOG_MESSAGES.PASSWORD_RESET_COMPLETED} ${user.id}`,
       PasswordResetService.name,
