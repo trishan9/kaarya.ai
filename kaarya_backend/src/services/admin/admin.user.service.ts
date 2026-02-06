@@ -13,7 +13,15 @@ export class AdminUserService {
   constructor(private readonly userRepository: ACUserRepository) {}
 
   async createUser(payload: TCreateUserDTO) {
-    return await this.userRepository.create(payload);
+    const createPayload: Partial<TCreateUserDTO> & {
+      passwordChangedAt?: Date;
+    } = { ...payload };
+
+    if (payload.password) {
+      createPayload.passwordChangedAt = new Date();
+    }
+
+    return await this.userRepository.create(createPayload);
   }
 
   async getUserById(id: string) {
@@ -97,7 +105,15 @@ export class AdminUserService {
   }
 
   async updateUser(id: string, payload: TUpdateUserDTO) {
-    return await this.userRepository.updateById(id, payload);
+    const updatePayload: Partial<TUpdateUserDTO> & {
+      passwordChangedAt?: Date;
+    } = { ...payload };
+
+    if (payload.password) {
+      updatePayload.passwordChangedAt = new Date();
+    }
+
+    return await this.userRepository.updateById(id, updatePayload);
   }
 
   async deleteUser(id: string) {

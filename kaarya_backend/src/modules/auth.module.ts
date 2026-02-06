@@ -10,11 +10,17 @@ import { JwtStrategy } from 'src/strategies/jwt.strategy';
 import { AllConfigType } from 'src/types/config.type';
 import { UserModule } from './user.module';
 import { CloudinaryService } from 'src/services/cloudinary.service';
+import { EmailModule } from 'src/modules/email.module';
+import { RedisModule } from 'src/modules/redis.module';
+import { PasswordResetService } from 'src/services/password-reset.service';
+import { RateLimitService } from 'src/services/rate-limit.service';
 
 @Module({
   imports: [
     UserModule,
     LoggerModule,
+    EmailModule,
+    RedisModule,
     PassportModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
@@ -29,7 +35,13 @@ import { CloudinaryService } from 'src/services/cloudinary.service';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, CloudinaryService],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    CloudinaryService,
+    PasswordResetService,
+    RateLimitService,
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}
