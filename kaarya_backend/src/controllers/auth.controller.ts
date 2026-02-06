@@ -38,6 +38,21 @@ import { memoryStorage } from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from 'src/services/cloudinary.service';
 import { USER_MESSAGES } from 'src/constants/messages.constants';
+import {
+  RequestPasswordResetDTO,
+  ResetPasswordDTO,
+  TRequestPasswordResetDTO,
+  TResetPasswordDTO,
+  TVerifyPasswordResetOtpDTO,
+  VerifyPasswordResetOtpDTO,
+} from 'src/dtos/auth/password-reset.dto';
+import {
+  RequestPasswordResetSwaggerDTO,
+  ResetPasswordSwaggerDTO,
+  VerifyPasswordResetOtpSwaggerDTO,
+} from 'src/dtos/swagger/auth/password-reset.swagger.dto';
+import { PasswordResetService } from 'src/services/password-reset.service';
+import { getRequestMetadata } from 'src/common/utils/request-metadata';
 
 @ApiTags('Auth')
 @Controller({
@@ -48,6 +63,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly cloudinaryService: CloudinaryService,
+    private readonly passwordResetService: PasswordResetService,
   ) {}
 
   @Post(ROUTES.AUTH.SIGNUP)
@@ -155,6 +171,89 @@ export class AuthController {
       );
 
       return buildSuccessResponse(user, USER_MESSAGES.UPDATE_SUCCESS);
+    });
+  }
+
+  @Post(ROUTES.AUTH.PASSWORD_RESET_REQUEST)
+  @ApiBody({ type: RequestPasswordResetSwaggerDTO })
+  @HttpCode(HttpStatus.OK)
+  async requestPasswordReset(
+    @Request() request,
+    @Body() payload: TRequestPasswordResetDTO,
+  ) {
+    return asyncHandler(async () => {
+      const parsedData = RequestPasswordResetDTO.safeParse(payload);
+
+      if (!parsedData.success) {
+        throw new ApiError({
+          message: z.prettifyError(parsedData.error),
+          statusCode: HttpStatus.BAD_REQUEST,
+        });
+      }
+
+      await this.passwordResetService.requestReset(
+        parsedData.data.email,
+        getRequestMetadata(request),
+      );
+
+      return buildSuccessResponse(
+        { submitted: true },
+        AUTH_MESSAGES.PASSWORD_RESET_REQUESTED,
+      );
+    });
+  }
+
+  @Post(ROUTES.AUTH.PASSWORD_RESET_VERIFY)
+  @ApiBody({ type: VerifyPasswordResetOtpSwaggerDTO })
+  @HttpCode(HttpStatus.OK)
+  async verifyPasswordResetOtp(
+    @Request() request,
+    @Body() payload: TVerifyPasswordResetOtpDTO,
+  ) {
+    return asyncHandler(async () => {
+      const parsedData = VerifyPasswordResetOtpDTO.safeParse(payload);
+
+      if (!parsedData.success) {
+        throw new ApiError({
+          message: z.prettifyError(parsedData.error),
+          statusCode: HttpStatus.BAD_REQUEST,
+        });
+      }
+
+      const data = await this.passwordResetService.verifyOtp(
+        parsedData.data.email,
+        parsedData.data.otp,
+        getRequestMetadata(request),
+      );
+
+      return buildSuccessResponse(data, AUTH_MESSAGES.PASSWORD_RESET_VERIFIED);
+    });
+  }
+
+  @Post(ROUTES.AUTH.PASSWORD_RESET_CONFIRM)
+  @ApiBody({ type: ResetPasswordSwaggerDTO })
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(@Request() request, @Body() payload: TResetPasswordDTO) {
+    return asyncHandler(async () => {
+      const parsedData = ResetPasswordDTO.safeParse(payload);
+
+      if (!parsedData.success) {
+        throw new ApiError({
+          message: z.prettifyError(parsedData.error),
+          statusCode: HttpStatus.BAD_REQUEST,
+        });
+      }
+
+      await this.passwordResetService.resetPassword(
+        parsedData.data.token,
+        parsedData.data.password,
+        getRequestMetadata(request),
+      );
+
+      return buildSuccessResponse(
+        { reset: true },
+        AUTH_MESSAGES.PASSWORD_RESET_SUCCESS,
+      );
     });
   }
 }
