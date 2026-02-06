@@ -5,6 +5,9 @@ export const API_URLS = {
     SIGNIN: "/auth/login",
     ME: "/auth/me",
     UPDATE_ME: "/auth/update-me",
+    PASSWORD_RESET_REQUEST: "/auth/password-reset/request",
+    PASSWORD_RESET_VERIFY: "/auth/password-reset/verify",
+    PASSWORD_RESET_CONFIRM: "/auth/password-reset/confirm",
   },
   ADMIN: {
     USERS: "/admin/users",

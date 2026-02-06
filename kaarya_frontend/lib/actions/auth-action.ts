@@ -1,6 +1,12 @@
 "use server";
 
-import { TSigninSchema, TSignupSchema } from "@/app/(auth)/_schemas";
+import {
+  TConfirmPasswordResetSchema,
+  TRequestPasswordResetSchema,
+  TSigninSchema,
+  TSignupSchema,
+  TVerifyPasswordResetOtpSchema,
+} from "@/app/(auth)/_schemas";
 import { api, MULTIPART_FORM_DATA_CONFIG } from "../api/axios-instance";
 import { API_URLS } from "../api/endpoints";
 import { clearSession } from "../session";
@@ -61,7 +67,7 @@ export async function updateProfile(formData: FormData) {
     const response = await api.put(
       API_URLS.AUTH.UPDATE_ME,
       formData,
-      MULTIPART_FORM_DATA_CONFIG,
+      MULTIPART_FORM_DATA_CONFIG
     );
     return response.data;
   } catch (error: Error | any) {
@@ -69,6 +75,56 @@ export async function updateProfile(formData: FormData) {
       error?.response?.data?.message ||
       error.message ||
       "Failed to update profile";
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+}
+
+export async function requestPasswordReset(data: TRequestPasswordResetSchema) {
+  try {
+    const response = await api.post(API_URLS.AUTH.PASSWORD_RESET_REQUEST, data);
+    return response.data;
+  } catch (error: Error | any) {
+    const errorMessage =
+      error?.response?.data?.message ||
+      error.message ||
+      "Failed to request password reset";
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+}
+
+export async function verifyPasswordResetOtp(
+  data: TVerifyPasswordResetOtpSchema
+) {
+  try {
+    const response = await api.post(API_URLS.AUTH.PASSWORD_RESET_VERIFY, data);
+    return response.data;
+  } catch (error: Error | any) {
+    const errorMessage =
+      error?.response?.data?.message ||
+      error.message ||
+      "Failed to verify reset code";
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+}
+
+export async function confirmPasswordReset(data: TConfirmPasswordResetSchema) {
+  try {
+    const response = await api.post(API_URLS.AUTH.PASSWORD_RESET_CONFIRM, data);
+    return response.data;
+  } catch (error: Error | any) {
+    const errorMessage =
+      error?.response?.data?.message ||
+      error.message ||
+      "Failed to reset password";
     return {
       success: false,
       message: errorMessage,
