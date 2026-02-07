@@ -22,7 +22,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       }),
     });
   }
-  async validate(payload: { sub: string; iat?: number }) {
+  async validate(payload: { sub: string; iat?: number; tv?: number }) {
     let user;
     try {
       user = await this.userService.getUserByIdRaw(payload.sub);
@@ -48,6 +48,15 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
           message: AUTH_MESSAGES.INVALID_TOKEN,
         });
       }
+    }
+
+    const tokenVersion = payload.tv ?? 0;
+    const currentTokenVersion = user.tokenVersion ?? 0;
+    if (tokenVersion !== currentTokenVersion) {
+      throw new ApiError({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        message: AUTH_MESSAGES.INVALID_TOKEN,
+      });
     }
 
     return sanitizeUser(user);

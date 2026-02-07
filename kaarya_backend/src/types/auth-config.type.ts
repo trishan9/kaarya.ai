@@ -1,5 +1,15 @@
 import ms from 'ms';
 
+export type OAuthProviderConfig = {
+  clientId?: string;
+  clientSecret?: string;
+  authorizationUrl?: string;
+  tokenUrl?: string;
+  userInfoUrl?: string;
+  tokenInfoUrl?: string;
+  emailsUrl?: string;
+};
+
 export type AuthConfig = {
   secret?: string;
   expires?: ms.StringValue;
@@ -18,4 +28,10 @@ export type AuthConfig = {
   resetVerifyMax?: number;
   resetPasswordWindow?: ms.StringValue;
   resetPasswordMax?: number;
+  oauthStateExpires?: ms.StringValue;
+  oauthResultExpires?: ms.StringValue;
+  oauthLinkExpires?: ms.StringValue;
+  oauthAllowedRedirects?: string[];
+  oauthGoogle?: OAuthProviderConfig;
+  oauthGithub?: OAuthProviderConfig;
 };

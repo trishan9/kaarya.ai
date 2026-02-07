@@ -22,6 +22,10 @@ export abstract class ACUserRepository {
     email: string,
     options?: { includePassword?: boolean },
   ): Promise<UserSchemaDocument | null>;
+  abstract findByProviderSocialId(
+    provider: string,
+    socialId: string,
+  ): Promise<UserSchemaDocument | null>;
   abstract updateById(
     id: string,
     payload: Partial<TUser>,
@@ -145,11 +149,19 @@ export class UserRepository implements ACUserRepository {
     options?: { includePassword?: boolean },
   ): Promise<UserSchemaDocument | null> {
     if (!email) return null;
-    const query = this.userModel.findOne({ email });
+    const query = this.userModel.findOne({ email: email.trim().toLowerCase() });
     if (options?.includePassword) {
       query.select('+password');
     }
     return await query.exec();
+  }
+
+  async findByProviderSocialId(
+    provider: string,
+    socialId: string,
+  ): Promise<UserSchemaDocument | null> {
+    if (!provider || !socialId) return null;
+    return await this.userModel.findOne({ provider, socialId }).exec();
   }
 
   async updateById(

@@ -1,4 +1,5 @@
 import z from 'zod';
+import { AuthProvider } from './auth-provider.enum';
 
 export const UserZodSchema = z.object({
   name: z
@@ -15,9 +16,10 @@ export const UserZodSchema = z.object({
     .max(16, 'Password must be between 8 to 16 characters.'),
   passwordChangedAt: z.date().optional(),
   role: z.enum(['user', 'admin']).optional(),
-  provider: z.enum(['email', 'google', 'facebook']).optional(),
+  provider: z.nativeEnum(AuthProvider).optional(),
   socialId: z.string().nullable().optional(),
   photo: z.string().nullable().optional(),
+  tokenVersion: z.number().int().nonnegative().optional(),
 });
 
 export type TUser = z.infer<typeof UserZodSchema>;
