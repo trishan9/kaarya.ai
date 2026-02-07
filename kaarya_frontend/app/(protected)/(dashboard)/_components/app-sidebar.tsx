@@ -11,7 +11,9 @@ import {
   Moon,
   Search,
   Settings,
+  Sparkles,
   Sun,
+  Wallet,
 } from "lucide-react";
 
 import { sidebarNavGroups } from "../_config/sidebar-items";
@@ -293,10 +295,9 @@ export function AppSidebar({ user }: AppSidebarProps) {
                 <Button
                   variant="ghost"
                   className="h-9 w-full justify-start gap-2 text-sm"
-                  onClick={() => handleProfileAction("/settings")}
                 >
-                  <Settings className="h-4 w-4" />
-                  Settings
+                  <Wallet className="h-4 w-4" />
+                  Plans
                 </Button>
                 <Button
                   variant="ghost"

@@ -27,17 +27,10 @@ export default async function SettingsPage() {
 
   return (
     <div className="min-h-svh">
-      <DashboardHeader
-        title="Settings"
-        actions={
-          <Badge variant="outline" className="rounded-full px-3 py-1">
-            Account
-          </Badge>
-        }
-      />
+      <DashboardHeader title="Settings" />
 
       <div className="space-y-6 px-4 pb-8 sm:px-6">
-        <Card className="border-border/70 bg-white">
+        {/* <Card className="border-border/70 bg-white">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-xl">
               <Settings2 className="h-5 w-5" />
@@ -53,7 +46,7 @@ export default async function SettingsPage() {
               Use the tabs below to move between settings sections.
             </p>
           </CardContent>
-        </Card>
+        </Card> */}
 
         <SettingsTabs user={user} />
       </div>

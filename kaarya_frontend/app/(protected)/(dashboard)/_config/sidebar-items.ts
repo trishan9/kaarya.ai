@@ -11,6 +11,7 @@ import {
   FileText,
   Newspaper,
   LifeBuoy,
+  Settings,
 } from "lucide-react";
 
 export const sidebarNavGroups = [
@@ -37,7 +38,7 @@ export const sidebarNavGroups = [
     label: "Others",
     items: [
       { label: "Blogs & Articles", href: "/blogs", icon: Newspaper },
-      { label: "Help Center", href: "/help", icon: LifeBuoy },
+      { label: "Settings", href: "/settings", icon: Settings },
     ],
   },
 ];
