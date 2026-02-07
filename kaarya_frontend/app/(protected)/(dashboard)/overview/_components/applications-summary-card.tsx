@@ -14,6 +14,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import Image from "next/image";
 
 type ApplicationsSummaryCardProps = {
   total: number;
@@ -21,7 +22,7 @@ type ApplicationsSummaryCardProps = {
   monthLabel: string;
   tabs: string[];
   activeTab: string;
-  emojis?: string[];
+  logos?: string[];
   extraCount?: number;
 };
 
@@ -31,13 +32,18 @@ export function ApplicationsSummaryCard({
   monthLabel,
   tabs,
   activeTab,
-  emojis = ["🔥", "😍", "🎯", "🚀"],
+  logos = [
+    "https://res.cloudinary.com/dnqet3vq1/image/upload/v1770473342/kaarya/lnzrl9t7liqdt7pmquxt.png",
+    "https://res.cloudinary.com/dnqet3vq1/image/upload/v1770357829/kaarya/tl0x4mtzklebkdsbl50b.png",
+    "https://res.cloudinary.com/dnqet3vq1/image/upload/v1770473353/kaarya/acy5rbpegmme5jgree6w.png",
+    "https://res.cloudinary.com/dnqet3vq1/image/upload/v1770466148/kaarya/xpn5jf1sxap5ialnqzka.webp",
+  ],
   extraCount = 8,
 }: ApplicationsSummaryCardProps) {
   const [currentTab, setCurrentTab] = React.useState(activeTab);
   const [currentMonth, setCurrentMonth] = React.useState(monthLabel);
   const monthOptions = React.useMemo(() => {
-    const defaults = [monthLabel, "October, 2025", "September, 2025"];
+    const defaults = [monthLabel, "January, 2026", "December, 2025"];
     return Array.from(new Set(defaults));
   }, [monthLabel]);
 
@@ -99,28 +105,36 @@ export function ApplicationsSummaryCard({
         })}
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="text-3xl font-semibold text-foreground">{total}</div>
-        <div className="flex items-center -space-x-2">
-          {emojis.map((emoji) => (
-            <span
-              key={emoji}
-              className="flex h-6 w-6 items-center justify-center rounded-full border border-white bg-white text-xs shadow-sm"
-            >
-              {emoji}
+      <div>
+        <div className="flex items-end gap-3 mb-1">
+          <div className="text-5xl font-semibold text-foreground">{total}</div>
+          <div className="flex items-center -space-x-2.5 mb-1.5">
+            {logos.map((logo: string) => (
+              <span
+                key={logo}
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-white bg-white text-xs shadow-sm"
+              >
+                <Image
+                  src={logo}
+                  alt={logo}
+                  width={32}
+                  height={32}
+                  className="object-cover rounded-full border border-white shadow-sm h-8 w-8"
+                />
+              </span>
+            ))}
+            <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white bg-[#e9f2fb] text-xs font-semibold text-[#0b67c2] shadow-sm">
+              +{extraCount}
             </span>
-          ))}
-          <span className="flex h-6 w-6 items-center justify-center rounded-full border border-white bg-[#e9f2fb] text-[10px] font-semibold text-[#0b67c2] shadow-sm">
-            +{extraCount}
-          </span>
+          </div>
         </div>
-      </div>
 
-      <p className="text-xs text-muted-foreground">
-        <span className="font-semibold text-emerald-500">+{delta} </span>
-        applications has been sent to the recruiters today, great work, hope the
-        best for you!
-      </p>
+        <p className="text-sm text-muted-foreground">
+          <span className="font-semibold text-emerald-500">+{delta} </span>
+          applications has been sent to the recruiters today, great work, hope
+          the best for you!
+        </p>
+      </div>
     </Card>
   );
 }

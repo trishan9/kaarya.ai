@@ -33,6 +33,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import Image from "next/image";
 
 type DeadlineCardProps = {
   title: string;
@@ -109,9 +110,13 @@ export function DeadlineCard({ title, company }: DeadlineCardProps) {
       </div>
 
       <div className="flex items-center gap-3 bg-neutral-50 p-3 rounded-lg">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#f59f3d] text-xs font-bold text-white">
-          aws
-        </div>
+        <Image
+          src="https://res.cloudinary.com/dnqet3vq1/image/upload/v1770473353/kaarya/acy5rbpegmme5jgree6w.png"
+          alt="Anthropic"
+          width={32}
+          height={32}
+          className="object-cover border border-white shadow-sm h-10 w-10 rounded-xl"
+        />
         <div className="flex-1">
           <div className="font-semibold text-foreground">{title}</div>
           <div className="text-sm text-muted-foreground">{company}</div>

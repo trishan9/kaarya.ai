@@ -19,7 +19,7 @@ export default function OverviewPage() {
               <ApplicationsSummaryCard
                 total={124}
                 delta={12}
-                monthLabel="NOVEMBER, 2025"
+                monthLabel="February, 2026"
                 tabs={[
                   "All Applications",
                   "Mock Interviews",
@@ -33,11 +33,11 @@ export default function OverviewPage() {
               />
 
               <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-                <DeadlineCard title="Marketing Manager" company="Amazon" />
+                <DeadlineCard title="Marketing Manager" company="Anthropic" />
                 <InvitationCard
                   title="You've got an invitation!"
                   description="Congratulations! You've got an interview invitation from OpenAI, accept the invitation and be prepared with our AI mock interviews!"
-                  eventTitle="Sunday, November 23, 2025"
+                  eventTitle="Sunday, February 9, 2026"
                   eventTime="4:30 PM - 6:30 PM"
                 />
               </div>

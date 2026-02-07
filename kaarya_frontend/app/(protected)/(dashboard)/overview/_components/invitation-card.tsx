@@ -33,6 +33,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 type InvitationCardProps = {
   title: string;
@@ -89,9 +90,13 @@ export function InvitationCard({
       <p className="text-sm text-white/80">{description}</p>
 
       <div className="flex items-center gap-3 rounded-xl bg-[#3B93CC]/80 px-4 py-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500 text-emerald-100">
-          <span className="text-xs font-semibold tracking-wide">AI</span>
-        </div>
+        <Image
+          src="https://res.cloudinary.com/dnqet3vq1/image/upload/v1770357829/kaarya/tl0x4mtzklebkdsbl50b.png"
+          alt="Kaarya"
+          width={100}
+          height={100}
+          className="object-cover h-10 w-10 rounded-xl"
+        />
         <div className="flex-1">
           <div className="text-sm font-semibold">{eventTitle}</div>
           <div className="text-xs text-white/70">{eventTime}</div>
