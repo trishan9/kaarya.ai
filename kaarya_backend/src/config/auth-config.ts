@@ -65,10 +65,91 @@ class EnvironmentVariablesValidator {
   @IsOptional()
   @IsString()
   AUTH_RESET_PASSWORD_MAX?: string;
+
+  @IsOptional()
+  @IsString()
+  AUTH_OAUTH_STATE_EXPIRES_IN?: string;
+
+  @IsOptional()
+  @IsString()
+  AUTH_OAUTH_RESULT_EXPIRES_IN?: string;
+
+  @IsOptional()
+  @IsString()
+  AUTH_OAUTH_LINK_EXPIRES_IN?: string;
+
+  @IsOptional()
+  @IsString()
+  AUTH_OAUTH_ALLOWED_REDIRECTS?: string;
+
+  @IsOptional()
+  @IsString()
+  AUTH_OAUTH_GOOGLE_CLIENT_ID?: string;
+
+  @IsOptional()
+  @IsString()
+  AUTH_OAUTH_GOOGLE_CLIENT_SECRET?: string;
+
+  @IsOptional()
+  @IsString()
+  AUTH_OAUTH_GOOGLE_AUTH_URL?: string;
+
+  @IsOptional()
+  @IsString()
+  AUTH_OAUTH_GOOGLE_TOKEN_URL?: string;
+
+  @IsOptional()
+  @IsString()
+  AUTH_OAUTH_GOOGLE_USERINFO_URL?: string;
+
+  @IsOptional()
+  @IsString()
+  AUTH_OAUTH_GOOGLE_TOKENINFO_URL?: string;
+
+  @IsOptional()
+  @IsString()
+  AUTH_OAUTH_GITHUB_CLIENT_ID?: string;
+
+  @IsOptional()
+  @IsString()
+  AUTH_OAUTH_GITHUB_CLIENT_SECRET?: string;
+
+  @IsOptional()
+  @IsString()
+  AUTH_OAUTH_GITHUB_AUTH_URL?: string;
+
+  @IsOptional()
+  @IsString()
+  AUTH_OAUTH_GITHUB_TOKEN_URL?: string;
+
+  @IsOptional()
+  @IsString()
+  AUTH_OAUTH_GITHUB_USERINFO_URL?: string;
+
+  @IsOptional()
+  @IsString()
+  AUTH_OAUTH_GITHUB_EMAILS_URL?: string;
 }
 
 export default registerAs<AuthConfig>(CONFIG_NAMESPACE.AUTH, () => {
   validateConfig(process.env, EnvironmentVariablesValidator);
+
+  const envOrUndefined = (value?: string) => {
+    const normalized = value?.trim();
+    return normalized && normalized.length > 0 ? normalized : undefined;
+  };
+
+  const envOrDefault = (value: string | undefined, fallback: string) =>
+    envOrUndefined(value) ?? fallback;
+
+  const oauthAllowedRedirects = (
+    envOrUndefined(process.env.AUTH_OAUTH_ALLOWED_REDIRECTS) ??
+    envOrUndefined(process.env.FRONTEND_DOMAIN) ??
+    ''
+  )
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
 
   return {
     secret: process.env.AUTH_JWT_SECRET,
@@ -102,5 +183,52 @@ export default registerAs<AuthConfig>(CONFIG_NAMESPACE.AUTH, () => {
     resetPasswordMax: process.env.AUTH_RESET_PASSWORD_MAX
       ? parseInt(process.env.AUTH_RESET_PASSWORD_MAX, 10)
       : 10,
+    oauthStateExpires: (process.env.AUTH_OAUTH_STATE_EXPIRES_IN ??
+      '10m') as ms.StringValue,
+    oauthResultExpires: (process.env.AUTH_OAUTH_RESULT_EXPIRES_IN ??
+      '5m') as ms.StringValue,
+    oauthLinkExpires: (process.env.AUTH_OAUTH_LINK_EXPIRES_IN ??
+      '15m') as ms.StringValue,
+    oauthAllowedRedirects,
+    oauthGoogle: {
+      clientId: envOrUndefined(process.env.AUTH_OAUTH_GOOGLE_CLIENT_ID),
+      clientSecret: envOrUndefined(process.env.AUTH_OAUTH_GOOGLE_CLIENT_SECRET),
+      authorizationUrl: envOrDefault(
+        process.env.AUTH_OAUTH_GOOGLE_AUTH_URL,
+        'https://accounts.google.com/o/oauth2/v2/auth',
+      ),
+      tokenUrl: envOrDefault(
+        process.env.AUTH_OAUTH_GOOGLE_TOKEN_URL,
+        'https://oauth2.googleapis.com/token',
+      ),
+      userInfoUrl: envOrDefault(
+        process.env.AUTH_OAUTH_GOOGLE_USERINFO_URL,
+        'https://openidconnect.googleapis.com/v1/userinfo',
+      ),
+      tokenInfoUrl: envOrDefault(
+        process.env.AUTH_OAUTH_GOOGLE_TOKENINFO_URL,
+        'https://oauth2.googleapis.com/tokeninfo',
+      ),
+    },
+    oauthGithub: {
+      clientId: envOrUndefined(process.env.AUTH_OAUTH_GITHUB_CLIENT_ID),
+      clientSecret: envOrUndefined(process.env.AUTH_OAUTH_GITHUB_CLIENT_SECRET),
+      authorizationUrl: envOrDefault(
+        process.env.AUTH_OAUTH_GITHUB_AUTH_URL,
+        'https://github.com/login/oauth/authorize',
+      ),
+      tokenUrl: envOrDefault(
+        process.env.AUTH_OAUTH_GITHUB_TOKEN_URL,
+        'https://github.com/login/oauth/access_token',
+      ),
+      userInfoUrl: envOrDefault(
+        process.env.AUTH_OAUTH_GITHUB_USERINFO_URL,
+        'https://api.github.com/user',
+      ),
+      emailsUrl: envOrDefault(
+        process.env.AUTH_OAUTH_GITHUB_EMAILS_URL,
+        'https://api.github.com/user/emails',
+      ),
+    },
   };
 });
