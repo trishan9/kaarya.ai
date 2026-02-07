@@ -73,6 +73,42 @@ export async function signin(credentials: TSigninSchema) {
   }
 }
 
+export async function exchangeOAuthResult(resultToken: string) {
+  try {
+    const response = await api.post(API_URLS.AUTH.OAUTH_EXCHANGE, {
+      resultToken,
+    });
+    return response.data;
+  } catch (error: Error | any) {
+    const errorMessage =
+      error?.response?.data?.message ||
+      error.message ||
+      "Failed to complete social authentication";
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+}
+
+export async function completeOAuthLink(linkToken: string) {
+  try {
+    const response = await api.post(API_URLS.AUTH.OAUTH_LINK_COMPLETE, {
+      linkToken,
+    });
+    return response.data;
+  } catch (error: Error | any) {
+    const errorMessage =
+      error?.response?.data?.message ||
+      error.message ||
+      "Failed to link social account";
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+}
+
 export async function logout() {
   await clearSession();
 }

@@ -1,17 +1,18 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createSession } from "@/lib/session";
-import { signin } from "@/lib/actions/auth-action";
+import { completeOAuthLink, signin } from "@/lib/actions/auth-action";
 import { signinSchema, TSigninSchema } from "../_schemas";
 
 export const useSignIn = () => {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const form = useForm<TSigninSchema>({
     resolver: zodResolver(signinSchema),
@@ -36,6 +37,27 @@ export const useSignIn = () => {
         }
 
         await createSession(accessToken);
+
+        const pendingLinkToken = searchParams.get("linkToken");
+        if (pendingLinkToken) {
+          const linkResponse = await completeOAuthLink(pendingLinkToken);
+          const linkedToken = linkResponse?.data?.accessToken;
+
+          if (!linkResponse?.success || !linkedToken) {
+            toast.error(
+              linkResponse?.message ||
+                "Signed in, but failed to link your social account."
+            );
+            router.refresh();
+            return;
+          }
+
+          await createSession(linkedToken);
+          toast.success(linkResponse?.message || "Social account linked.");
+          router.replace("/overview");
+          return;
+        }
+
         router.refresh();
 
         toast.success(response?.message || "Signed in successfully.");

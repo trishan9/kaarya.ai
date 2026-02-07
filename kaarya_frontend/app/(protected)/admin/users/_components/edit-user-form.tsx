@@ -2,7 +2,16 @@
 
 import { useMemo, useRef, useState } from "react";
 import { Controller } from "react-hook-form";
-import { Loader2, Save, Upload, X, User, Mail, Shield, Key, Camera } from "lucide-react";
+import {
+  Loader2,
+  Save,
+  Upload,
+  X,
+  User,
+  Shield,
+  Key,
+  Camera,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -12,7 +21,13 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { TAdminUpdateUserSchema } from "@/app/(protected)/admin/_schemas";
 import { useUpdateUser } from "../_hooks/use-update-user";
 import Image from "next/image";
@@ -40,12 +55,12 @@ export function EditUserForm({
   const showPreview = useMemo(() => !!previewImage, [previewImage]);
   const showExisting = useMemo(
     () => !!imageUrl && !previewImage,
-    [imageUrl, previewImage],
+    [imageUrl, previewImage]
   );
 
   const handleImageChange = (
     file: File | undefined,
-    onChange: (file: File | null) => void,
+    onChange: (file: File | null) => void
   ) => {
     if (file) {
       const reader = new FileReader();
@@ -78,7 +93,7 @@ export function EditUserForm({
 
   const handleDrop = (
     e: React.DragEvent,
-    onChange: (file: File | null) => void,
+    onChange: (file: File | null) => void
   ) => {
     e.preventDefault();
     setIsDragging(false);
@@ -98,7 +113,8 @@ export function EditUserForm({
             Profile Picture
           </CardTitle>
           <CardDescription>
-            Update the user&apos;s profile picture. This will be displayed across the platform.
+            Update the user&apos;s profile picture. This will be displayed
+            across the platform.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -119,7 +135,7 @@ export function EditUserForm({
                     handleImageChange(file, field.onChange);
                   }}
                 />
-                
+
                 {showPreview || showExisting ? (
                   <div className="flex flex-col items-center gap-4">
                     <div className="relative group">
@@ -149,7 +165,8 @@ export function EditUserForm({
                         {showPreview ? "New Preview" : "Current Photo"}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Click the button below to {showPreview ? "change" : "update"} the image
+                        Click the button below to{" "}
+                        {showPreview ? "change" : "update"} the image
                       </p>
                     </div>
                     <Button
@@ -171,7 +188,7 @@ export function EditUserForm({
                       "relative border-2 border-dashed rounded-xl p-8 transition-all cursor-pointer",
                       isDragging
                         ? "border-primary bg-primary/5 scale-[1.02]"
-                        : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50",
+                        : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50"
                     )}
                     onClick={() => fileInputRef.current?.click()}
                   >
@@ -299,7 +316,9 @@ export function EditUserForm({
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field>
-                    <FieldLabel htmlFor="provider">Authentication Provider</FieldLabel>
+                    <FieldLabel htmlFor="provider">
+                      Authentication Provider
+                    </FieldLabel>
                     <select
                       id="provider"
                       className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs transition-colors focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
@@ -309,6 +328,7 @@ export function EditUserForm({
                     >
                       <option value="email">Email</option>
                       <option value="google">Google</option>
+                      <option value="github">GitHub</option>
                       <option value="facebook">Facebook</option>
                     </select>
                     <FieldDescription>
@@ -355,7 +375,8 @@ export function EditUserForm({
                       aria-invalid={fieldState.invalid}
                     />
                     <FieldDescription>
-                      Leave blank to keep the current password. Minimum 8 characters recommended.
+                      Leave blank to keep the current password. Minimum 8
+                      characters recommended.
                     </FieldDescription>
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
