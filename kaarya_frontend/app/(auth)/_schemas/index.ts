@@ -69,23 +69,31 @@ export type TVerifyPasswordResetOtpSchema = z.infer<
   typeof verifyPasswordResetOtpSchema
 >;
 
-export const confirmPasswordResetSchema = z
-  .object({
-    token: z.string().min(1, "Reset session has expired. Please verify again."),
-    password: strongPasswordSchema,
-    confirmPassword: z.string().min(1, "Please confirm your new password."),
-  })
-  .refine((value) => value.password === value.confirmPassword, {
+const confirmPasswordResetBaseSchema = z.object({
+  token: z.string().min(1, "Reset session has expired. Please verify again."),
+  password: strongPasswordSchema,
+  confirmPassword: z.string().min(1, "Please confirm your new password."),
+});
+
+export const confirmPasswordResetSchema = confirmPasswordResetBaseSchema.refine(
+  (value) => value.password === value.confirmPassword,
+  {
     path: ["confirmPassword"],
     message: "Please make sure your passwords match.",
-  });
+  }
+);
 
 export type TConfirmPasswordResetSchema = z.infer<
   typeof confirmPasswordResetSchema
 >;
 
-export const resetPasswordFormSchema = confirmPasswordResetSchema.omit({
-  token: true,
-});
+export const resetPasswordFormSchema = confirmPasswordResetBaseSchema
+  .omit({
+    token: true,
+  })
+  .refine((value) => value.password === value.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Please make sure your passwords match.",
+  });
 
 export type TResetPasswordFormSchema = z.infer<typeof resetPasswordFormSchema>;
