@@ -4,8 +4,9 @@ import { useState } from "react";
 import { Link2, Settings, ShieldCheck, UserRound } from "lucide-react";
 import { TUser } from "@/lib/definitions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ProfileForm } from "../../profile/_components/profile-form";
-import { ProfileOverview } from "../../profile/_components/profile-overview";
+import { ProfileForm } from "./profile/_components/profile-form";
+import { ProfileOverview } from "./profile/_components/profile-overview";
+import { ProfileRating } from "./profile/_components/profile-rating";
 import { LinkedAccountsSettings } from "./linked-accounts-settings";
 import { PreferencesSettings } from "./preferences-settings";
 import { SecuritySettings } from "./security-settings";
@@ -42,13 +43,17 @@ export function SettingsTabs({ user }: SettingsTabsProps) {
       </TabsList>
 
       <TabsContent value="profile" className="mt-6">
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="order-2 space-y-6 xl:order-1">
-            <ProfileForm user={user} />
-          </div>
-          <div className="order-1 space-y-6 xl:order-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+          <div className="space-y-6 lg:col-span-8">
             <ProfileOverview user={user} />
           </div>
+          <div className="space-y-6 lg:col-span-4">
+            <ProfileRating />
+          </div>
+        </div>
+
+        <div className="mt-6">
+          <ProfileForm user={user} />
         </div>
       </TabsContent>
 

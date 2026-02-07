@@ -17,6 +17,24 @@ interface ProfileOverviewProps {
 }
 
 export function ProfileOverview({ user }: ProfileOverviewProps) {
+  const providerLabelMap: Record<string, string> = {
+    email: "Email",
+    google: "Google",
+    github: "GitHub",
+  };
+
+  const providerOrder = ["email", "google", "github"];
+
+  const providers = Array.from(
+    new Set(
+      user.linkedProviders?.length
+        ? user.linkedProviders
+        : user.provider
+        ? [user.provider]
+        : []
+    )
+  ).sort((a, b) => providerOrder.indexOf(a) - providerOrder.indexOf(b));
+
   const initials = user.name
     ?.split(" ")
     .map((n) => n[0])
@@ -49,11 +67,11 @@ export function ProfileOverview({ user }: ProfileOverviewProps) {
                   {user.role}
                 </Badge>
 
-                {user.provider && (
-                  <Badge variant="outline" className="text-xs">
-                    {user.provider}
+                {providers.map((provider) => (
+                  <Badge variant="outline" className="text-xs" key={provider}>
+                    {providerLabelMap[provider] ?? provider}
                   </Badge>
-                )}
+                ))}
               </div>
             </div>
 

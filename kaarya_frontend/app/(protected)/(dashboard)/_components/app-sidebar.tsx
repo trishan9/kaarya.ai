@@ -12,7 +12,6 @@ import {
   Search,
   Settings,
   Sun,
-  UserRound,
 } from "lucide-react";
 
 import { sidebarNavGroups } from "../_config/sidebar-items";
@@ -288,14 +287,6 @@ export function AppSidebar({ user }: AppSidebarProps) {
             </PopoverTrigger>
             <PopoverContent align="end" className="w-56 p-2">
               <div className="space-y-1">
-                <Button
-                  variant="ghost"
-                  className="h-9 w-full justify-start gap-2 text-sm"
-                  onClick={() => handleProfileAction("/profile")}
-                >
-                  <UserRound className="h-4 w-4" />
-                  View Profile
-                </Button>
                 <Button
                   variant="ghost"
                   className="h-9 w-full justify-start gap-2 text-sm"
