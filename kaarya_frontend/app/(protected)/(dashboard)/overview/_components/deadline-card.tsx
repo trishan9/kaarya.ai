@@ -73,7 +73,7 @@ export function DeadlineCard({ title, company }: DeadlineCardProps) {
   }
 
   return (
-    <Card className="gap-4 border-border bg-white p-5 shadow-sm">
+    <Card className="gap-3 border-border bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-semibold text-foreground">Deadline Today!</h3>
@@ -118,28 +118,35 @@ export function DeadlineCard({ title, company }: DeadlineCardProps) {
         </div>
         <Button
           variant="outline"
-          size="icon-sm"
+          size="icon"
           className={cn(
             "h-8 w-8 rounded-lg border-border",
             bookmarked
-              ? "border-[#0b67c2] bg-[#0b67c2]/10 text-[#0b67c2]"
+              ? "border-primary bg-primary/10 text-primary"
               : "text-muted-foreground",
           )}
           aria-pressed={bookmarked}
           onClick={() => setBookmarked((prev) => !prev)}
         >
-          <Bookmark className={cn("h-4 w-4", bookmarked && "fill-[#0b67c2]")} />
+          <Bookmark
+            className={cn(
+              "h-4 w-4",
+              bookmarked
+                ? "fill-primary text-primary"
+                : "text-muted-foreground",
+            )}
+          />
           <span className="sr-only">
             {bookmarked ? "Remove bookmark" : "Save job"}
           </span>
         </Button>
       </div>
 
-      <p className="text-xs text-muted-foreground">
+      <p className="text-sm text-muted-foreground">
         One of your saved jobs has a deadline today,{" "}
         <Button
           variant="link"
-          className="h-auto p-0 text-xs font-semibold text-[#0b67c2]"
+          className="h-auto p-0 text-sm font-semibold text-[#0b67c2]"
           onClick={() => router.push("/jobs")}
         >
           apply now!

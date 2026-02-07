@@ -79,14 +79,14 @@ export function InvitationCard({
   }
 
   return (
-    <Card className="gap-4 border-0 bg-linear-to-r from-[#00629f]/80 to-[#00629f] p-5 text-white shadow-sm">
+    <Card className="gap-3 border-0 bg-linear-to-r from-[#00629f]/80 to-[#00629f] p-5 text-white shadow-sm">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="font-semibold">{title}</h3>
+          <h3 className="font-medium">{title}</h3>
         </div>
       </div>
 
-      <p className="text-xs text-white/80">{description}</p>
+      <p className="text-sm text-white/80">{description}</p>
 
       <div className="flex items-center gap-3 rounded-xl bg-[#3B93CC]/80 px-4 py-3">
         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500 text-emerald-100">
