@@ -21,7 +21,6 @@ export const AUTH_MESSAGES = {
   OAUTH_LINK_TOKEN_INVALID: 'Invalid or expired account linking session.',
   OAUTH_RESULT_FETCHED: 'Social login status fetched.',
   OAUTH_LINK_COMPLETED: 'Account linked successfully.',
-  LOGOUT_ALL_SUCCESS: 'Logged out from all devices.',
   LOGIN_SUCCESS: 'Login successful.',
   SIGNUP_SUCCESS: 'Signup successful.',
   CURRENT_USER_SUCCESS: 'Current user fetched.',

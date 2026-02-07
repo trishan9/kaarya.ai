@@ -5,6 +5,7 @@ import { PassportModule } from '@nestjs/passport';
 import { CONFIG_KEYS } from 'src/constants/config.constants';
 import { AuthController } from 'src/controllers/auth.controller';
 import { LoggerModule } from 'src/logger/logger.module';
+import { AuthOAuthService } from 'src/services/auth-oauth.service';
 import { AuthService } from 'src/services/auth.service';
 import { JwtStrategy } from 'src/strategies/jwt.strategy';
 import { AllConfigType } from 'src/types/config.type';
@@ -14,6 +15,9 @@ import { EmailModule } from 'src/modules/email.module';
 import { RedisModule } from 'src/modules/redis.module';
 import { PasswordResetService } from 'src/services/password-reset.service';
 import { RateLimitService } from 'src/services/rate-limit.service';
+import { OAuthAccountService } from 'src/services/oauth-account.service';
+import { GithubOAuthStrategy } from 'src/strategies/github-oauth.strategy';
+import { GoogleOAuthStrategy } from 'src/strategies/google-oauth.strategy';
 
 @Module({
   imports: [
@@ -37,7 +41,11 @@ import { RateLimitService } from 'src/services/rate-limit.service';
   controllers: [AuthController],
   providers: [
     AuthService,
+    AuthOAuthService,
+    OAuthAccountService,
     JwtStrategy,
+    GoogleOAuthStrategy,
+    GithubOAuthStrategy,
     CloudinaryService,
     PasswordResetService,
     RateLimitService,

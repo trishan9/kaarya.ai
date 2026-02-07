@@ -24,7 +24,6 @@ export const LoginDTO = UserZodSchema.pick({
 
 export const UpdateUserDTO = UserZodSchema.omit({
   passwordChangedAt: true,
-  tokenVersion: true,
 }).partial();
 
 export const UpdateMeDTO = UserZodSchema.pick({

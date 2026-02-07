@@ -13,7 +13,6 @@ export const ROUTES = {
     OAUTH_CALLBACK: 'oauth/:provider/callback',
     OAUTH_EXCHANGE: 'oauth/exchange',
     OAUTH_LINK_COMPLETE: 'oauth/link/complete',
-    LOGOUT_ALL: 'logout-all',
   },
   ADMIN: {
     BASE: 'admin',
