@@ -31,17 +31,6 @@ export class UserService {
     return await this.userRepository.updateById(id, {
       password: hashedPassword,
       passwordChangedAt: new Date(),
-      tokenVersion: (user.tokenVersion ?? 0) + 1,
-    });
-  }
-
-  async bumpTokenVersion(id: string) {
-    const user = await this.userRepository.findById(id);
-    if (!user) {
-      return null;
-    }
-    return await this.userRepository.updateById(id, {
-      tokenVersion: (user.tokenVersion ?? 0) + 1,
     });
   }
 
