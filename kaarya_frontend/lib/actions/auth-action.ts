@@ -11,6 +11,7 @@ import {
 import { api, MULTIPART_FORM_DATA_CONFIG } from "../api/axios-instance";
 import { API_URLS } from "../api/endpoints";
 import { clearSession } from "../session";
+import { AuthProvider } from "../definitions";
 
 const pickHeaderValue = (...values: Array<string | null>) => {
   for (const value of values) {
@@ -38,6 +39,24 @@ async function getClientMetadataHeaders() {
   }
 
   return requestHeaders;
+}
+
+async function getAppOrigin() {
+  const incomingHeaders = await headers();
+  const host = pickHeaderValue(
+    incomingHeaders.get("x-forwarded-host"),
+    incomingHeaders.get("host")
+  );
+  const protocol =
+    pickHeaderValue(incomingHeaders.get("x-forwarded-proto")) || "http";
+
+  if (!host) {
+    return null;
+  }
+
+  return `${protocol.split(",")[0]?.trim() || "http"}://${host
+    .split(",")[0]
+    ?.trim()}`;
 }
 
 export async function signup(data: TSignupSchema) {
@@ -102,6 +121,99 @@ export async function completeOAuthLink(linkToken: string) {
       error?.response?.data?.message ||
       error.message ||
       "Failed to link social account";
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+}
+
+export async function getOAuthLinkAuthorizeUrl(
+  provider: Extract<AuthProvider, "google" | "github">,
+  nextPath = "/settings"
+) {
+  try {
+    const origin = await getAppOrigin();
+    if (!origin) {
+      return {
+        success: false,
+        message: "Unable to resolve app URL for account linking.",
+      };
+    }
+
+    const callbackUrl = new URL("/oauth/callback", origin);
+    callbackUrl.searchParams.set("next", nextPath);
+    callbackUrl.searchParams.set("mode", "link");
+
+    const response = await api.get(
+      API_URLS.AUTH.OAUTH_LINK_AUTHORIZE(provider),
+      {
+        params: {
+          redirectUri: callbackUrl.toString(),
+        },
+        maxRedirects: 0,
+        validateStatus: (status) => status >= 300 && status < 400,
+      }
+    );
+
+    const locationHeader = response.headers?.location;
+    const authorizeUrl = Array.isArray(locationHeader)
+      ? locationHeader[0]
+      : locationHeader;
+
+    if (!authorizeUrl) {
+      return {
+        success: false,
+        message: "Unable to start account linking right now.",
+      };
+    }
+
+    return {
+      success: true,
+      message: "Link flow initiated.",
+      data: {
+        authorizeUrl,
+      },
+    };
+  } catch (error: Error | any) {
+    const errorMessage =
+      error?.response?.data?.message ||
+      error.message ||
+      "Failed to initialize account linking";
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+}
+
+export async function getLinkedAccounts() {
+  try {
+    const response = await api.get(API_URLS.AUTH.OAUTH_LINKED_ACCOUNTS);
+    return response.data;
+  } catch (error: Error | any) {
+    const errorMessage =
+      error?.response?.data?.message ||
+      error.message ||
+      "Failed to load linked accounts";
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+}
+
+export async function unlinkOAuthAccount(
+  provider: Extract<AuthProvider, "google" | "github">
+) {
+  try {
+    const response = await api.delete(API_URLS.AUTH.OAUTH_UNLINK(provider));
+    return response.data;
+  } catch (error: Error | any) {
+    const errorMessage =
+      error?.response?.data?.message ||
+      error.message ||
+      "Failed to unlink account";
     return {
       success: false,
       message: errorMessage,
