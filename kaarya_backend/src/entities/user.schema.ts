@@ -39,6 +39,12 @@ export class UserSchemaClass {
   socialId?: string | null;
 
   @Prop({
+    type: Number,
+    default: 0,
+  })
+  tokenVersion: number;
+
+  @Prop({
     type: String,
   })
   name: string | null;
