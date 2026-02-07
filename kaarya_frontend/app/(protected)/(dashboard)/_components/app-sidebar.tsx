@@ -75,7 +75,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
       sidebarNavGroups.reduce<Record<string, boolean>>((acc, group) => {
         acc[group.label] = true;
         return acc;
-      }, {})
+      }, {}),
   );
 
   const handleSearch = React.useCallback(() => {
@@ -93,12 +93,15 @@ export function AppSidebar({ user }: AppSidebarProps) {
       setProfileOpen(false);
       router.push(path);
     },
-    [router]
+    [router],
   );
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border">
+    <Sidebar
+      collapsible="icon"
+      className="bg-neutral-100 border-none sticky top-0 left-0"
+    >
+      <SidebarHeader>
         <div className="flex items-center gap-3">
           <Image
             src="/kaarya.svg"
@@ -189,7 +192,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
                 <ChevronDown
                   className={cn(
                     "h-4 w-4 transition-transform",
-                    groupOpen[group.label] ? "rotate-0" : "-rotate-90"
+                    groupOpen[group.label] ? "rotate-0" : "-rotate-90",
                   )}
                 />
                 <span className="sr-only">Toggle {group.label} navigation</span>
@@ -244,7 +247,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
         <div
           className={cn(
             "flex items-center gap-3 rounded-xl border border-border bg-white px-3 py-3",
-            "group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-2"
+            "group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-2",
           )}
         >
           <Avatar className="h-9 w-9">
@@ -319,7 +322,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
               "h-9 flex-1 rounded-lg text-xs font-semibold group-data-[state=collapsed]/sidebar:hidden",
               theme === "light"
                 ? "border-sidebar-border bg-white text-foreground"
-                : "text-muted-foreground"
+                : "text-muted-foreground",
             )}
             aria-pressed={theme === "light"}
             onClick={() => setTheme("light")}
@@ -334,7 +337,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
               "h-9 flex-1 rounded-lg text-xs font-semibold group-data-[state=collapsed]/sidebar:hidden",
               theme === "dark"
                 ? "border-sidebar-border bg-white text-foreground"
-                : "text-muted-foreground"
+                : "text-muted-foreground",
             )}
             aria-pressed={theme === "dark"}
             onClick={() => setTheme("dark")}

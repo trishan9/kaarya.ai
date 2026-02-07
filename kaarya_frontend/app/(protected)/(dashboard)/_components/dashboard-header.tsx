@@ -17,8 +17,8 @@ export function DashboardHeader({
   return (
     <header
       className={cn(
-        "flex flex-wrap items-center justify-between gap-4 px-6 py-5",
-        className
+        "flex flex-wrap items-center justify-between gap-4 px-4 py-5",
+        className,
       )}
     >
       <div className="flex items-center gap-3">

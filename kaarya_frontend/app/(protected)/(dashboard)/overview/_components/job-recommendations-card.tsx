@@ -75,6 +75,24 @@ export function JobRecommendationsCard({
           badge="Suit You Best!"
           accent="green"
         />
+        <JobCard
+          title="Frontend Software Engineer"
+          company="Softwarica College of IT & E-commerce"
+          location="Kathmandu, Bagmati"
+          type="Full-Time"
+          salary="NPR 10,00,000 - NPR 15,00,000"
+          badge="Suit You Best!"
+          accent="green"
+        />
+        <JobCard
+          title="Frontend Software Engineer"
+          company="Softwarica College of IT & E-commerce"
+          location="Kathmandu, Bagmati"
+          type="Full-Time"
+          salary="NPR 10,00,000 - NPR 15,00,000"
+          badge="Suit You Best!"
+          accent="green"
+        />
       </div>
     </Card>
   );

@@ -9,79 +9,81 @@ import { OverviewHeaderActions } from "./_components/overview-header-actions";
 
 export default function OverviewPage() {
   return (
-    <div className="min-h-svh">
-      <DashboardHeader title="Overview" actions={<OverviewHeaderActions />} />
+    <div className="min-h-svh bg-neutral-100 lg:pl-0 lg:p-6">
+      <div className="bg-white">
+        <DashboardHeader title="Overview" actions={<OverviewHeaderActions />} />
 
-      <div className="px-6 pb-8">
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="space-y-4">
-            <ApplicationsSummaryCard
-              total={124}
-              delta={12}
-              monthLabel="NOVEMBER, 2025"
-              tabs={[
-                "All Applications",
-                "Mock Interviews",
-                "Screening",
-                "Assessments",
-                "Offering",
-                "Acceptance",
-                "Rejected",
-              ]}
-              activeTab="All Applications"
-            />
+        <div className="px-4 pb-8">
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+            <div className="space-y-4">
+              <ApplicationsSummaryCard
+                total={124}
+                delta={12}
+                monthLabel="NOVEMBER, 2025"
+                tabs={[
+                  "All Applications",
+                  "Mock Interviews",
+                  "Screening",
+                  "Assessments",
+                  "Offering",
+                  "Acceptance",
+                  "Rejected",
+                ]}
+                activeTab="All Applications"
+              />
 
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-              <DeadlineCard title="Marketing Manager" company="Amazon" />
-              <InvitationCard
-                title="You've got an invitation!"
-                description="Congratulations! You've got an interview invitation from OpenAI, accept the invitation and be prepared with our AI mock interviews!"
-                eventTitle="Sunday, November 23, 2025"
-                eventTime="4:30 PM - 6:30 PM"
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+                <DeadlineCard title="Marketing Manager" company="Amazon" />
+                <InvitationCard
+                  title="You've got an invitation!"
+                  description="Congratulations! You've got an interview invitation from OpenAI, accept the invitation and be prepared with our AI mock interviews!"
+                  eventTitle="Sunday, November 23, 2025"
+                  eventTime="4:30 PM - 6:30 PM"
+                />
+              </div>
+
+              <JobRecommendationsCard
+                tabs={[
+                  "For You",
+                  "Trending Jobs",
+                  "New This Week",
+                  "Urgent Hiring",
+                  "Remote Opportunities",
+                ]}
+                activeTab="For You"
               />
             </div>
 
-            <JobRecommendationsCard
-              tabs={[
-                "For You",
-                "Trending Jobs",
-                "New This Week",
-                "Urgent Hiring",
-                "Remote Opportunities",
-              ]}
-              activeTab="For You"
-            />
-          </div>
+            <div className="space-y-4">
+              <RatingCard
+                title="Your Profile Rating"
+                rating={79}
+                badgeLabel="Standard"
+                ratingClassName="text-[#f4b000]"
+                badgeClassName="bg-[#fff3d8] text-[#f4b000]"
+                description="It's already great, but it still needs to be even better to impress the recruiters."
+                suggestionTitle="Our Suggestion"
+                suggestionBody="Try enhancing your profile & re-generating your version of an interactive resume with the help of our very own Resume Builder AI."
+                actionLabel="Enhance with AI"
+                showAction
+              />
 
-          <div className="space-y-4">
-            <RatingCard
-              title="Your Profile Rating"
-              rating={79}
-              badgeLabel="Standard"
-              ratingClassName="text-[#f4b000]"
-              badgeClassName="bg-[#fff3d8] text-[#f4b000]"
-              description="It's already great, but it still needs to be even better to impress the recruiters."
-              suggestionTitle="Our Suggestion"
-              suggestionBody="Try enhancing your profile & re-generating your version of an interactive resume with the help of our very own Resume Builder AI."
-              actionLabel="Enhance with AI"
-              showAction
-            />
+              <RatingCard
+                title="Interview Overall Rating"
+                rating={23}
+                badgeLabel="Below Average"
+                ratingClassName="text-rose-500"
+                badgeClassName="bg-rose-50 text-rose-500"
+                description="It shows some potential, but it's still below average and needs more refinement before you're ready for real interviews."
+                suggestionTitle="Our Suggestion"
+                suggestionBody="Give more interviews with AI Interview Hub."
+              />
 
-            <RatingCard
-              title="Interview Overall Rating"
-              rating={23}
-              badgeLabel="Below Average"
-              ratingClassName="text-rose-500"
-              badgeClassName="bg-rose-50 text-rose-500"
-              description="It shows some potential, but it's still below average and needs more refinement before you're ready for real interviews."
-              suggestionTitle="Our Suggestion"
-              suggestionBody="Give more interviews with AI Interview Hub."
-            />
-
-            <TipsCard
-              title="We've got some tips only for you!"
-              description="Check our latest information for tips and tricks for your career!"
-            />
+              <TipsCard
+                title="We've got some tips only for you!"
+                description="Check our latest information for tips and tricks for your career!"
+              />
+            </div>
           </div>
         </div>
       </div>
