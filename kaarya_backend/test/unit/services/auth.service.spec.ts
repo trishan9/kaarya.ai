@@ -1,11 +1,14 @@
 import { HttpStatus } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import argon2 from 'argon2';
+import { AUTH_MESSAGES, USER_MESSAGES } from 'src/constants/messages.constants';
+import { PinoLoggerService } from 'src/logger/pino-logger.service';
+import { ACAuthIdentityRepository } from 'src/repositories/auth-identity.repository';
+import { AuthOAuthService } from 'src/services/auth-oauth.service';
 import { AuthService } from 'src/services/auth.service';
 import { EmailService } from 'src/services/email.service';
 import { UserService } from 'src/services/user.service';
-import { PinoLoggerService } from 'src/logger/pino-logger.service';
-import { AUTH_MESSAGES, USER_MESSAGES } from 'src/constants/messages.constants';
+import { AuthProvider } from 'src/types/auth-provider.enum';
 import { UserRole } from 'src/types/user-role.enum';
 
 jest.mock('argon2', () => ({
@@ -23,6 +26,8 @@ describe('AuthService', () => {
   let jwtService: jest.Mocked<JwtService>;
   let emailService: jest.Mocked<EmailService>;
   let logger: jest.Mocked<PinoLoggerService>;
+  let authIdentityRepository: jest.Mocked<ACAuthIdentityRepository>;
+  let oauthService: jest.Mocked<AuthOAuthService>;
   const mockedArgon2 = argon2 as unknown as {
     hash: jest.Mock;
     verify: jest.Mock;
@@ -48,9 +53,31 @@ describe('AuthService', () => {
     logger = {
       log: jest.fn(),
       error: jest.fn(),
+      warn: jest.fn(),
     } as unknown as jest.Mocked<PinoLoggerService>;
 
-    service = new AuthService(userService, jwtService, emailService, logger);
+    authIdentityRepository = {
+      create: jest.fn(),
+      findByUserAndProvider: jest.fn(),
+      updateById: jest.fn(),
+    } as unknown as jest.Mocked<ACAuthIdentityRepository>;
+
+    oauthService = {
+      createOAuthState: jest.fn(),
+      handleOAuthProviderError: jest.fn(),
+      handleOAuthCallback: jest.fn(),
+      exchangeOAuthResultToken: jest.fn(),
+      completeOAuthLink: jest.fn(),
+    } as unknown as jest.Mocked<AuthOAuthService>;
+
+    service = new AuthService(
+      userService,
+      jwtService,
+      emailService,
+      logger,
+      authIdentityRepository,
+      oauthService,
+    );
   });
 
   it('should prevent duplicate signups', async () => {
@@ -77,10 +104,14 @@ describe('AuthService', () => {
   });
 
   it('should hash passwords and returns sanitized users on signup', async () => {
+    const userId = '507f191e810c19729de860ea';
     mockedArgon2.hash.mockResolvedValue('hashed');
     userService.getUserByEmail.mockResolvedValue(null);
+    authIdentityRepository.findByUserAndProvider.mockResolvedValue(
+      null as never,
+    );
     userService.createUser.mockResolvedValue({
-      id: 'user-1',
+      id: userId,
       email: 'user@example.com',
       password: 'hashed',
     } as never);
@@ -96,12 +127,18 @@ describe('AuthService', () => {
       expect.objectContaining({ password: 'hashed' }),
     );
     expect(result).toEqual(
-      expect.objectContaining({ id: 'user-1', email: 'user@example.com' }),
+      expect.objectContaining({ id: userId, email: 'user@example.com' }),
     );
     expect(result).not.toHaveProperty('password');
     expect(emailService.sendOnboardingEmail).toHaveBeenCalledWith(
       'user@example.com',
       { userName: undefined },
+    );
+    expect(authIdentityRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: AuthProvider.EMAIL,
+        email: 'user@example.com',
+      }),
     );
   });
 
@@ -293,5 +330,22 @@ describe('AuthService', () => {
         expect.objectContaining({ message: USER_MESSAGES.NOT_FOUND }),
       );
     }
+  });
+
+  it('should delegate OAuth state creation', async () => {
+    oauthService.createOAuthState.mockResolvedValue('opaque-state');
+
+    const result = await service.createOAuthState({
+      provider: AuthProvider.GOOGLE,
+      redirectUri: 'http://localhost:3000/oauth/callback',
+      intent: 'login',
+    });
+
+    expect(result).toBe('opaque-state');
+    expect(oauthService.createOAuthState).toHaveBeenCalledWith({
+      provider: AuthProvider.GOOGLE,
+      redirectUri: 'http://localhost:3000/oauth/callback',
+      intent: 'login',
+    });
   });
 });
