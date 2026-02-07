@@ -42,7 +42,14 @@ function SidebarProvider({
 
   return (
     <SidebarContext.Provider
-      value={{ open, setOpen, openMobile, setOpenMobile, isMobile, toggleSidebar }}
+      value={{
+        open,
+        setOpen,
+        openMobile,
+        setOpenMobile,
+        isMobile,
+        toggleSidebar,
+      }}
     >
       {children}
     </SidebarContext.Provider>
@@ -79,7 +86,7 @@ const Sidebar = React.forwardRef<
             data-collapsible="icon"
             className={cn(
               "flex h-full w-full flex-col bg-sidebar text-sidebar-foreground",
-              className
+              className,
             )}
             style={
               {
@@ -102,7 +109,7 @@ const Sidebar = React.forwardRef<
       className={cn(
         "group/sidebar relative flex h-svh w-[--sidebar-width] shrink-0 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-200 ease-linear",
         "data-[state=collapsed]:w-[--sidebar-collapsed-width]",
-        className
+        className,
       )}
       style={
         {
@@ -136,7 +143,7 @@ const SidebarContent = React.forwardRef<
     ref={ref}
     className={cn(
       "flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-3 pb-4",
-      className
+      className,
     )}
     {...props}
   />
@@ -151,7 +158,7 @@ const SidebarFooter = React.forwardRef<
     ref={ref}
     className={cn(
       "mt-auto px-3 pb-4 group-data-[state=collapsed]/sidebar:px-2",
-      className
+      className,
     )}
     {...props}
   />
@@ -174,7 +181,7 @@ const SidebarGroupLabel = React.forwardRef<
     ref={ref}
     className={cn(
       "px-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground/70 group-data-[state=collapsed]/sidebar:hidden",
-      className
+      className,
     )}
     {...props}
   />
@@ -206,7 +213,7 @@ const SidebarMenuItem = React.forwardRef<
 SidebarMenuItem.displayName = "SidebarMenuItem";
 
 const sidebarMenuButtonVariants = cva(
-  "group/menu-button flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[active=true]:bg-[#0b67c2] data-[active=true]:text-white group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-2",
+  "group/menu-button flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[active=true]:bg-primary data-[active=true]:text-white group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-2",
   {
     variants: {
       size: {
@@ -217,7 +224,7 @@ const sidebarMenuButtonVariants = cva(
     defaultVariants: {
       size: "default",
     },
-  }
+  },
 );
 
 const SidebarMenuButton = React.forwardRef<
@@ -265,7 +272,11 @@ const SidebarInset = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("flex min-w-0 flex-1 flex-col", className)} {...props} />
+  <div
+    ref={ref}
+    className={cn("flex min-w-0 flex-1 flex-col", className)}
+    {...props}
+  />
 ));
 SidebarInset.displayName = "SidebarInset";
 

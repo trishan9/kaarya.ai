@@ -45,7 +45,7 @@ export function ApplicationsSummaryCard({
     <Card className="gap-4 border-border bg-white p-5 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">
+          <h2 className="text-2xl font-semibold text-foreground">
             Applications Summary
           </h2>
         </div>
@@ -70,7 +70,7 @@ export function ApplicationsSummaryCard({
               >
                 {option}
                 {option === currentMonth ? (
-                  <Check className="h-3 w-3 text-[#0b67c2]" />
+                  <Check className="h-3 w-3 text-primary" />
                 ) : null}
               </DropdownMenuItem>
             ))}
@@ -86,10 +86,10 @@ export function ApplicationsSummaryCard({
               key={tab}
               onClick={() => setCurrentTab(tab)}
               className={cn(
-                "h-8 rounded-md border border-border px-3 text-xs font-semibold transition-colors",
+                "h-8 rounded-md border border-border px-3 text-xs transition-colors cursor-pointer",
                 isActive
-                  ? "border-transparent bg-[#0b67c2] text-white"
-                  : "bg-white text-muted-foreground hover:border-[#0b67c2] hover:text-[#0b67c2]",
+                  ? "border-transparent bg-primary text-white font-medium"
+                  : "bg-white text-muted-foreground hover:border-primary hover:text-primary",
               )}
               aria-pressed={isActive}
             >

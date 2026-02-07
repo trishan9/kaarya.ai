@@ -43,7 +43,6 @@ export function DeadlineCard({ title, company }: DeadlineCardProps) {
   const router = useRouter();
   const [bookmarked, setBookmarked] = React.useState(false);
   const [reminderOn, setReminderOn] = React.useState(true);
-  const [duplicateCount, setDuplicateCount] = React.useState(0);
   const [detailsOpen, setDetailsOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [isHidden, setIsHidden] = React.useState(false);
@@ -77,13 +76,7 @@ export function DeadlineCard({ title, company }: DeadlineCardProps) {
     <Card className="gap-4 border-border bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-foreground">
-            Deadline Today!
-          </h3>
-          <div className="text-[10px] text-muted-foreground">
-            {reminderOn ? "Reminder on" : "Reminder muted"}
-            {duplicateCount > 0 ? ` • Duplicated x${duplicateCount}` : ""}
-          </div>
+          <h3 className="font-semibold text-foreground">Deadline Today!</h3>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -101,15 +94,8 @@ export function DeadlineCard({ title, company }: DeadlineCardProps) {
             <DropdownMenuItem onSelect={() => setDetailsOpen(true)}>
               View Details
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onSelect={() => setReminderOn((prev) => !prev)}
-            >
+            <DropdownMenuItem onSelect={() => setReminderOn((prev) => !prev)}>
               {reminderOn ? "Mute Reminder" : "Enable Reminder"}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onSelect={() => setDuplicateCount((prev) => prev + 1)}
-            >
-              Duplicate
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -122,13 +108,13 @@ export function DeadlineCard({ title, company }: DeadlineCardProps) {
         </DropdownMenu>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 bg-neutral-50 p-3 rounded-lg">
         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#f59f3d] text-xs font-bold text-white">
           aws
         </div>
         <div className="flex-1">
-          <div className="text-sm font-semibold text-foreground">{title}</div>
-          <div className="text-xs text-muted-foreground">{company}</div>
+          <div className="font-semibold text-foreground">{title}</div>
+          <div className="text-sm text-muted-foreground">{company}</div>
         </div>
         <Button
           variant="outline"
@@ -137,14 +123,12 @@ export function DeadlineCard({ title, company }: DeadlineCardProps) {
             "h-8 w-8 rounded-lg border-border",
             bookmarked
               ? "border-[#0b67c2] bg-[#0b67c2]/10 text-[#0b67c2]"
-              : "text-muted-foreground"
+              : "text-muted-foreground",
           )}
           aria-pressed={bookmarked}
           onClick={() => setBookmarked((prev) => !prev)}
         >
-          <Bookmark
-            className={cn("h-4 w-4", bookmarked && "fill-[#0b67c2]")}
-          />
+          <Bookmark className={cn("h-4 w-4", bookmarked && "fill-[#0b67c2]")} />
           <span className="sr-only">
             {bookmarked ? "Remove bookmark" : "Save job"}
           </span>

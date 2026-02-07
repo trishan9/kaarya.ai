@@ -47,14 +47,12 @@ export function InvitationCard({
   eventTitle,
   eventTime,
 }: InvitationCardProps) {
-  const [status, setStatus] = React.useState<"pending" | "accepted" | "declined">(
-    "pending"
-  );
+  const [status, setStatus] = React.useState<
+    "pending" | "accepted" | "declined"
+  >("pending");
   const [detailsOpen, setDetailsOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
-  const [duplicateCount, setDuplicateCount] = React.useState(0);
   const [editMode, setEditMode] = React.useState(false);
-  const [rescheduled, setRescheduled] = React.useState(false);
   const [isHidden, setIsHidden] = React.useState(false);
 
   if (isHidden) {
@@ -62,9 +60,7 @@ export function InvitationCard({
       <Card className="gap-3 border-0 bg-[#0f6fb5] p-5 text-white shadow-sm">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <div className="text-sm font-semibold">
-              Invitation removed
-            </div>
+            <div className="text-sm font-semibold">Invitation removed</div>
             <div className="text-xs text-white/70">
               Restore it if you still want to respond.
             </div>
@@ -83,57 +79,17 @@ export function InvitationCard({
   }
 
   return (
-    <Card className="gap-4 border-0 bg-[#0f6fb5] p-5 text-white shadow-sm">
+    <Card className="gap-4 border-0 bg-linear-to-r from-[#00629f]/80 to-[#00629f] p-5 text-white shadow-sm">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold">{title}</h3>
-          <div className="flex items-center gap-2 text-[10px] text-white/70">
-            {editMode ? "Editing invite" : "Invitation workflow"}
-            {duplicateCount > 0 ? ` • Duplicated x${duplicateCount}` : ""}
-          </div>
+          <h3 className="font-semibold">{title}</h3>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="h-7 w-7 rounded-md text-white/80 hover:text-white"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-              <span className="sr-only">Open invitation actions</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem onSelect={() => setDetailsOpen(true)}>
-              View Details
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => setEditMode((prev) => !prev)}>
-              {editMode ? "Stop Editing" : "Edit"}
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => setRescheduled(true)}>
-              Reschedule
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onSelect={() => setDuplicateCount((prev) => prev + 1)}
-            >
-              Duplicate
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onSelect={() => setDeleteOpen(true)}
-              className="text-rose-500 focus:text-rose-500"
-            >
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
 
       <p className="text-xs text-white/80">{description}</p>
 
-      <div className="flex items-center gap-3 rounded-xl bg-[#0a5d99] px-4 py-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-100">
+      <div className="flex items-center gap-3 rounded-xl bg-[#3B93CC]/80 px-4 py-3">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500 text-emerald-100">
           <span className="text-xs font-semibold tracking-wide">AI</span>
         </div>
         <div className="flex-1">
@@ -143,8 +99,7 @@ export function InvitationCard({
         <div className="flex items-center gap-2">
           <button
             className={cn(
-              "flex h-8 w-8 items-center justify-center rounded-lg text-white transition-colors",
-              status === "declined" ? "bg-red-500" : "bg-red-500/20"
+              "flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-white transition-colors bg-red-500",
             )}
             onClick={() => setStatus("declined")}
             aria-pressed={status === "declined"}
@@ -154,8 +109,7 @@ export function InvitationCard({
           </button>
           <button
             className={cn(
-              "flex h-8 w-8 items-center justify-center rounded-lg text-white transition-colors",
-              status === "accepted" ? "bg-emerald-500" : "bg-emerald-400/20"
+              "flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-white transition-colors bg-emerald-500",
             )}
             onClick={() => setStatus("accepted")}
             aria-pressed={status === "accepted"}
@@ -164,25 +118,6 @@ export function InvitationCard({
             <span className="sr-only">Accept invitation</span>
           </button>
         </div>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2 text-[10px] text-white/70">
-        {status !== "pending" ? (
-          <Badge
-            variant="secondary"
-            className={cn(
-              "rounded-full border-0 px-2 py-0.5 text-[10px]",
-              status === "accepted"
-                ? "bg-emerald-400/20 text-emerald-100"
-                : "bg-red-500/20 text-red-100"
-            )}
-          >
-            {status === "accepted" ? "Accepted" : "Declined"}
-          </Badge>
-        ) : (
-          <span>Awaiting your response</span>
-        )}
-        {rescheduled ? <span>• Reschedule requested</span> : null}
       </div>
 
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
@@ -196,7 +131,9 @@ export function InvitationCard({
           <div className="space-y-2 text-sm text-muted-foreground">
             <div className="flex items-center justify-between">
               <span>Session</span>
-              <span className="font-semibold text-foreground">{eventTitle}</span>
+              <span className="font-semibold text-foreground">
+                {eventTitle}
+              </span>
             </div>
             <div className="flex items-center justify-between">
               <span>Time</span>

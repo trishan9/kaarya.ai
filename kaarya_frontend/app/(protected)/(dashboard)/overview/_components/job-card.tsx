@@ -29,7 +29,6 @@ export function JobCard({
   posted = "3d ago",
 }: JobCardProps) {
   const [bookmarked, setBookmarked] = React.useState(false);
-  const [applied, setApplied] = React.useState(false);
 
   return (
     <Card className="gap-3 border-border bg-white p-4 shadow-sm">
@@ -51,7 +50,7 @@ export function JobCard({
         <div
           className={cn(
             "flex h-10 w-10 items-center justify-center rounded-lg text-xs font-bold text-white",
-            accent === "green" ? "bg-emerald-500" : "bg-[#0b67c2]",
+            accent === "green" ? "bg-emerald-500" : "bg-primary",
           )}
         >
           K
@@ -81,15 +80,10 @@ export function JobCard({
       <div className="flex items-center gap-2">
         <Button
           className={cn(
-            "h-8 flex-1 rounded-lg text-xs font-semibold",
-            applied
-              ? "bg-emerald-500 hover:bg-emerald-500/90"
-              : "bg-[#0b67c2]"
+            "h-8 flex-1 rounded-lg text-xs font-semibold cursor-pointer bg-primary text-white",
           )}
-          onClick={() => setApplied(true)}
-          disabled={applied}
         >
-          {applied ? "Applied" : "Apply"}
+          Apply
         </Button>
         <Button
           variant="outline"
@@ -97,8 +91,8 @@ export function JobCard({
           className={cn(
             "h-8 w-8 rounded-lg border-border",
             bookmarked
-              ? "border-[#0b67c2] bg-[#0b67c2]/10 text-[#0b67c2]"
-              : "text-muted-foreground"
+              ? "border-primary bg-primary/10 text-primary"
+              : "text-muted-foreground",
           )}
           aria-pressed={bookmarked}
           onClick={() => setBookmarked((prev) => !prev)}
@@ -106,7 +100,9 @@ export function JobCard({
           <Bookmark
             className={cn(
               "h-4 w-4",
-              bookmarked ? "fill-[#0b67c2] text-[#0b67c2]" : "text-muted-foreground"
+              bookmarked
+                ? "fill-primary text-primary"
+                : "text-muted-foreground",
             )}
           />
           <span className="sr-only">

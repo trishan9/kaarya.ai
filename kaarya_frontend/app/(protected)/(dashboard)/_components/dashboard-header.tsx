@@ -23,7 +23,7 @@ export function DashboardHeader({
     >
       <div className="flex items-center gap-3">
         <SidebarTrigger className="border border-border bg-white text-muted-foreground shadow-sm hover:bg-white" />
-        <h1 className="text-lg font-semibold text-foreground">{title}</h1>
+        <h1 className="text-xl font-semibold text-foreground">{title}</h1>
       </div>
       <div className="flex items-center gap-3 text-sm text-muted-foreground">
         {actions}

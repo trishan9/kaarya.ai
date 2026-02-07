@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Space_Grotesk } from "next/font/google";
+import {
+  DM_Sans,
+  Geist_Mono,
+  Inter,
+  Outfit,
+  Space_Grotesk,
+  Work_Sans,
+} from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import ToastProvider from "@/components/providers/toast-provider";
@@ -55,7 +62,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${generalSans.className} ${spaceGrotesk.variable} ${geistMono.variable} antialiased`}
+        className={`${spaceGrotesk.className} ${spaceGrotesk.variable} ${geistMono.variable} antialiased`}
       >
         {children}
         {modal}

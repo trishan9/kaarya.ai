@@ -23,12 +23,10 @@ export function JobRecommendationsCard({
   return (
     <Card className="gap-4 border-border bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-foreground">
-          Job Recommendations
-        </h3>
+        <h3 className="font-semibold text-foreground">Job Recommendations</h3>
         <button
-          className="flex items-center gap-1 text-xs font-semibold text-[#0b67c2]"
-          onClick={() => router.push("/jobs")}
+          className="flex items-center gap-1 text-xs font-semibold text-primary cursor-pointer"
+          onClick={() => router.push("/overview")}
         >
           See All
           <ChevronRight className="h-4 w-4" />
@@ -43,10 +41,10 @@ export function JobRecommendationsCard({
               key={tab}
               onClick={() => setCurrentTab(tab)}
               className={cn(
-                "h-8 rounded-md border border-border px-3 text-xs font-semibold transition-colors",
+                "h-8 rounded-md border border-border px-3 text-xs transition-colors cursor-pointer",
                 isActive
-                  ? "border-transparent bg-[#0b67c2] text-white"
-                  : "bg-white text-muted-foreground hover:border-[#0b67c2] hover:text-[#0b67c2]",
+                  ? "border-transparent bg-primary text-white font-medium"
+                  : "bg-white text-muted-foreground hover:border-primary hover:text-primary",
               )}
               aria-pressed={isActive}
             >

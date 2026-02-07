@@ -243,10 +243,10 @@ export function AppSidebar({ user }: AppSidebarProps) {
         ))}
       </SidebarContent>
 
-      <SidebarFooter className="space-y-3 border-t border-sidebar-border pt-4">
+      <SidebarFooter className="space-y-3 pt-4">
         <div
           className={cn(
-            "flex items-center gap-3 rounded-xl border border-border bg-white px-3 py-3",
+            "flex items-center gap-3 rounded-xl  bg-[#f0f0f0] px-3 py-3",
             "group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-2",
           )}
         >
@@ -314,7 +314,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
           </Popover>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 bg-[#f0f0f0] rounded-lg p-1">
           <Button
             variant={theme === "light" ? "outline" : "ghost"}
             size="sm"
