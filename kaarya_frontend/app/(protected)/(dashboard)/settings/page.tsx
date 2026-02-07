@@ -26,11 +26,12 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="min-h-svh">
-      <DashboardHeader title="Settings" />
+    <div className="min-h-svh bg-neutral-100 lg:pl-0 lg:p-6">
+      <div className="bg-white rounded-2xl">
+        <DashboardHeader title="Settings" />
 
-      <div className="space-y-6 px-4 pb-8 sm:px-6">
-        {/* <Card className="border-border/70 bg-white">
+        <div className="space-y-6 px-4 pb-8 sm:px-6">
+          {/* <Card className="border-border/70 bg-white">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-xl">
               <Settings2 className="h-5 w-5" />
@@ -48,7 +49,8 @@ export default async function SettingsPage() {
           </CardContent>
         </Card> */}
 
-        <SettingsTabs user={user} />
+          <SettingsTabs user={user} />
+        </div>
       </div>
     </div>
   );
