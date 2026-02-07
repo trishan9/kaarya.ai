@@ -19,7 +19,6 @@ export const UserZodSchema = z.object({
   provider: z.nativeEnum(AuthProvider).optional(),
   socialId: z.string().nullable().optional(),
   photo: z.string().nullable().optional(),
-  tokenVersion: z.number().int().nonnegative().optional(),
 });
 
 export type TUser = z.infer<typeof UserZodSchema>;
