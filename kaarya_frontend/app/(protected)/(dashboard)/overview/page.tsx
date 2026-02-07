@@ -77,6 +77,8 @@ export default function OverviewPage() {
                 description="It shows some potential, but it's still below average and needs more refinement before you're ready for real interviews."
                 suggestionTitle="Our Suggestion"
                 suggestionBody="Give more interviews with AI Interview Hub."
+                actionLabel="Take an Interview"
+                showAction
               />
 
               <TipsCard

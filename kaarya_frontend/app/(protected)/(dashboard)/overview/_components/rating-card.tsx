@@ -1,7 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { ArrowUpRight, MoreHorizontal } from "lucide-react";
+import {
+  ArrowUpRight,
+  Feather,
+  FeatherIcon,
+  MoreHorizontal,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
@@ -62,8 +67,6 @@ export function RatingCard({
   const router = useRouter();
   const [detailsOpen, setDetailsOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
-  const [editMode, setEditMode] = React.useState(false);
-  const [duplicateCount, setDuplicateCount] = React.useState(0);
   const [isHidden, setIsHidden] = React.useState(false);
 
   if (isHidden) {
@@ -95,60 +98,24 @@ export function RatingCard({
     <Card className="gap-4 border-border bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-          <div className="text-[10px] text-muted-foreground">
-            {editMode ? "Editing targets" : "Latest rating"}
-            {duplicateCount > 0 ? ` • Duplicated x${duplicateCount}` : ""}
-          </div>
+          <h3 className="font-semibold text-foreground">{title}</h3>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="h-7 w-7 rounded-md text-muted-foreground"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-              <span className="sr-only">Open rating actions</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem onSelect={() => setDetailsOpen(true)}>
-              View Details
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => setEditMode((prev) => !prev)}>
-              {editMode ? "Stop Editing" : "Edit"}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onSelect={() => setDuplicateCount((prev) => prev + 1)}
-            >
-              Duplicate
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onSelect={() => setDeleteOpen(true)}
-              className="text-rose-500 focus:text-rose-500"
-            >
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
 
       <div className="flex items-center gap-3">
         <div
           className={cn(
-            "text-3xl font-semibold",
-            ratingClassName ?? "text-foreground"
+            "text-4xl font-semibold",
+            ratingClassName ?? "text-foreground",
           )}
         >
           {rating}%
         </div>
+
         <span
           className={cn(
             "rounded-md px-2 py-1 text-[10px] font-semibold uppercase tracking-wide",
-            badgeClassName ?? "bg-muted text-muted-foreground"
+            badgeClassName ?? "bg-muted text-muted-foreground",
           )}
         >
           {badgeLabel}
@@ -162,17 +129,18 @@ export function RatingCard({
           {suggestionTitle}
         </div>
         <p>{suggestionBody}</p>
-        {showAction && actionLabel ? (
-          <Button
-            variant="outline"
-            className="mt-3 h-9 w-full rounded-lg border-[#0b67c2] bg-white text-sm font-semibold text-[#0b67c2]"
-            onClick={() => router.push("/resume")}
-          >
-            {actionLabel}
-            <ArrowUpRight className="ml-2 h-4 w-4" />
-          </Button>
-        ) : null}
       </div>
+
+      {showAction && actionLabel ? (
+        <Button
+          variant="outline"
+          className="h-9 w-full rounded-lg border-primary bg-[#E7F2F8] text-sm font-semibold text-primary hover:bg-[#E7F2F8]/90 hover:text-primary cursor-pointer"
+          onClick={() => router.push("/resume")}
+        >
+          {actionLabel}
+          <ArrowUpRight className="h-4 w-4" />
+        </Button>
+      ) : null}
 
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
         <DialogContent className="sm:max-w-md">
