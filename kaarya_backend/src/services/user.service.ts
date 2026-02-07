@@ -19,15 +19,38 @@ export class UserService {
     return await this.userRepository.updateById(id, payload);
   }
 
+  async updateUserRaw(id: string, payload: Partial<TUser>) {
+    return await this.userRepository.updateById(id, payload);
+  }
+
   async updatePassword(id: string, hashedPassword: string) {
+    const user = await this.userRepository.findById(id);
+    if (!user) {
+      return null;
+    }
     return await this.userRepository.updateById(id, {
       password: hashedPassword,
       passwordChangedAt: new Date(),
+      tokenVersion: (user.tokenVersion ?? 0) + 1,
+    });
+  }
+
+  async bumpTokenVersion(id: string) {
+    const user = await this.userRepository.findById(id);
+    if (!user) {
+      return null;
+    }
+    return await this.userRepository.updateById(id, {
+      tokenVersion: (user.tokenVersion ?? 0) + 1,
     });
   }
 
   async getUserByEmail(email: string, options?: { includePassword?: boolean }) {
     return await this.userRepository.findByEmail(email, options);
+  }
+
+  async getUserByProviderSocialId(provider: string, socialId: string) {
+    return await this.userRepository.findByProviderSocialId(provider, socialId);
   }
 
   async getUserByIdRaw(id: string) {
