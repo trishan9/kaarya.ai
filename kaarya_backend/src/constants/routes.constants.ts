@@ -5,6 +5,8 @@ export const ROUTES = {
     SIGNUP: 'signup',
     ME: 'me',
     UPDATE_ME: 'update-me',
+    OAUTH_LINKED_ACCOUNTS: 'oauth/accounts',
+    OAUTH_UNLINK: 'oauth/:provider/unlink',
     PASSWORD_RESET_REQUEST: 'password-reset/request',
     PASSWORD_RESET_VERIFY: 'password-reset/verify',
     PASSWORD_RESET_CONFIRM: 'password-reset/confirm',

@@ -27,6 +27,14 @@ import { AuthProvider } from 'src/types/auth-provider.enum';
 import { OAuthProviderProfile } from 'src/types/oauth-profile.type';
 import { UserRole } from 'src/types/user-role.enum';
 
+type TLinkedAuthAccount = {
+  provider: AuthProvider;
+  email: string | null;
+  emailVerified: boolean;
+  linkedAt: string | null;
+  lastLoginAt: string | null;
+};
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -136,7 +144,88 @@ export class AuthService {
       });
     }
 
-    return await this.userService.getUserById(id);
+    const user = await this.userService.getUserById(id);
+    const safeUser = user ?? {};
+    const linkedAccounts = await this.getLinkedAccounts(id);
+    const linkedProviders = this.getUniqueLinkedProviders(
+      linkedAccounts,
+      (safeUser as { provider?: AuthProvider }).provider,
+    );
+
+    return {
+      ...safeUser,
+      linkedAccounts,
+      linkedProviders,
+    };
+  }
+
+  async getLinkedAccounts(userId: string): Promise<TLinkedAuthAccount[]> {
+    if (!userId) {
+      throw new ApiError({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        message: USER_MESSAGES.INVALID_ID,
+      });
+    }
+
+    await this.userService.getUserByIdRaw(userId);
+    const identities = await this.authIdentityRepository.findByUserId(userId);
+    return this.mapLinkedAccounts(identities);
+  }
+
+  async unlinkOAuthProvider(userId: string, provider: AuthProvider) {
+    if (!userId) {
+      throw new ApiError({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        message: USER_MESSAGES.INVALID_ID,
+      });
+    }
+
+    if (provider === AuthProvider.EMAIL) {
+      throw new ApiError({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: AUTH_MESSAGES.OAUTH_PROVIDER_NOT_SUPPORTED,
+      });
+    }
+
+    const currentUser = await this.userService.getUserByIdRaw(userId);
+    const identityToUnlink =
+      await this.authIdentityRepository.findByUserAndProvider(userId, provider);
+
+    if (!identityToUnlink) {
+      throw new ApiError({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: USER_MESSAGES.NOT_FOUND,
+      });
+    }
+
+    const identities = await this.authIdentityRepository.findByUserId(userId);
+    const remaining = identities.filter(
+      (identity) => identity.id !== identityToUnlink.id,
+    );
+    const hasRemainingOAuth = remaining.some(
+      (identity) => identity.provider !== AuthProvider.EMAIL,
+    );
+    const hasPrimaryEmailCredential =
+      currentUser.provider === AuthProvider.EMAIL &&
+      remaining.some((identity) => identity.provider === AuthProvider.EMAIL);
+
+    if (!hasRemainingOAuth && !hasPrimaryEmailCredential) {
+      throw new ApiError({
+        statusCode: HttpStatus.CONFLICT,
+        message: AUTH_MESSAGES.OAUTH_UNLINK_LAST_METHOD,
+      });
+    }
+
+    await this.authIdentityRepository.deleteById(identityToUnlink.id);
+
+    const refreshedAccounts = await this.getLinkedAccounts(userId);
+    return {
+      linkedAccounts: refreshedAccounts,
+      linkedProviders: this.getUniqueLinkedProviders(
+        refreshedAccounts,
+        currentUser.provider,
+      ),
+    };
   }
 
   async updateMe(id: string, payload: TUpdateMeDTO) {
@@ -289,5 +378,34 @@ export class AuthService {
       email: email ?? undefined,
       role,
     });
+  }
+
+  private mapLinkedAccounts(
+    identities: Array<{
+      provider: AuthProvider;
+      email?: string | null;
+      emailVerified?: boolean;
+      createdAt?: Date;
+      lastLoginAt?: Date;
+    }>,
+  ): TLinkedAuthAccount[] {
+    return identities.map((identity) => ({
+      provider: identity.provider,
+      email: identity.email ?? null,
+      emailVerified: Boolean(identity.emailVerified),
+      linkedAt: identity.createdAt?.toISOString?.() ?? null,
+      lastLoginAt: identity.lastLoginAt?.toISOString?.() ?? null,
+    }));
+  }
+
+  private getUniqueLinkedProviders(
+    linkedAccounts: TLinkedAuthAccount[],
+    fallbackProvider?: AuthProvider,
+  ): AuthProvider[] {
+    const providers = linkedAccounts.map((account) => account.provider);
+    if (fallbackProvider && !providers.includes(fallbackProvider)) {
+      providers.push(fallbackProvider);
+    }
+    return Array.from(new Set(providers));
   }
 }

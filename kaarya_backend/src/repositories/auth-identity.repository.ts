@@ -24,6 +24,7 @@ export abstract class ACAuthIdentityRepository {
     id: string,
     payload: Partial<AuthIdentitySchema>,
   ): Promise<AuthIdentitySchemaDocument | null>;
+  abstract deleteById(id: string): Promise<AuthIdentitySchemaDocument | null>;
 }
 
 @Injectable()
@@ -76,6 +77,11 @@ export class AuthIdentityRepository implements ACAuthIdentityRepository {
     return await this.authIdentityModel
       .findByIdAndUpdate(id, payload, { new: true })
       .exec();
+  }
+
+  async deleteById(id: string): Promise<AuthIdentitySchemaDocument | null> {
+    if (!id) return null;
+    return await this.authIdentityModel.findByIdAndDelete(id).exec();
   }
 
   private toObjectId(value: string): Types.ObjectId {

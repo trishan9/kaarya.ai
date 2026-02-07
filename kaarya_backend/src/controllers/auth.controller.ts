@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -308,6 +309,46 @@ export class AuthController {
       );
 
       return buildSuccessResponse(data, AUTH_MESSAGES.OAUTH_LINK_COMPLETED);
+    });
+  }
+
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'))
+  @Get(ROUTES.AUTH.OAUTH_LINKED_ACCOUNTS)
+  @HttpCode(HttpStatus.OK)
+  async getLinkedOAuthAccounts(@Request() request) {
+    return asyncHandler(async () => {
+      const data = await this.authService.getLinkedAccounts(request.user.id);
+      return buildSuccessResponse(
+        data,
+        AUTH_MESSAGES.OAUTH_LINKED_ACCOUNTS_FETCHED,
+      );
+    });
+  }
+
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'))
+  @Delete(ROUTES.AUTH.OAUTH_UNLINK)
+  @HttpCode(HttpStatus.OK)
+  async unlinkOAuthAccount(
+    @Request() request,
+    @Param('provider') provider: string,
+  ) {
+    return asyncHandler(async () => {
+      const parsedProvider = OAuthProviderParamDTO.safeParse({ provider });
+
+      if (!parsedProvider.success) {
+        throw new ApiError({
+          message: z.prettifyError(parsedProvider.error),
+          statusCode: HttpStatus.BAD_REQUEST,
+        });
+      }
+
+      const data = await this.authService.unlinkOAuthProvider(
+        request.user.id,
+        parsedProvider.data.provider,
+      );
+      return buildSuccessResponse(data, AUTH_MESSAGES.OAUTH_ACCOUNT_UNLINKED);
     });
   }
 

@@ -13,22 +13,10 @@ class EnvironmentVariablesValidator {
   AUTH_JWT_TOKEN_EXPIRES_IN: string;
 
   @IsString()
-  AUTH_REFRESH_SECRET: string;
-
-  @IsString()
-  AUTH_REFRESH_TOKEN_EXPIRES_IN: string;
-
-  @IsString()
   AUTH_FORGOT_SECRET: string;
 
   @IsString()
   AUTH_FORGOT_TOKEN_EXPIRES_IN: string;
-
-  @IsString()
-  AUTH_CONFIRM_EMAIL_SECRET: string;
-
-  @IsString()
-  AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN: string;
 
   @IsOptional()
   @IsString()
@@ -154,13 +142,8 @@ export default registerAs<AuthConfig>(CONFIG_NAMESPACE.AUTH, () => {
   return {
     secret: process.env.AUTH_JWT_SECRET,
     expires: process.env.AUTH_JWT_TOKEN_EXPIRES_IN as ms.StringValue,
-    refreshSecret: process.env.AUTH_REFRESH_SECRET,
-    refreshExpires: process.env.AUTH_REFRESH_TOKEN_EXPIRES_IN as ms.StringValue,
     forgotSecret: process.env.AUTH_FORGOT_SECRET,
     forgotExpires: process.env.AUTH_FORGOT_TOKEN_EXPIRES_IN as ms.StringValue,
-    confirmEmailSecret: process.env.AUTH_CONFIRM_EMAIL_SECRET,
-    confirmEmailExpires: process.env
-      .AUTH_CONFIRM_EMAIL_TOKEN_EXPIRES_IN as ms.StringValue,
     resetOtpSecret:
       process.env.AUTH_RESET_OTP_SECRET ?? process.env.AUTH_FORGOT_SECRET,
     resetOtpExpires: (process.env.AUTH_RESET_OTP_EXPIRES_IN ??

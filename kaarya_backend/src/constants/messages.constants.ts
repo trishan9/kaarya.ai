@@ -21,6 +21,10 @@ export const AUTH_MESSAGES = {
   OAUTH_LINK_TOKEN_INVALID: 'Invalid or expired account linking session.',
   OAUTH_RESULT_FETCHED: 'Social login status fetched.',
   OAUTH_LINK_COMPLETED: 'Account linked successfully.',
+  OAUTH_LINKED_ACCOUNTS_FETCHED: 'Linked accounts fetched successfully.',
+  OAUTH_ACCOUNT_UNLINKED: 'Linked account removed successfully.',
+  OAUTH_UNLINK_LAST_METHOD:
+    'Cannot unlink this provider because it is your last sign-in method.',
   LOGIN_SUCCESS: 'Login successful.',
   SIGNUP_SUCCESS: 'Signup successful.',
   CURRENT_USER_SUCCESS: 'Current user fetched.',
