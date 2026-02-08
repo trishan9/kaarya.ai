@@ -26,7 +26,7 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="min-h-svh bg-neutral-100 lg:pl-0 lg:p-6">
+    <div className="min-h-svh bg-neutral-100 lg:pl-0 lg:p-5">
       <div className="bg-white rounded-2xl">
         <DashboardHeader title="Settings" />
 

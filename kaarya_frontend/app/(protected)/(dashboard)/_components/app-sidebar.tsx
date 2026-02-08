@@ -10,8 +10,6 @@ import {
   LogOut,
   Moon,
   Search,
-  Settings,
-  Sparkles,
   Sun,
   Wallet,
 } from "lucide-react";
@@ -90,21 +88,20 @@ export function AppSidebar({ user }: AppSidebarProps) {
     setGroupOpen((prev) => ({ ...prev, [label]: !prev[label] }));
   }, []);
 
-  const handleProfileAction = React.useCallback(
-    (path: string) => {
-      setProfileOpen(false);
-      router.push(path);
-    },
-    [router],
-  );
+  React.useEffect(() => {
+    const currentTheme = document.documentElement.classList.contains("dark")
+      ? "dark"
+      : "light";
+    setTheme(currentTheme);
+  }, []);
 
   return (
     <Sidebar
       collapsible="icon"
       className="bg-neutral-100 border-none sticky top-0 left-0"
     >
-      <SidebarHeader>
-        <div className="flex items-center gap-3">
+      <SidebarHeader className="group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-2">
+        <div className="flex w-full items-center gap-3 group-data-[state=collapsed]/sidebar:justify-center">
           <Image
             src="/kaarya.svg"
             alt="Kaarya.ai"
@@ -118,7 +115,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="group-data-[state=collapsed]/sidebar:px-2">
         <div className="mt-3">
           {open ? (
             <div className="relative">
@@ -142,7 +139,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
                   <Button
                     variant="outline"
                     size="icon"
-                    className="h-9 w-9 rounded-lg border-sidebar-border bg-white text-muted-foreground"
+                    className="h-9 w-9 rounded-lg border-sidebar-border bg-transparent text-muted-foreground hover:bg-sidebar-accent"
                   >
                     <Search className="h-4 w-4" />
                     <span className="sr-only">Open search</span>
@@ -178,9 +175,12 @@ export function AppSidebar({ user }: AppSidebarProps) {
         </div>
 
         {sidebarNavGroups.map((group, index) => (
-          <SidebarGroup key={group.label}>
-            {index > 0 ? <Separator className="my-2" /> : null}
-            <div className="flex items-center justify-between px-3">
+          <SidebarGroup
+            key={group.label}
+            className="group-data-[state=collapsed]/sidebar:gap-1.5"
+          >
+            {index > 0 && open ? <Separator className="my-2" /> : null}
+            <div className="flex items-center justify-between px-3 group-data-[state=collapsed]/sidebar:hidden">
               <SidebarGroupLabel className="px-0">
                 {group.label}
               </SidebarGroupLabel>
@@ -208,7 +208,11 @@ export function AppSidebar({ user }: AppSidebarProps) {
                     const Icon = item.icon;
 
                     const menuButton = (
-                      <SidebarMenuButton asChild isActive={isActive}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        className="group-data-[state=collapsed]/sidebar:h-9 group-data-[state=collapsed]/sidebar:w-9"
+                      >
                         <Link
                           href={item.href}
                           className="flex w-full items-center"
@@ -245,124 +249,184 @@ export function AppSidebar({ user }: AppSidebarProps) {
         ))}
       </SidebarContent>
 
-      <SidebarFooter className="space-y-3 pt-4">
-        <div
-          className={cn(
-            "flex items-center gap-3 rounded-xl  bg-[#f0f0f0] px-3 py-3",
-            "group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-2",
-          )}
-        >
-          <Avatar className="h-9 w-9">
-            <AvatarImage src={user?.photo ?? ""} alt={user?.name ?? "User"} />
-            <AvatarFallback>
-              {(user?.name ?? "TW")
-                .split(" ")
-                .map((part) => part[0])
-                .slice(0, 2)
-                .join("")}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 text-sm group-data-[state=collapsed]/sidebar:hidden">
-            <div className="font-semibold leading-4">
-              {user?.name ?? "Trishan Wagle"}
-            </div>
-            <div className="text-xs text-muted-foreground">
-              @
-              {(user?.name ?? "trishan_wagle9")
-                .toLowerCase()
-                .replace(/\s+/g, "_")}
-            </div>
-          </div>
-          <Badge
-            variant="secondary"
-            className="rounded-full px-2 py-0.5 text-[10px] font-semibold group-data-[state=collapsed]/sidebar:hidden"
-          >
-            Free
-          </Badge>
-          <Popover open={profileOpen} onOpenChange={setProfileOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className="h-7 w-7 rounded-md text-muted-foreground"
-              >
-                <ChevronDown className="h-4 w-4" />
-                <span className="sr-only">Open profile menu</span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent align="end" className="w-56 p-2">
-              <div className="space-y-1">
-                <Button
-                  variant="ghost"
-                  className="h-9 w-full justify-start gap-2 text-sm"
-                >
-                  <Wallet className="h-4 w-4" />
-                  Plans
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="h-9 w-full justify-start gap-2 text-sm text-rose-500 hover:text-rose-500"
-                  onClick={() => {
-                    setProfileOpen(false);
-                    setLogoutOpen(true);
-                  }}
-                >
-                  <LogOut className="h-4 w-4" />
-                  Logout
-                </Button>
+      <SidebarFooter className="space-y-3 pt-4 group-data-[state=collapsed]/sidebar:space-y-2">
+        {open ? (
+          <>
+            <div className="flex items-center gap-3 rounded-xl bg-[#f0f0f0] px-3 py-3">
+              <Avatar className="h-9 w-9">
+                <AvatarImage
+                  src={user?.photo ?? ""}
+                  alt={user?.name ?? "User"}
+                />
+                <AvatarFallback>
+                  {(user?.name ?? "TW")
+                    .split(" ")
+                    .map((part) => part[0])
+                    .slice(0, 2)
+                    .join("")}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 text-sm">
+                <div className="font-semibold leading-4">
+                  {user?.name ?? "Trishan Wagle"}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  @
+                  {(user?.name ?? "trishan_wagle9")
+                    .toLowerCase()
+                    .replace(/\s+/g, "_")}
+                </div>
               </div>
-            </PopoverContent>
-          </Popover>
-        </div>
+              <Badge
+                variant="secondary"
+                className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+              >
+                Free
+              </Badge>
+              <Popover open={profileOpen} onOpenChange={setProfileOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    className="h-7 w-7 rounded-md text-muted-foreground"
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                    <span className="sr-only">Open profile menu</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-56 p-2">
+                  <div className="space-y-1">
+                    <Button
+                      variant="ghost"
+                      className="h-9 w-full justify-start gap-2 text-sm"
+                    >
+                      <Wallet className="h-4 w-4" />
+                      Plans
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="h-9 w-full justify-start gap-2 text-sm text-rose-500 hover:text-rose-500"
+                      onClick={() => {
+                        setProfileOpen(false);
+                        setLogoutOpen(true);
+                      }}
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Logout
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
 
-        <div className="flex items-center gap-2 bg-[#f0f0f0] rounded-lg p-1">
-          <Button
-            variant={theme === "light" ? "outline" : "ghost"}
-            size="sm"
-            className={cn(
-              "h-9 flex-1 rounded-lg text-xs font-semibold group-data-[state=collapsed]/sidebar:hidden",
-              theme === "light"
-                ? "border-sidebar-border bg-white text-foreground"
-                : "text-muted-foreground",
-            )}
-            aria-pressed={theme === "light"}
-            onClick={() => setTheme("light")}
-          >
-            <Sun className="mr-2 h-4 w-4" />
-            Light
-          </Button>
-          <Button
-            variant={theme === "dark" ? "outline" : "ghost"}
-            size="sm"
-            className={cn(
-              "h-9 flex-1 rounded-lg text-xs font-semibold group-data-[state=collapsed]/sidebar:hidden",
-              theme === "dark"
-                ? "border-sidebar-border bg-white text-foreground"
-                : "text-muted-foreground",
-            )}
-            aria-pressed={theme === "dark"}
-            onClick={() => setTheme("dark")}
-          >
-            <Moon className="mr-2 h-4 w-4" />
-            Dark
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-9 w-9 rounded-lg border-sidebar-border bg-white text-muted-foreground group-data-[state=expanded]/sidebar:hidden"
-            onClick={() =>
-              setTheme((prev) => (prev === "light" ? "dark" : "light"))
-            }
-            aria-pressed={theme === "dark"}
-          >
-            {theme === "light" ? (
-              <Sun className="h-4 w-4" />
-            ) : (
-              <Moon className="h-4 w-4" />
-            )}
-            <span className="sr-only">Toggle theme</span>
-          </Button>
-        </div>
+            <div className="flex items-center gap-2 bg-[#f0f0f0] rounded-lg p-1">
+              <Button
+                variant={theme === "light" ? "outline" : "ghost"}
+                size="sm"
+                className={cn(
+                  "h-9 flex-1 rounded-lg text-xs font-semibold",
+                  theme === "light"
+                    ? "border-sidebar-border bg-white text-foreground"
+                    : "text-muted-foreground",
+                )}
+                aria-pressed={theme === "light"}
+                onClick={() => setTheme("light")}
+              >
+                <Sun className="mr-2 h-4 w-4" />
+                Light
+              </Button>
+              <Button
+                variant={theme === "dark" ? "outline" : "ghost"}
+                size="sm"
+                className={cn(
+                  "h-9 flex-1 rounded-lg text-xs font-semibold",
+                  theme === "dark"
+                    ? "border-sidebar-border bg-white text-foreground"
+                    : "text-muted-foreground",
+                )}
+                aria-pressed={theme === "dark"}
+                onClick={() => setTheme("dark")}
+              >
+                <Moon className="mr-2 h-4 w-4" />
+                Dark
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center justify-center rounded-xl bg-transparent px-0 py-0">
+              <Popover open={profileOpen} onOpenChange={setProfileOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-10 w-10 rounded-full p-0 hover:bg-white/70"
+                  >
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage
+                        src={user?.photo ?? ""}
+                        alt={user?.name ?? "User"}
+                      />
+                      <AvatarFallback>
+                        {(user?.name ?? "TW")
+                          .split(" ")
+                          .map((part) => part[0])
+                          .slice(0, 2)
+                          .join("")}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="sr-only">Open profile menu</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="start"
+                  side="right"
+                  sideOffset={10}
+                  className="w-56 p-2"
+                >
+                  <div className="space-y-1">
+                    <Button
+                      variant="ghost"
+                      className="h-9 w-full justify-start gap-2 text-sm"
+                    >
+                      <Wallet className="h-4 w-4" />
+                      Plans
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="h-9 w-full justify-start gap-2 text-sm text-rose-500 hover:text-rose-500"
+                      onClick={() => {
+                        setProfileOpen(false);
+                        setLogoutOpen(true);
+                      }}
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Logout
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="rounded-xl bg-transparent p-0">
+              <Button
+                variant="outline"
+                className="h-9 w-9 justify-center rounded-lg border-sidebar-border bg-white p-0 text-foreground hover:bg-white"
+                onClick={() =>
+                  setTheme((prev) => (prev === "light" ? "dark" : "light"))
+                }
+                aria-pressed={theme === "dark"}
+              >
+                {theme === "light" ? (
+                  <Moon className="h-4 w-4" />
+                ) : (
+                  <Sun className="h-4 w-4" />
+                )}
+                <span className="sr-only">Toggle theme</span>
+              </Button>
+            </div>
+          </>
+        )}
       </SidebarFooter>
 
       <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>

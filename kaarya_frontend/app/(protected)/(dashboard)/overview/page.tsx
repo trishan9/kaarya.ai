@@ -13,7 +13,7 @@ export default async function OverviewPage() {
   const overviewData = await getOverviewDashboardData();
 
   return (
-    <div className="min-h-svh bg-neutral-100 p-2 sm:p-4 lg:p-6">
+    <div className="min-h-svh bg-neutral-100 p-2 sm:p-4 lg:pl-0 lg:p-5">
       <div className="bg-white rounded-xl sm:rounded-2xl">
         <DashboardHeader title="Overview" actions={<OverviewHeaderActions />} />
 
