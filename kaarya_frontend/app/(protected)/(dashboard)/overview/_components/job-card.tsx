@@ -2,12 +2,13 @@
 
 import * as React from "react";
 import { Bookmark, Briefcase, MapPin, Wallet } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
-type JobCardProps = {
+export type JobCardProps = {
   title: string;
   company: string;
   location: string;
@@ -16,6 +17,10 @@ type JobCardProps = {
   badge: string;
   accent?: "blue" | "green";
   posted?: string;
+  logoText?: string;
+  extraTags?: string[];
+  applyLabel?: string;
+  applyHref?: string;
 };
 
 export function JobCard({
@@ -27,7 +32,12 @@ export function JobCard({
   badge,
   accent = "blue",
   posted = "3d ago",
+  logoText = "K",
+  extraTags = [],
+  applyLabel = "Apply",
+  applyHref = "/jobs",
 }: JobCardProps) {
+  const router = useRouter();
   const [bookmarked, setBookmarked] = React.useState(false);
 
   return (
@@ -53,7 +63,7 @@ export function JobCard({
             accent === "green" ? "bg-emerald-500" : "bg-primary",
           )}
         >
-          K
+          {logoText}
         </div>
         <div className="flex-1">
           <div className="text-sm font-semibold text-foreground">{title}</div>
@@ -74,7 +84,11 @@ export function JobCard({
           <Wallet className="h-3 w-3" />
           {salary}
         </span>
-        <span className="rounded-md border border-border px-2 py-1">+4</span>
+        {extraTags.map((tag) => (
+          <span key={tag} className="rounded-md border border-border px-2 py-1">
+            {tag}
+          </span>
+        ))}
       </div>
 
       <div className="flex items-center gap-2">
@@ -82,8 +96,9 @@ export function JobCard({
           className={cn(
             "h-8 flex-1 rounded-lg text-xs font-semibold cursor-pointer bg-primary text-white",
           )}
+          onClick={() => router.push(applyHref)}
         >
-          Apply
+          {applyLabel}
         </Button>
         <Button
           variant="outline"

@@ -1,19 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { Check, MoreHorizontal, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -35,11 +26,14 @@ import {
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 
-type InvitationCardProps = {
+export type InvitationCardProps = {
   title: string;
   description: string;
   eventTitle: string;
   eventTime: string;
+  logoUrl?: string;
+  logoAlt?: string;
+  initialStatus?: "pending" | "accepted" | "declined";
 };
 
 export function InvitationCard({
@@ -47,13 +41,15 @@ export function InvitationCard({
   description,
   eventTitle,
   eventTime,
+  logoUrl = "https://res.cloudinary.com/dnqet3vq1/image/upload/v1770357829/kaarya/tl0x4mtzklebkdsbl50b.png",
+  logoAlt = "Company",
+  initialStatus = "pending",
 }: InvitationCardProps) {
   const [status, setStatus] = React.useState<
     "pending" | "accepted" | "declined"
-  >("pending");
+  >(initialStatus);
   const [detailsOpen, setDetailsOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
-  const [editMode, setEditMode] = React.useState(false);
   const [isHidden, setIsHidden] = React.useState(false);
 
   if (isHidden) {
@@ -91,8 +87,8 @@ export function InvitationCard({
 
       <div className="flex items-center gap-3 rounded-xl bg-[#3B93CC]/80 px-4 py-3">
         <Image
-          src="https://res.cloudinary.com/dnqet3vq1/image/upload/v1770357829/kaarya/tl0x4mtzklebkdsbl50b.png"
-          alt="Kaarya"
+          src={logoUrl}
+          alt={logoAlt}
           width={100}
           height={100}
           className="object-cover h-10 w-10 rounded-xl"

@@ -35,12 +35,31 @@ import {
 } from "@/components/ui/alert-dialog";
 import Image from "next/image";
 
-type DeadlineCardProps = {
+export type DeadlineCardProps = {
+  heading?: string;
   title: string;
   company: string;
+  logoUrl?: string;
+  logoAlt?: string;
+  reminderText?: string;
+  deadlineLabel?: string;
+  ctaLabel?: string;
+  ctaHref?: string;
+  detailsActionLabel?: string;
 };
 
-export function DeadlineCard({ title, company }: DeadlineCardProps) {
+export function DeadlineCard({
+  heading = "Deadline Today!",
+  title,
+  company,
+  logoUrl = "https://res.cloudinary.com/dnqet3vq1/image/upload/v1770473353/kaarya/acy5rbpegmme5jgree6w.png",
+  logoAlt = "Company logo",
+  reminderText = "One of your saved jobs has a deadline today,",
+  deadlineLabel = "Today",
+  ctaLabel = "apply now!",
+  ctaHref = "/jobs",
+  detailsActionLabel = "Open job",
+}: DeadlineCardProps) {
   const router = useRouter();
   const [bookmarked, setBookmarked] = React.useState(false);
   const [reminderOn, setReminderOn] = React.useState(true);
@@ -77,7 +96,7 @@ export function DeadlineCard({ title, company }: DeadlineCardProps) {
     <Card className="gap-3 border-border bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="font-semibold text-foreground">Deadline Today!</h3>
+          <h3 className="font-semibold text-foreground">{heading}</h3>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -111,8 +130,8 @@ export function DeadlineCard({ title, company }: DeadlineCardProps) {
 
       <div className="flex items-center gap-3 bg-neutral-50 p-3 rounded-lg">
         <Image
-          src="https://res.cloudinary.com/dnqet3vq1/image/upload/v1770473353/kaarya/acy5rbpegmme5jgree6w.png"
-          alt="Anthropic"
+          src={logoUrl}
+          alt={logoAlt}
           width={32}
           height={32}
           className="object-cover border border-white shadow-sm h-10 w-10 rounded-xl"
@@ -148,13 +167,13 @@ export function DeadlineCard({ title, company }: DeadlineCardProps) {
       </div>
 
       <p className="text-sm text-muted-foreground">
-        One of your saved jobs has a deadline today,{" "}
+        {reminderText}{" "}
         <Button
           variant="link"
           className="h-auto p-0 text-sm font-semibold text-[#0b67c2]"
-          onClick={() => router.push("/jobs")}
+          onClick={() => router.push(ctaHref)}
         >
-          apply now!
+          {ctaLabel}
         </Button>
       </p>
 
@@ -177,11 +196,11 @@ export function DeadlineCard({ title, company }: DeadlineCardProps) {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Deadline</span>
-              <span className="font-semibold text-foreground">Today</span>
+              <span className="font-semibold text-foreground">{deadlineLabel}</span>
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={() => router.push("/jobs")}>Open job</Button>
+            <Button onClick={() => router.push(ctaHref)}>{detailsActionLabel}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -1,25 +1,12 @@
 "use client";
 
 import * as React from "react";
-import {
-  ArrowUpRight,
-  Feather,
-  FeatherIcon,
-  MoreHorizontal,
-} from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -39,7 +26,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-type RatingCardProps = {
+export type RatingCardProps = {
   title: string;
   rating: number;
   badgeLabel: string;
@@ -49,6 +36,7 @@ type RatingCardProps = {
   suggestionTitle: string;
   suggestionBody: string;
   actionLabel?: string;
+  actionHref?: string;
   showAction?: boolean;
 };
 
@@ -62,6 +50,7 @@ export function RatingCard({
   suggestionTitle,
   suggestionBody,
   actionLabel,
+  actionHref = "/resume",
   showAction = false,
 }: RatingCardProps) {
   const router = useRouter();
@@ -135,7 +124,7 @@ export function RatingCard({
         <Button
           variant="outline"
           className="h-9 w-full rounded-lg border-primary bg-[#E7F2F8] text-sm font-semibold text-primary hover:bg-[#E7F2F8]/90 hover:text-primary cursor-pointer"
-          onClick={() => router.push("/resume")}
+          onClick={() => router.push(actionHref)}
         >
           {actionLabel}
           <ArrowUpRight className="h-4 w-4" />

@@ -16,10 +16,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 
-type ApplicationsSummaryCardProps = {
+export type ApplicationsSummaryCardProps = {
   total: number;
   delta: number;
   monthLabel: string;
+  monthOptions?: string[];
   tabs: string[];
   activeTab: string;
   logos?: string[];
@@ -30,6 +31,7 @@ export function ApplicationsSummaryCard({
   total,
   delta,
   monthLabel,
+  monthOptions,
   tabs,
   activeTab,
   logos = [
@@ -42,10 +44,13 @@ export function ApplicationsSummaryCard({
 }: ApplicationsSummaryCardProps) {
   const [currentTab, setCurrentTab] = React.useState(activeTab);
   const [currentMonth, setCurrentMonth] = React.useState(monthLabel);
-  const monthOptions = React.useMemo(() => {
-    const defaults = [monthLabel, "January, 2026", "December, 2025"];
-    return Array.from(new Set(defaults));
-  }, [monthLabel]);
+  const availableMonths = React.useMemo(() => {
+    if (monthOptions?.length) {
+      return monthOptions;
+    }
+
+    return [monthLabel];
+  }, [monthLabel, monthOptions]);
 
   return (
     <Card className="gap-4 border-border bg-white p-5 shadow-sm">
@@ -68,7 +73,7 @@ export function ApplicationsSummaryCard({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-44">
             <DropdownMenuLabel>Select month</DropdownMenuLabel>
-            {monthOptions.map((option) => (
+            {availableMonths.map((option) => (
               <DropdownMenuItem
                 key={option}
                 onSelect={() => setCurrentMonth(option)}

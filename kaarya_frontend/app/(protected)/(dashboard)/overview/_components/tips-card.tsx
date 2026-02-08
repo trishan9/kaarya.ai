@@ -4,19 +4,20 @@ import { ArrowUpRight, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 
-type TipsCardProps = {
+export type TipsCardProps = {
   title: string;
   description: string;
+  actionHref?: string;
+  actionLabel?: string;
 };
 
-export function TipsCard({ title, description }: TipsCardProps) {
+export function TipsCard({
+  title,
+  description,
+  actionHref = "/resources",
+  actionLabel = "Open tips",
+}: TipsCardProps) {
   const router = useRouter();
 
   return (
@@ -27,7 +28,11 @@ export function TipsCard({ title, description }: TipsCardProps) {
           <Sparkles className="ml-2 inline h-4 w-4 text-yellow-200" />
         </h3>
 
-        <button className="flex h-9 p-2 w-9 cursor-pointer items-center justify-center rounded-lg bg-white/15">
+        <button
+          className="flex h-9 p-2 w-9 cursor-pointer items-center justify-center rounded-lg bg-white/15"
+          onClick={() => router.push(actionHref)}
+          aria-label={actionLabel}
+        >
           <ArrowUpRight className="size-5" />
         </button>
       </div>
