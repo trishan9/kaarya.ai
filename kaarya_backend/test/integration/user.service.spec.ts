@@ -43,7 +43,6 @@ describe('UserService (integration)', () => {
       name: 'Integration User',
       email: 'user@example.com',
       password: 'Password123',
-      confirmPassword: 'Password123',
       provider: AuthProvider.EMAIL,
       role: UserRole.USER,
     });
@@ -89,7 +88,6 @@ describe('UserService (integration)', () => {
       name: 'Updater',
       email: 'updater@example.com',
       password: 'Password123',
-      confirmPassword: 'Password123',
       provider: AuthProvider.EMAIL,
       role: UserRole.USER,
     });

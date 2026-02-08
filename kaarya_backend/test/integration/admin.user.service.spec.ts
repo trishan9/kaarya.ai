@@ -4,6 +4,7 @@ import { Types } from 'mongoose';
 import { ApiError } from 'src/common/errors/api-error';
 import { AdminUserService } from 'src/services/admin/admin.user.service';
 import { UserRole } from 'src/types/user-role.enum';
+import { AuthProvider } from 'src/types/auth-provider.enum';
 import { USER_MESSAGES } from 'src/constants/messages.constants';
 import {
   startInMemoryMongo,
@@ -44,7 +45,7 @@ describe('AdminUserService (integration)', () => {
       password: 'Password123',
       confirmPassword: 'Password123',
       role: UserRole.ADMIN,
-      provider: 'email',
+      provider: AuthProvider.EMAIL,
     });
 
     const fetched = await adminService.getUserById(created.id);
@@ -60,14 +61,14 @@ describe('AdminUserService (integration)', () => {
       email: 'a@example.com',
       password: 'Password123',
       confirmPassword: 'Password123',
-      provider: 'email',
+      provider: AuthProvider.EMAIL,
     });
     await adminService.createUser({
       name: 'User B',
       email: 'b@example.com',
       password: 'Password123',
       confirmPassword: 'Password123',
-      provider: 'email',
+      provider: AuthProvider.EMAIL,
     });
 
     const result = await adminService.getAllUsers({ page: 1, size: 1 });
@@ -83,14 +84,14 @@ describe('AdminUserService (integration)', () => {
       email: 'findme@example.com',
       password: 'Password123',
       confirmPassword: 'Password123',
-      provider: 'email',
+      provider: AuthProvider.EMAIL,
     });
     await adminService.createUser({
       name: 'Another',
       email: 'another@example.com',
       password: 'Password123',
       confirmPassword: 'Password123',
-      provider: 'email',
+      provider: AuthProvider.EMAIL,
     });
 
     const result = await adminService.getAllUsers({
@@ -110,7 +111,7 @@ describe('AdminUserService (integration)', () => {
       password: 'Password123',
       confirmPassword: 'Password123',
       role: UserRole.ADMIN,
-      provider: 'email',
+      provider: AuthProvider.EMAIL,
     });
     await adminService.createUser({
       name: 'User',
@@ -118,7 +119,7 @@ describe('AdminUserService (integration)', () => {
       password: 'Password123',
       confirmPassword: 'Password123',
       role: UserRole.USER,
-      provider: 'email',
+      provider: AuthProvider.EMAIL,
     });
 
     const analytics = await adminService.getUsersAnalytics();
@@ -170,7 +171,7 @@ describe('AdminUserService (integration)', () => {
       email: 'with-password@example.com',
       password: 'Password123',
       confirmPassword: 'Password123',
-      provider: 'email',
+      provider: AuthProvider.EMAIL,
     });
 
     const found = await adminService.getUserByEmail(
@@ -189,7 +190,7 @@ describe('AdminUserService (integration)', () => {
       email: 'update@example.com',
       password: 'Password123',
       confirmPassword: 'Password123',
-      provider: 'email',
+      provider: AuthProvider.EMAIL,
     });
 
     const updated = await adminService.updateUser(created.id, {
