@@ -121,7 +121,11 @@ describe('AuthController', () => {
   });
 
   it('should fetch the current user', async () => {
-    authService.me.mockResolvedValue({ id: 'user-1' });
+    authService.me.mockResolvedValue({
+      id: 'user-1',
+      linkedAccounts: [],
+      linkedProviders: [],
+    } as never);
 
     const response = await controller.me({ user: { id: 'user-1' } });
 
@@ -129,7 +133,11 @@ describe('AuthController', () => {
     expect(response).toEqual({
       success: true,
       message: AUTH_MESSAGES.CURRENT_USER_SUCCESS,
-      data: { id: 'user-1' },
+      data: {
+        id: 'user-1',
+        linkedAccounts: [],
+        linkedProviders: [],
+      },
     });
   });
 

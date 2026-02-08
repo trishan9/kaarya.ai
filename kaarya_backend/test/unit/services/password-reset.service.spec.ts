@@ -163,7 +163,9 @@ describe('PasswordResetService', () => {
     });
     userService.getUserByEmail.mockResolvedValue({ id: 'user-1' } as never);
 
-    jest.spyOn(crypto, 'randomInt').mockReturnValue(123456);
+    (jest.spyOn(crypto, 'randomInt') as unknown as jest.Mock).mockReturnValue(
+      123456,
+    );
 
     await service.requestReset('User@Example.com', { ip: '10.0.0.2' });
 
@@ -208,8 +210,12 @@ describe('PasswordResetService', () => {
     userService.getUserByEmail.mockResolvedValue({ id: 'user-1' } as never);
     const tokenBytes = Buffer.alloc(32, 7);
     const expectedToken = tokenBytes.toString('base64url');
-    jest.spyOn(crypto, 'randomBytes').mockReturnValue(tokenBytes);
-    jest.spyOn(crypto, 'randomInt').mockReturnValue(123456);
+    (
+      jest.spyOn(crypto, 'randomBytes') as unknown as jest.Mock
+    ).mockReturnValue(tokenBytes);
+    (jest.spyOn(crypto, 'randomInt') as unknown as jest.Mock).mockReturnValue(
+      123456,
+    );
 
     await service.requestReset('user@example.com', { ip: '10.0.0.15' });
 
@@ -226,7 +232,9 @@ describe('PasswordResetService', () => {
       [CONFIG_KEYS.AUTH.RESET_OTP_EXPIRES]: '0',
     });
     userService.getUserByEmail.mockResolvedValue({ id: 'user-1' } as never);
-    jest.spyOn(crypto, 'randomInt').mockReturnValue(123456);
+    (jest.spyOn(crypto, 'randomInt') as unknown as jest.Mock).mockReturnValue(
+      123456,
+    );
 
     await service.requestReset('user@example.com', { ip: '10.0.0.9' });
 
@@ -395,7 +403,9 @@ describe('PasswordResetService', () => {
     const tokenBytes = Buffer.alloc(32, 4);
     const expectedToken = tokenBytes.toString('base64url');
     const tokenHash = hashResetToken(expectedToken);
-    jest.spyOn(crypto, 'randomBytes').mockReturnValue(tokenBytes);
+    (
+      jest.spyOn(crypto, 'randomBytes') as unknown as jest.Mock
+    ).mockReturnValue(tokenBytes);
 
     const result = await service.verifyOtp('user@example.com', '123456', {
       ip: '10.0.0.6',
@@ -410,13 +420,16 @@ describe('PasswordResetService', () => {
   it('should invalidate the previous reset token when issuing a new one', async () => {
     const { service, userService, redis } = setup();
     userService.getUserByEmail.mockResolvedValue({ id: 'user-1' } as never);
-    jest.spyOn(crypto, 'randomInt').mockReturnValue(123456);
+    (jest.spyOn(crypto, 'randomInt') as unknown as jest.Mock).mockReturnValue(
+      123456,
+    );
     const oldTokenBytes = Buffer.alloc(32, 10);
     const newTokenBytes = Buffer.alloc(32, 11);
     const oldTokenHash = hashResetToken(oldTokenBytes.toString('base64url'));
     const newTokenHash = hashResetToken(newTokenBytes.toString('base64url'));
-    jest
-      .spyOn(crypto, 'randomBytes')
+    (
+      jest.spyOn(crypto, 'randomBytes') as unknown as jest.Mock
+    )
       .mockReturnValueOnce(oldTokenBytes)
       .mockReturnValueOnce(newTokenBytes);
 

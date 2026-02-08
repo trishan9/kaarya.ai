@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { IsInt, IsString, Min } from 'class-validator';
 import validateConfig from 'src/utils/validate-config';
 

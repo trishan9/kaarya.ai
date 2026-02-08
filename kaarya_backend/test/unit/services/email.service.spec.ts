@@ -5,17 +5,15 @@ import { CONFIG_KEYS } from 'src/constants/config.constants';
 import { PinoLoggerService } from 'src/logger/pino-logger.service';
 import { EmailService } from 'src/services/email.service';
 
-const sendMailMock = jest.fn();
-const createTransportMock = jest.fn().mockReturnValue({
-  sendMail: sendMailMock,
-});
-
 jest.mock('nodemailer', () => ({
   __esModule: true,
   default: {
-    createTransport: createTransportMock,
+    createTransport: jest.fn(),
   },
 }));
+
+const sendMailMock = jest.fn();
+const createTransportMock = nodemailer.createTransport as unknown as jest.Mock;
 
 const buildConfigService = (overrides: Record<string, unknown> = {}) =>
   ({
@@ -29,7 +27,10 @@ describe('EmailService', () => {
 
   beforeEach(() => {
     sendMailMock.mockReset();
-    createTransportMock.mockClear();
+    createTransportMock.mockReset();
+    createTransportMock.mockReturnValue({
+      sendMail: sendMailMock,
+    });
     logger.error.mockClear();
   });
 

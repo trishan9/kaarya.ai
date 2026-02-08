@@ -23,7 +23,7 @@ describe('MongooseConfigService', () => {
     expect(options.pass).toBe('pass');
 
     const plugin = jest.fn();
-    options.connectionFactory?.({ plugin } as never);
+    options.connectionFactory?.({ plugin } as never, 'default');
     expect(plugin).toHaveBeenCalledWith(mongooseAutoPopulate);
   });
 
