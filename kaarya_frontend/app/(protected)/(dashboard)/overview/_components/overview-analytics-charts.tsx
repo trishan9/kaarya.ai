@@ -143,7 +143,7 @@ export function OverviewAnalyticsCharts({
       <Card className="min-w-0 gap-4 border-border bg-linear-to-br from-white via-[#f7fbff] to-[#eef5fb] p-4 shadow-sm sm:p-5 lg:row-span-2">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <h3 className="text-lg font-semibold text-foreground">
+            <h3 className="font-semibold text-foreground">
               Application Momentum
             </h3>
             <p className="text-xs text-muted-foreground">
@@ -190,19 +190,41 @@ export function OverviewAnalyticsCharts({
                 x2="0"
                 y2="1"
               >
-                <stop offset="0%" stopColor="var(--color-applications)" stopOpacity={0.34} />
+                <stop
+                  offset="0%"
+                  stopColor="var(--color-applications)"
+                  stopOpacity={0.34}
+                />
                 <stop
                   offset="95%"
                   stopColor="var(--color-applications)"
                   stopOpacity={0}
                 />
               </linearGradient>
-              <linearGradient id="interviewsGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--color-interviews)" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="var(--color-interviews)" stopOpacity={0} />
+              <linearGradient
+                id="interviewsGradient"
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="1"
+              >
+                <stop
+                  offset="0%"
+                  stopColor="var(--color-interviews)"
+                  stopOpacity={0.3}
+                />
+                <stop
+                  offset="95%"
+                  stopColor="var(--color-interviews)"
+                  stopOpacity={0}
+                />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              vertical={false}
+              opacity={0.2}
+            />
             <XAxis
               dataKey="label"
               tickLine={false}
@@ -218,14 +240,18 @@ export function OverviewAnalyticsCharts({
               className="text-xs"
             />
             <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
-            <ChartLegend content={<ChartLegendContent className="flex-wrap" />} />
+            <ChartLegend
+              content={<ChartLegendContent className="flex-wrap" />}
+            />
             <Area
               type="monotone"
               dataKey="applications"
               stroke="var(--color-applications)"
               fill="url(#applicationsGradient)"
               strokeWidth={2.6}
-              dot={isMobile ? false : { r: 3, fill: "var(--color-applications)" }}
+              dot={
+                isMobile ? false : { r: 3, fill: "var(--color-applications)" }
+              }
               activeDot={{ r: 5 }}
             />
             <Area
@@ -265,7 +291,11 @@ export function OverviewAnalyticsCharts({
             margin={{ top: 4, right: 4, left: -10, bottom: 0 }}
             barCategoryGap={isMobile ? 10 : 18}
           >
-            <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              vertical={false}
+              opacity={0.2}
+            />
             <XAxis
               dataKey="stage"
               tickLine={false}
@@ -281,8 +311,12 @@ export function OverviewAnalyticsCharts({
               tickMargin={8}
               className="text-xs"
             />
-            <ChartTooltip content={<ChartTooltipContent indicator="dashed" />} />
-            <ChartLegend content={<ChartLegendContent className="flex-wrap" />} />
+            <ChartTooltip
+              content={<ChartTooltipContent indicator="dashed" />}
+            />
+            <ChartLegend
+              content={<ChartLegendContent className="flex-wrap" />}
+            />
             <Bar
               dataKey="thisWeek"
               fill="var(--color-thisWeek)"
@@ -340,7 +374,10 @@ export function OverviewAnalyticsCharts({
 
           <div className="space-y-2">
             {data.invitationMix.map((item) => (
-              <div key={item.name} className="flex items-center justify-between text-xs">
+              <div
+                key={item.name}
+                className="flex items-center justify-between text-xs"
+              >
                 <div className="flex items-center gap-2">
                   <span
                     className="h-2.5 w-2.5 rounded-full"
@@ -348,7 +385,9 @@ export function OverviewAnalyticsCharts({
                   />
                   <span className="text-muted-foreground">{item.name}</span>
                 </div>
-                <span className="font-semibold text-foreground">{item.value}%</span>
+                <span className="font-semibold text-foreground">
+                  {item.value}%
+                </span>
               </div>
             ))}
             <div className="pt-2 text-[11px] text-muted-foreground">
