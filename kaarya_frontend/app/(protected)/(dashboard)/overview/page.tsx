@@ -6,8 +6,12 @@ import { RatingCard } from "./_components/rating-card";
 import { JobRecommendationsCard } from "./_components/job-recommendations-card";
 import { TipsCard } from "./_components/tips-card";
 import { OverviewHeaderActions } from "./_components/overview-header-actions";
+import { OverviewAnalyticsCharts } from "./_components/overview-analytics-charts";
+import { getOverviewDashboardData } from "./overview-data";
 
-export default function OverviewPage() {
+export default async function OverviewPage() {
+  const overviewData = await getOverviewDashboardData();
+
   return (
     <div className="min-h-svh bg-neutral-100 lg:pl-0 lg:p-6">
       <div className="bg-white rounded-2xl">
@@ -16,48 +20,22 @@ export default function OverviewPage() {
         <div className="px-4 pb-8">
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
             <div className="space-y-4">
-              <ApplicationsSummaryCard
-                total={124}
-                delta={12}
-                monthLabel="February, 2026"
-                tabs={[
-                  "All Applications",
-                  "Mock Interviews",
-                  "Screening",
-                  "Assessments",
-                  "Offering",
-                  "Acceptance",
-                  "Rejected",
-                ]}
-                activeTab="All Applications"
-              />
+              <ApplicationsSummaryCard {...overviewData.applicationsSummary} />
 
               <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-                <DeadlineCard title="Marketing Manager" company="Anthropic" />
-                <InvitationCard
-                  title="You've got an invitation!"
-                  description="Congratulations! You've got an interview invitation from OpenAI, accept the invitation and be prepared with our AI mock interviews!"
-                  eventTitle="Sunday, February 9, 2026"
-                  eventTime="4:30 PM - 6:30 PM"
-                />
+                <DeadlineCard {...overviewData.deadlineCard} />
+                <InvitationCard {...overviewData.invitationCard} />
               </div>
 
-              <JobRecommendationsCard
-                tabs={[
-                  "For You",
-                  "Trending Jobs",
-                  "New This Week",
-                  "Urgent Hiring",
-                  "Remote Opportunities",
-                ]}
-                activeTab="For You"
-              />
+              <OverviewAnalyticsCharts data={overviewData.analytics} />
+
+              <JobRecommendationsCard {...overviewData.jobRecommendations} />
             </div>
 
             <div className="space-y-4">
               <RatingCard
                 title="Your Profile Rating"
-                rating={79}
+                rating={overviewData.ratings.profile}
                 badgeLabel="Standard"
                 ratingClassName="text-[#f4b000]"
                 badgeClassName="bg-[#fff3d8] text-[#f4b000]"
@@ -65,12 +43,13 @@ export default function OverviewPage() {
                 suggestionTitle="Our Suggestion"
                 suggestionBody="Try enhancing your profile & re-generating your version of an interactive resume with the help of our very own Resume Builder AI."
                 actionLabel="Enhance with AI"
+                actionHref="/resume"
                 showAction
               />
 
               <RatingCard
                 title="Interview Overall Rating"
-                rating={23}
+                rating={overviewData.ratings.interview}
                 badgeLabel="Below Average"
                 ratingClassName="text-rose-500"
                 badgeClassName="bg-rose-50 text-rose-500"
@@ -78,12 +57,15 @@ export default function OverviewPage() {
                 suggestionTitle="Our Suggestion"
                 suggestionBody="Give more interviews with AI Interview Hub."
                 actionLabel="Take an Interview"
+                actionHref="/interview-hub"
                 showAction
               />
 
               <TipsCard
                 title="We've got some tips only for you!"
                 description="Check our latest information for tips and tricks for your career!"
+                actionHref="/resources"
+                actionLabel="Open tips"
               />
             </div>
           </div>
