@@ -30,7 +30,7 @@ export default async function OverviewPage() {
               <OverviewAnalyticsCharts data={overviewData.analytics} />
             </div>
 
-            <div className="min-w-0 space-y-4">
+            <div className="min-w-0 flex h-full flex-col gap-4">
               <RatingCard
                 title="Your Profile Rating"
                 rating={overviewData.ratings.profile}
@@ -64,6 +64,7 @@ export default async function OverviewPage() {
                 description="Check our latest information for tips and tricks for your career!"
                 actionHref="/resources"
                 actionLabel="Open tips"
+                className="flex-1"
               />
             </div>
           </div>

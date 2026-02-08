@@ -3,6 +3,7 @@
 import { ArrowUpRight, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 
 export type TipsCardProps = {
@@ -10,6 +11,7 @@ export type TipsCardProps = {
   description: string;
   actionHref?: string;
   actionLabel?: string;
+  className?: string;
 };
 
 export function TipsCard({
@@ -17,11 +19,17 @@ export function TipsCard({
   description,
   actionHref = "/resources",
   actionLabel = "Open tips",
+  className,
 }: TipsCardProps) {
   const router = useRouter();
 
   return (
-    <Card className="min-w-0 gap-4 border-0 bg-[#00629F] p-4 text-white shadow-sm sm:p-5">
+    <Card
+      className={cn(
+        "min-w-0 gap-4 border-0 bg-[#00629F] p-4 text-white shadow-sm sm:p-5",
+        className,
+      )}
+    >
       <div className="flex items-start justify-between">
         <h3 className="text-xl leading-tight sm:text-2xl">
           {title}
