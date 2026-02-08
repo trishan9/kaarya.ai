@@ -3,8 +3,9 @@ import type { DeadlineCardProps } from "./_components/deadline-card";
 import type { InvitationCardProps } from "./_components/invitation-card";
 import type {
   JobRecommendationsCardProps,
-} from "./_components/job-recommendations-card";
+} from "../_components/job-recommendations-card";
 import type { OverviewAnalyticsData } from "./_components/overview-analytics-charts";
+import type { JobCardProps } from "../_components/job-card";
 
 export type OverviewDashboardData = {
   applicationsSummary: Pick<
@@ -32,12 +33,106 @@ export type OverviewDashboardData = {
   analytics: OverviewAnalyticsData;
   jobRecommendations: Pick<
     JobRecommendationsCardProps,
-    "tabs" | "activeTab" | "jobs"
+    | "title"
+    | "titleClassName"
+    | "seeAllLabel"
+    | "seeAllHref"
+    | "tabs"
+    | "activeTab"
+    | "jobsByTab"
   >;
   ratings: {
     profile: number;
     interview: number;
   };
+};
+
+const overviewJobTabs = [
+  "For You",
+  "Trending Jobs",
+  "New This Week",
+  "Urgent Hiring",
+  "Remote Opportunities",
+];
+
+const overviewJobsForYou: JobCardProps[] = [
+  {
+    id: "overview-backend-software-engineer",
+    title: "Backend Software Engineer",
+    company: "Kaarya Co. Inc.",
+    statusLabel: "Suit You Best!",
+    statusTone: "success",
+    postedAt: "3d ago",
+    location: "Kathmandu, Bagmati",
+    employmentType: "Full-Time",
+    engagementType: "Internship",
+    salaryRange: "NPR 10,00,000 - NPR 15,00,000",
+    logoText: "K",
+    extraTags: ["+4"],
+    applyHref: "/jobs",
+  },
+  {
+    id: "overview-frontend-software-engineer",
+    title: "Frontend Software Engineer",
+    company: "Softwarica College of IT & E-commerce",
+    statusLabel: "Suit You Best!",
+    statusTone: "success",
+    postedAt: "2d ago",
+    location: "Kathmandu, Bagmati",
+    employmentType: "Full-Time",
+    engagementType: "Internship",
+    salaryRange: "NPR 10,00,000 - NPR 15,00,000",
+    logoText: "S",
+    logoClassName: "bg-[#003d7c]",
+    extraTags: ["+4"],
+    applyHref: "/jobs",
+  },
+  {
+    id: "overview-ui-ux-designer",
+    title: "UI/UX Designer",
+    company: "Softwarica College of IT & E-commerce",
+    statusLabel: "Still Hiring",
+    statusTone: "warning",
+    postedAt: "1d ago",
+    location: "Kathmandu, Bagmati",
+    employmentType: "Full-Time",
+    engagementType: "Internship",
+    salaryRange: "NPR 8,00,000 - NPR 12,00,000",
+    logoText: "U",
+    logoClassName: "bg-[#2d8574]",
+    extraTags: ["+3"],
+    applyHref: "/jobs",
+  },
+  {
+    id: "overview-product-engineer",
+    title: "Product Engineer",
+    company: "Kaarya Co. Inc.",
+    statusLabel: "New This Week",
+    statusTone: "info",
+    postedAt: "5h ago",
+    location: "Kathmandu, Bagmati",
+    employmentType: "Full-Time",
+    engagementType: "Internship",
+    salaryRange: "NPR 12,00,000 - NPR 18,00,000",
+    logoText: "P",
+    logoClassName: "bg-[#5f4ebf]",
+    extraTags: ["+5"],
+    applyHref: "/jobs",
+  },
+];
+
+function rotateJobs(jobs: JobCardProps[], amount: number) {
+  if (jobs.length === 0) return [];
+  const normalizedAmount = amount % jobs.length;
+  return [...jobs.slice(normalizedAmount), ...jobs.slice(0, normalizedAmount)];
+}
+
+const overviewJobsByTab: Record<string, JobCardProps[]> = {
+  "For You": overviewJobsForYou,
+  "Trending Jobs": rotateJobs(overviewJobsForYou, 1),
+  "New This Week": rotateJobs(overviewJobsForYou, 2),
+  "Urgent Hiring": rotateJobs(overviewJobsForYou, 3),
+  "Remote Opportunities": overviewJobsForYou,
 };
 
 const OVERVIEW_DEFAULT_DATA: OverviewDashboardData = {
@@ -109,64 +204,13 @@ const OVERVIEW_DEFAULT_DATA: OverviewDashboardData = {
     ],
   },
   jobRecommendations: {
-    tabs: [
-      "For You",
-      "Trending Jobs",
-      "New This Week",
-      "Urgent Hiring",
-      "Remote Opportunities",
-    ],
+    title: "Job Recommendations",
+    titleClassName: "text-base font-semibold",
+    seeAllLabel: "See All",
+    seeAllHref: "/jobs",
+    tabs: overviewJobTabs,
     activeTab: "For You",
-    jobs: [
-      {
-        title: "Backend Software Engineer",
-        company: "Kaarya Co. Inc.",
-        location: "Kathmandu, Bagmati",
-        type: "Full-Time",
-        salary: "NPR 10,00,000 - NPR 15,00,000",
-        badge: "Suit You Best!",
-        accent: "blue",
-        posted: "3d ago",
-        logoText: "K",
-        extraTags: ["+4"],
-      },
-      {
-        title: "Frontend Software Engineer",
-        company: "Softwarica College of IT & E-commerce",
-        location: "Kathmandu, Bagmati",
-        type: "Full-Time",
-        salary: "NPR 10,00,000 - NPR 15,00,000",
-        badge: "Suit You Best!",
-        accent: "green",
-        posted: "2d ago",
-        logoText: "S",
-        extraTags: ["+4"],
-      },
-      {
-        title: "UI/UX Designer",
-        company: "Softwarica College of IT & E-commerce",
-        location: "Kathmandu, Bagmati",
-        type: "Full-Time",
-        salary: "NPR 8,00,000 - NPR 12,00,000",
-        badge: "Growing Role",
-        accent: "green",
-        posted: "1d ago",
-        logoText: "S",
-        extraTags: ["+3"],
-      },
-      {
-        title: "Product Engineer",
-        company: "Kaarya Co. Inc.",
-        location: "Kathmandu, Bagmati",
-        type: "Full-Time",
-        salary: "NPR 12,00,000 - NPR 18,00,000",
-        badge: "High Match",
-        accent: "blue",
-        posted: "5h ago",
-        logoText: "K",
-        extraTags: ["+5"],
-      },
-    ],
+    jobsByTab: overviewJobsByTab,
   },
   ratings: {
     profile: 79,

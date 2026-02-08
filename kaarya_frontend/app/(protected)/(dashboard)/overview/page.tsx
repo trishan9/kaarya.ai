@@ -3,7 +3,7 @@ import { ApplicationsSummaryCard } from "./_components/applications-summary-card
 import { DeadlineCard } from "./_components/deadline-card";
 import { InvitationCard } from "./_components/invitation-card";
 import { RatingCard } from "./_components/rating-card";
-import { JobRecommendationsCard } from "./_components/job-recommendations-card";
+import { JobRecommendationsCard } from "../_components/job-recommendations-card";
 import { TipsCard } from "./_components/tips-card";
 import { OverviewHeaderActions } from "./_components/overview-header-actions";
 import { OverviewAnalyticsCharts } from "./_components/overview-analytics-charts";
@@ -17,7 +17,7 @@ export default async function OverviewPage() {
       <div className="bg-white rounded-xl sm:rounded-2xl">
         <DashboardHeader title="Overview" actions={<OverviewHeaderActions />} />
 
-        <div className="px-3 pb-6 sm:px-4 sm:pb-8">
+        <div className="space-y-4 px-3 pb-6 sm:px-4 sm:pb-8">
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
             <div className="min-w-0 space-y-4">
               <ApplicationsSummaryCard {...overviewData.applicationsSummary} />
@@ -28,8 +28,6 @@ export default async function OverviewPage() {
               </div>
 
               <OverviewAnalyticsCharts data={overviewData.analytics} />
-
-              <JobRecommendationsCard {...overviewData.jobRecommendations} />
             </div>
 
             <div className="min-w-0 space-y-4">
@@ -69,6 +67,8 @@ export default async function OverviewPage() {
               />
             </div>
           </div>
+
+          <JobRecommendationsCard {...overviewData.jobRecommendations} />
         </div>
       </div>
     </div>
