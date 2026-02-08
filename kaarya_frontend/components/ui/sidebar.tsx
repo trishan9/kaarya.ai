@@ -107,7 +107,7 @@ const Sidebar = React.forwardRef<
       data-state={state}
       data-collapsible={collapsible}
       className={cn(
-        "group/sidebar relative flex h-svh w-[--sidebar-width] shrink-0 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-200 ease-linear",
+        "group/sidebar relative hidden h-svh w-[--sidebar-width] shrink-0 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-200 ease-linear lg:flex",
         "data-[state=collapsed]:w-[--sidebar-collapsed-width]",
         className,
       )}

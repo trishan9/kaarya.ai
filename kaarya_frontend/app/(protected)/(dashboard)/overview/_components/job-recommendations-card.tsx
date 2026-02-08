@@ -29,8 +29,8 @@ export function JobRecommendationsCard({
   const [currentTab, setCurrentTab] = React.useState(activeTab);
 
   return (
-    <Card className="gap-4 border-border bg-white p-5 shadow-sm">
-      <div className="flex items-center justify-between">
+    <Card className="min-w-0 gap-4 border-border bg-white p-4 shadow-sm sm:p-5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="font-semibold text-foreground">{title}</h3>
         <button
           className="flex items-center gap-1 text-xs font-semibold text-primary cursor-pointer"

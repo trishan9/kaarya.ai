@@ -69,7 +69,7 @@ export function DeadlineCard({
 
   if (isHidden) {
     return (
-      <Card className="gap-3 border-border bg-white p-5 shadow-sm">
+      <Card className="gap-3 border-border bg-white p-4 shadow-sm sm:p-5">
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="text-sm font-semibold text-foreground">
@@ -93,7 +93,7 @@ export function DeadlineCard({
   }
 
   return (
-    <Card className="gap-3 border-border bg-white p-5 shadow-sm">
+    <Card className="min-w-0 gap-3 border-border bg-white p-4 shadow-sm sm:p-5">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-semibold text-foreground">{heading}</h3>
@@ -128,7 +128,7 @@ export function DeadlineCard({
         </DropdownMenu>
       </div>
 
-      <div className="flex items-center gap-3 bg-neutral-50 p-3 rounded-lg">
+      <div className="flex items-center gap-3 rounded-lg bg-neutral-50 p-3">
         <Image
           src={logoUrl}
           alt={logoAlt}
@@ -136,9 +136,9 @@ export function DeadlineCard({
           height={32}
           className="object-cover border border-white shadow-sm h-10 w-10 rounded-xl"
         />
-        <div className="flex-1">
-          <div className="font-semibold text-foreground">{title}</div>
-          <div className="text-sm text-muted-foreground">{company}</div>
+        <div className="min-w-0 flex-1">
+          <div className="font-semibold text-foreground break-words">{title}</div>
+          <div className="text-sm text-muted-foreground break-words">{company}</div>
         </div>
         <Button
           variant="outline"

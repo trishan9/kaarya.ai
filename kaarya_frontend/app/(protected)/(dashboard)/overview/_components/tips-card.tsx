@@ -21,9 +21,9 @@ export function TipsCard({
   const router = useRouter();
 
   return (
-    <Card className="gap-4 border-0 bg-[#00629F] p-5 text-white shadow-sm">
+    <Card className="min-w-0 gap-4 border-0 bg-[#00629F] p-4 text-white shadow-sm sm:p-5">
       <div className="flex items-start justify-between">
-        <h3 className="text-2xl leading-tight">
+        <h3 className="text-xl leading-tight sm:text-2xl">
           {title}
           <Sparkles className="ml-2 inline h-4 w-4 text-yellow-200" />
         </h3>

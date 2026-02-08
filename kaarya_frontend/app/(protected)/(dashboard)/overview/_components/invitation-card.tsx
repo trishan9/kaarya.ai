@@ -54,7 +54,7 @@ export function InvitationCard({
 
   if (isHidden) {
     return (
-      <Card className="gap-3 border-0 bg-[#0f6fb5] p-5 text-white shadow-sm">
+      <Card className="gap-3 border-0 bg-[#0f6fb5] p-4 text-white shadow-sm sm:p-5">
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="text-sm font-semibold">Invitation removed</div>
@@ -76,7 +76,7 @@ export function InvitationCard({
   }
 
   return (
-    <Card className="gap-3 border-0 bg-linear-to-r from-[#00629f]/80 to-[#00629f] p-5 text-white shadow-sm">
+    <Card className="min-w-0 gap-3 border-0 bg-linear-to-r from-[#00629f]/80 to-[#00629f] p-4 text-white shadow-sm sm:p-5">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-medium">{title}</h3>
@@ -85,7 +85,7 @@ export function InvitationCard({
 
       <p className="text-sm text-white/80">{description}</p>
 
-      <div className="flex items-center gap-3 rounded-xl bg-[#3B93CC]/80 px-4 py-3">
+      <div className="flex flex-wrap items-center gap-3 rounded-xl bg-[#3B93CC]/80 px-4 py-3 sm:flex-nowrap">
         <Image
           src={logoUrl}
           alt={logoAlt}
@@ -93,8 +93,8 @@ export function InvitationCard({
           height={100}
           className="object-cover h-10 w-10 rounded-xl"
         />
-        <div className="flex-1">
-          <div className="text-sm font-semibold">{eventTitle}</div>
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-semibold break-words">{eventTitle}</div>
           <div className="text-xs text-white/70">{eventTime}</div>
         </div>
         <div className="flex items-center gap-2">

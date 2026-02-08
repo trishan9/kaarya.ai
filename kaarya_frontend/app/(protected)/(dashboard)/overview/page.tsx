@@ -13,13 +13,13 @@ export default async function OverviewPage() {
   const overviewData = await getOverviewDashboardData();
 
   return (
-    <div className="min-h-svh bg-neutral-100 lg:pl-0 lg:p-6">
-      <div className="bg-white rounded-2xl">
+    <div className="min-h-svh bg-neutral-100 p-2 sm:p-4 lg:p-6">
+      <div className="bg-white rounded-xl sm:rounded-2xl">
         <DashboardHeader title="Overview" actions={<OverviewHeaderActions />} />
 
-        <div className="px-4 pb-8">
+        <div className="px-3 pb-6 sm:px-4 sm:pb-8">
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-            <div className="space-y-4">
+            <div className="min-w-0 space-y-4">
               <ApplicationsSummaryCard {...overviewData.applicationsSummary} />
 
               <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -32,7 +32,7 @@ export default async function OverviewPage() {
               <JobRecommendationsCard {...overviewData.jobRecommendations} />
             </div>
 
-            <div className="space-y-4">
+            <div className="min-w-0 space-y-4">
               <RatingCard
                 title="Your Profile Rating"
                 rating={overviewData.ratings.profile}

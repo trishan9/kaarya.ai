@@ -60,7 +60,7 @@ export function RatingCard({
 
   if (isHidden) {
     return (
-      <Card className="gap-3 border-border bg-white p-5 shadow-sm">
+      <Card className="gap-3 border-border bg-white p-4 shadow-sm sm:p-5">
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="text-sm font-semibold text-foreground">
@@ -84,17 +84,17 @@ export function RatingCard({
   }
 
   return (
-    <Card className="gap-4 border-border bg-white p-5 shadow-sm">
+    <Card className="min-w-0 gap-4 border-border bg-white p-4 shadow-sm sm:p-5">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-semibold text-foreground">{title}</h3>
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <div
           className={cn(
-            "text-4xl font-semibold",
+            "text-3xl font-semibold sm:text-4xl",
             ratingClassName ?? "text-foreground",
           )}
         >

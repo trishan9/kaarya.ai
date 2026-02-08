@@ -53,10 +53,10 @@ export function ApplicationsSummaryCard({
   }, [monthLabel, monthOptions]);
 
   return (
-    <Card className="gap-4 border-border bg-white p-5 shadow-sm">
+    <Card className="min-w-0 gap-4 border-border bg-white p-4 shadow-sm sm:p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-semibold text-foreground">
+          <h2 className="text-xl font-semibold text-foreground sm:text-2xl">
             Applications Summary
           </h2>
         </div>
@@ -111,9 +111,11 @@ export function ApplicationsSummaryCard({
       </div>
 
       <div>
-        <div className="flex items-end gap-3 mb-1">
-          <div className="text-5xl font-semibold text-foreground">{total}</div>
-          <div className="flex items-center -space-x-2.5 mb-1.5">
+        <div className="mb-1 flex flex-wrap items-end gap-3">
+          <div className="text-4xl font-semibold text-foreground sm:text-5xl">
+            {total}
+          </div>
+          <div className="mb-1.5 flex items-center -space-x-2.5">
             {logos.map((logo: string) => (
               <span
                 key={logo}

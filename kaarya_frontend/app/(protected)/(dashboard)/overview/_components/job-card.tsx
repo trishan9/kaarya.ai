@@ -41,7 +41,7 @@ export function JobCard({
   const [bookmarked, setBookmarked] = React.useState(false);
 
   return (
-    <Card className="gap-3 border-border bg-white p-4 shadow-sm">
+    <Card className="min-w-0 gap-3 border-border bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between">
         <div
           className={cn(
@@ -65,9 +65,11 @@ export function JobCard({
         >
           {logoText}
         </div>
-        <div className="flex-1">
-          <div className="text-sm font-semibold text-foreground">{title}</div>
-          <div className="text-xs text-muted-foreground">{company}</div>
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-semibold text-foreground break-words">
+            {title}
+          </div>
+          <div className="text-xs text-muted-foreground break-words">{company}</div>
         </div>
       </div>
 

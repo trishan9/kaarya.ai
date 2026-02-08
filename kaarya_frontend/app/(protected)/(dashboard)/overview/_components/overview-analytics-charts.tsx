@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { Activity, BriefcaseBusiness, MailCheck } from "lucide-react";
 import {
   Area,
@@ -123,6 +124,15 @@ type OverviewAnalyticsChartsProps = {
 export function OverviewAnalyticsCharts({
   data = DEFAULT_ANALYTICS_DATA,
 }: OverviewAnalyticsChartsProps) {
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const updateViewport = () => setIsMobile(window.innerWidth < 640);
+    updateViewport();
+    window.addEventListener("resize", updateViewport);
+    return () => window.removeEventListener("resize", updateViewport);
+  }, []);
+
   const totalInvitations = data.invitationMix.reduce(
     (sum, item) => sum + item.value,
     0,
@@ -130,9 +140,9 @@ export function OverviewAnalyticsCharts({
 
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-      <Card className="gap-4 border-border bg-linear-to-br from-white via-[#f7fbff] to-[#eef5fb] p-5 shadow-sm lg:row-span-2">
+      <Card className="min-w-0 gap-4 border-border bg-linear-to-br from-white via-[#f7fbff] to-[#eef5fb] p-4 shadow-sm sm:p-5 lg:row-span-2">
         <div className="flex items-center justify-between gap-3">
-          <div>
+          <div className="min-w-0">
             <h3 className="text-lg font-semibold text-foreground">
               Application Momentum
             </h3>
@@ -145,7 +155,7 @@ export function OverviewAnalyticsCharts({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="rounded-lg bg-white/80 px-3 py-2">
             <div className="text-[11px] text-muted-foreground">
               This Week Applications
@@ -164,7 +174,10 @@ export function OverviewAnalyticsCharts({
           </div>
         </div>
 
-        <ChartContainer config={trendConfig} className="h-72 w-full">
+        <ChartContainer
+          config={trendConfig}
+          className="h-[230px] w-full sm:h-[280px] lg:h-72"
+        >
           <AreaChart
             data={data.momentum}
             margin={{ top: 8, right: 8, left: -8, bottom: 0 }}
@@ -194,24 +207,25 @@ export function OverviewAnalyticsCharts({
               dataKey="label"
               tickLine={false}
               axisLine={false}
-              tickMargin={10}
+              tickMargin={isMobile ? 6 : 10}
               className="text-xs"
             />
             <YAxis
+              hide={isMobile}
               tickLine={false}
               axisLine={false}
               tickMargin={8}
               className="text-xs"
             />
             <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
-            <ChartLegend content={<ChartLegendContent />} />
+            <ChartLegend content={<ChartLegendContent className="flex-wrap" />} />
             <Area
               type="monotone"
               dataKey="applications"
               stroke="var(--color-applications)"
               fill="url(#applicationsGradient)"
               strokeWidth={2.6}
-              dot={{ r: 3, fill: "var(--color-applications)" }}
+              dot={isMobile ? false : { r: 3, fill: "var(--color-applications)" }}
               activeDot={{ r: 5 }}
             />
             <Area
@@ -220,16 +234,16 @@ export function OverviewAnalyticsCharts({
               stroke="var(--color-interviews)"
               fill="url(#interviewsGradient)"
               strokeWidth={2.3}
-              dot={{ r: 3, fill: "var(--color-interviews)" }}
+              dot={isMobile ? false : { r: 3, fill: "var(--color-interviews)" }}
               activeDot={{ r: 5 }}
             />
           </AreaChart>
         </ChartContainer>
       </Card>
 
-      <Card className="gap-4 border-border bg-white p-5 shadow-sm">
+      <Card className="min-w-0 gap-4 border-border bg-white p-4 shadow-sm sm:p-5">
         <div className="flex items-center justify-between gap-3">
-          <div>
+          <div className="min-w-0">
             <h3 className="text-sm font-semibold text-foreground">
               Application Progress
             </h3>
@@ -242,47 +256,52 @@ export function OverviewAnalyticsCharts({
           </div>
         </div>
 
-        <ChartContainer config={funnelConfig} className="h-52 w-full">
+        <ChartContainer
+          config={funnelConfig}
+          className="h-[220px] w-full sm:h-52"
+        >
           <BarChart
             data={data.pipeline}
             margin={{ top: 4, right: 4, left: -10, bottom: 0 }}
-            barCategoryGap={18}
+            barCategoryGap={isMobile ? 10 : 18}
           >
             <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
             <XAxis
               dataKey="stage"
               tickLine={false}
               axisLine={false}
-              tickMargin={8}
+              tickMargin={isMobile ? 4 : 8}
               className="text-xs"
+              interval={0}
             />
             <YAxis
+              hide={isMobile}
               tickLine={false}
               axisLine={false}
               tickMargin={8}
               className="text-xs"
             />
             <ChartTooltip content={<ChartTooltipContent indicator="dashed" />} />
-            <ChartLegend content={<ChartLegendContent />} />
+            <ChartLegend content={<ChartLegendContent className="flex-wrap" />} />
             <Bar
               dataKey="thisWeek"
               fill="var(--color-thisWeek)"
               radius={[8, 8, 0, 0]}
-              maxBarSize={24}
+              maxBarSize={isMobile ? 18 : 24}
             />
             <Bar
               dataKey="lastWeek"
               fill="var(--color-lastWeek)"
               radius={[8, 8, 0, 0]}
-              maxBarSize={24}
+              maxBarSize={isMobile ? 18 : 24}
             />
           </BarChart>
         </ChartContainer>
       </Card>
 
-      <Card className="gap-4 border-border bg-white p-5 shadow-sm">
+      <Card className="min-w-0 gap-4 border-border bg-white p-4 shadow-sm sm:p-5">
         <div className="flex items-center justify-between gap-3">
-          <div>
+          <div className="min-w-0">
             <h3 className="text-sm font-semibold text-foreground">
               Invitation Responses
             </h3>
@@ -296,7 +315,10 @@ export function OverviewAnalyticsCharts({
         </div>
 
         <div className="grid items-center gap-4 sm:grid-cols-[130px_minmax(0,1fr)]">
-          <ChartContainer config={invitationMixConfig} className="h-32 w-full">
+          <ChartContainer
+            config={invitationMixConfig}
+            className="h-[120px] w-full sm:h-32"
+          >
             <PieChart>
               <Pie
                 data={data.invitationMix}
