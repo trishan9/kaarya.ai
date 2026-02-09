@@ -2,6 +2,29 @@ export const AUTH_MESSAGES = {
   EMAIL_IN_USE: 'Email already in use.',
   INVALID_CREDENTIALS: 'Invalid email or password.',
   INVALID_TOKEN: 'Invalid token.',
+  INVALID_RESET_CODE: 'Invalid or expired verification code.',
+  INVALID_RESET_TOKEN: 'Invalid or expired reset token.',
+  PASSWORD_RESET_REQUESTED:
+    'If an account exists for this email, a reset code has been sent.',
+  PASSWORD_RESET_VERIFIED: 'Reset code verified.',
+  PASSWORD_RESET_SUCCESS: 'Password reset successful.',
+  TOO_MANY_REQUESTS: 'Too many attempts. Please try again later.',
+  OAUTH_PROVIDER_NOT_SUPPORTED: 'OAuth provider is not supported.',
+  OAUTH_UNAVAILABLE: 'Social login is temporarily unavailable.',
+  OAUTH_INVALID_REQUEST: 'Invalid or expired social login request.',
+  OAUTH_EMAIL_MISSING:
+    'Your provider did not return a usable email address. For GitHub, verify your primary email and re-authorize this app with email access.',
+  OAUTH_EMAIL_NOT_VERIFIED:
+    'Please verify your email with your provider before signing in.',
+  OAUTH_LINK_REQUIRED:
+    'An account already exists for this email. Sign in to link this provider.',
+  OAUTH_LINK_TOKEN_INVALID: 'Invalid or expired account linking session.',
+  OAUTH_RESULT_FETCHED: 'Social login status fetched.',
+  OAUTH_LINK_COMPLETED: 'Account linked successfully.',
+  OAUTH_LINKED_ACCOUNTS_FETCHED: 'Linked accounts fetched successfully.',
+  OAUTH_ACCOUNT_UNLINKED: 'Linked account removed successfully.',
+  OAUTH_UNLINK_LAST_METHOD:
+    'Cannot unlink this provider because it is your last sign-in method.',
   LOGIN_SUCCESS: 'Login successful.',
   SIGNUP_SUCCESS: 'Signup successful.',
   CURRENT_USER_SUCCESS: 'Current user fetched.',
@@ -26,4 +49,10 @@ export const RESPONSE_MESSAGES = {
 export const LOG_MESSAGES = {
   LOGIN_SUCCESS: 'Login completed.',
   SIGNUP_SUCCESS: 'Signup completed.',
+  OAUTH_LOGIN_SUCCESS: 'OAuth login completed.',
+  OAUTH_LINK_REQUIRED: 'OAuth link required.',
+  OAUTH_LINK_COMPLETED: 'OAuth account linked.',
+  PASSWORD_RESET_REQUEST: 'Password reset requested.',
+  PASSWORD_RESET_VERIFIED: 'Password reset code verified.',
+  PASSWORD_RESET_COMPLETED: 'Password reset completed.',
 } as const;

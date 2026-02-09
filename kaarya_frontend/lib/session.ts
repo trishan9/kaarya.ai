@@ -1,7 +1,10 @@
 "use server";
+import "server-only";
 
 import { cookies } from "next/headers";
 import { cache } from "react";
+
+const SESSION_SECURE = process.env.NODE_ENV === "production";
 
 export async function createSession(token: string) {
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
@@ -9,7 +12,7 @@ export async function createSession(token: string) {
 
   cookieStore.set("access_token", token, {
     httpOnly: true,
-    secure: true,
+    secure: SESSION_SECURE,
     expires: expiresAt,
     sameSite: "lax",
     path: "/",
@@ -36,7 +39,7 @@ export async function updateSession() {
   const cookieStore = await cookies();
   cookieStore.set("access_token", token, {
     httpOnly: true,
-    secure: true,
+    secure: SESSION_SECURE,
     expires: expires,
     sameSite: "lax",
     path: "/",

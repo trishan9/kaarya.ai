@@ -10,7 +10,9 @@ type UserInput =
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
 
-export const sanitizeUser = (user: UserInput): Partial<TUser> | null => {
+export type TSanitizedUser = (Partial<TUser> & { id?: string }) | null;
+
+export const sanitizeUser = (user: UserInput): TSanitizedUser => {
   if (!user) return null;
 
   const raw =
@@ -33,6 +35,7 @@ export const sanitizeUser = (user: UserInput): Partial<TUser> | null => {
   delete data._id;
   delete data.__v;
   delete data.password;
+  delete data.passwordChangedAt;
 
   return data;
 };

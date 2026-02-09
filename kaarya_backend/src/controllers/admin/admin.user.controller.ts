@@ -8,6 +8,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -18,6 +19,8 @@ import {
   ApiBody,
   ApiConsumes,
   ApiParam,
+  ApiQuery,
+  ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
 import argon2 from 'argon2';
@@ -36,6 +39,10 @@ import {
   TUpdateUserDTO,
   UpdateUserDTO,
 } from 'src/dtos/users/user.dto';
+import {
+  AdminUsersQueryDTO,
+  TAdminUsersQueryDTO,
+} from 'src/dtos/users/admin-user-query.dto';
 import {
   CreateAdminUserSwaggerDTO,
   UpdateAdminUserSwaggerDTO,
@@ -140,9 +147,33 @@ export class AdminUserController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  async getAllUsers() {
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'size', required: false, type: Number })
+  @ApiQuery({ name: 'search', required: false, type: String })
+  async getAllUsers(@Query() query: TAdminUsersQueryDTO) {
     return asyncHandler(async () => {
-      const data = await this.userService.getAllUsers();
+      const parsedQuery = AdminUsersQueryDTO.safeParse(query);
+
+      if (!parsedQuery.success) {
+        throw new ApiError({
+          message: z.prettifyError(parsedQuery.error),
+          statusCode: HttpStatus.BAD_REQUEST,
+        });
+      }
+
+      const data = await this.userService.getAllUsers(parsedQuery.data);
+      return buildSuccessResponse(data, USER_MESSAGES.FETCH_ALL_SUCCESS);
+    });
+  }
+
+  @Get('analytics')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Get user analytics',
+  })
+  async getUsersAnalytics() {
+    return asyncHandler(async () => {
+      const data = await this.userService.getUsersAnalytics();
       return buildSuccessResponse(data, USER_MESSAGES.FETCH_ALL_SUCCESS);
     });
   }

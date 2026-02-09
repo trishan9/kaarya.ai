@@ -2,7 +2,16 @@
 
 import { useMemo, useRef, useState } from "react";
 import { Controller } from "react-hook-form";
-import { Loader2, Save, Upload, X, User, Mail, Shield, Key, Camera } from "lucide-react";
+import {
+  Loader2,
+  Save,
+  Upload,
+  X,
+  User,
+  Shield,
+  Key,
+  Camera,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -12,7 +21,13 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { TAdminCreateUserSchema } from "@/app/(protected)/admin/_schemas";
 import { useCreateUser } from "../_hooks/use-create-user";
 import Image from "next/image";
@@ -31,7 +46,7 @@ export function CreateUserForm() {
 
   const handleImageChange = (
     file: File | undefined,
-    onChange: (file: File | null) => void,
+    onChange: (file: File | null) => void
   ) => {
     if (file) {
       const reader = new FileReader();
@@ -64,7 +79,7 @@ export function CreateUserForm() {
 
   const handleDrop = (
     e: React.DragEvent,
-    onChange: (file: File | null) => void,
+    onChange: (file: File | null) => void
   ) => {
     e.preventDefault();
     setIsDragging(false);
@@ -84,7 +99,8 @@ export function CreateUserForm() {
             Profile Picture
           </CardTitle>
           <CardDescription>
-            Upload a profile picture for this user. This will be displayed across the platform.
+            Upload a profile picture for this user. This will be displayed
+            across the platform.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -140,7 +156,7 @@ export function CreateUserForm() {
                       "relative border-2 border-dashed rounded-xl p-8 transition-all cursor-pointer",
                       isDragging
                         ? "border-primary bg-primary/5 scale-[1.02]"
-                        : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50",
+                        : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50"
                     )}
                     onClick={() => fileInputRef.current?.click()}
                   >
@@ -279,7 +295,9 @@ export function CreateUserForm() {
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field>
-                    <FieldLabel htmlFor="provider">Authentication Provider</FieldLabel>
+                    <FieldLabel htmlFor="provider">
+                      Authentication Provider
+                    </FieldLabel>
                     <select
                       id="provider"
                       className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs transition-colors focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
@@ -289,6 +307,7 @@ export function CreateUserForm() {
                     >
                       <option value="email">Email</option>
                       <option value="google">Google</option>
+                      <option value="github">GitHub</option>
                       <option value="facebook">Facebook</option>
                     </select>
                     <FieldDescription>

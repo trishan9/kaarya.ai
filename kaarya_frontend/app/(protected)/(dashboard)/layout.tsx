@@ -1,11 +1,16 @@
-export default function DashboardLayout({
+import { getCurrentUser } from "@/lib/dal";
+import { DashboardShell } from "./_components/dashboard-shell";
+
+export default async function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getCurrentUser();
+
   return (
     <main>
-      <div className="p-4">{children}</div>
+      <DashboardShell user={user}>{children}</DashboardShell>
     </main>
   );
 }

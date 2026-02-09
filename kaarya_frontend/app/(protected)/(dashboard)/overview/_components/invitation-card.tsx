@@ -1,0 +1,182 @@
+"use client";
+
+import * as React from "react";
+import { Check, X } from "lucide-react";
+
+import { cn } from "@/lib/utils";
+import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import Image from "next/image";
+
+export type InvitationCardProps = {
+  title: string;
+  description: string;
+  eventTitle: string;
+  eventTime: string;
+  logoUrl?: string;
+  logoAlt?: string;
+  initialStatus?: "pending" | "accepted" | "declined";
+};
+
+export function InvitationCard({
+  title,
+  description,
+  eventTitle,
+  eventTime,
+  logoUrl = "https://res.cloudinary.com/dnqet3vq1/image/upload/v1770357829/kaarya/tl0x4mtzklebkdsbl50b.png",
+  logoAlt = "Company",
+  initialStatus = "pending",
+}: InvitationCardProps) {
+  const [status, setStatus] = React.useState<
+    "pending" | "accepted" | "declined"
+  >(initialStatus);
+  const [detailsOpen, setDetailsOpen] = React.useState(false);
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [isHidden, setIsHidden] = React.useState(false);
+
+  if (isHidden) {
+    return (
+      <Card className="gap-3 border-0 bg-[#0f6fb5] p-4 text-white shadow-sm sm:p-5">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-semibold">Invitation removed</div>
+            <div className="text-xs text-white/70">
+              Restore it if you still want to respond.
+            </div>
+          </div>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="h-8 rounded-lg text-xs font-semibold"
+            onClick={() => setIsHidden(false)}
+          >
+            Restore
+          </Button>
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="min-w-0 gap-3 border-0 bg-linear-to-r from-[#00629f]/80 to-[#00629f] p-4 text-white shadow-sm sm:p-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="font-medium">{title}</h3>
+        </div>
+      </div>
+
+      <p className="text-sm text-white/80">{description}</p>
+
+      <div className="flex flex-wrap items-center gap-3 rounded-xl bg-[#3B93CC]/80 px-4 py-3 sm:flex-nowrap">
+        <Image
+          src={logoUrl}
+          alt={logoAlt}
+          width={100}
+          height={100}
+          className="object-cover h-10 w-10 rounded-xl"
+        />
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-semibold break-words">{eventTitle}</div>
+          <div className="text-xs text-white/70">{eventTime}</div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            className={cn(
+              "flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-white transition-colors bg-red-500",
+            )}
+            onClick={() => setStatus("declined")}
+            aria-pressed={status === "declined"}
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Decline invitation</span>
+          </button>
+          <button
+            className={cn(
+              "flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-white transition-colors bg-emerald-500",
+            )}
+            onClick={() => setStatus("accepted")}
+            aria-pressed={status === "accepted"}
+          >
+            <Check className="h-4 w-4" />
+            <span className="sr-only">Accept invitation</span>
+          </button>
+        </div>
+      </div>
+
+      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Invitation details</DialogTitle>
+            <DialogDescription>
+              Review the session and confirm your availability.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <div className="flex items-center justify-between">
+              <span>Session</span>
+              <span className="font-semibold text-foreground">
+                {eventTitle}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>Time</span>
+              <span className="font-semibold text-foreground">{eventTime}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>Status</span>
+              <span className="font-semibold text-foreground">{status}</span>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                setStatus("accepted");
+                setDetailsOpen(false);
+              }}
+            >
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this invitation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You can always request a new invitation later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-rose-500 hover:bg-rose-500/90"
+              onClick={() => setIsHidden(true)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Card>
+  );
+}

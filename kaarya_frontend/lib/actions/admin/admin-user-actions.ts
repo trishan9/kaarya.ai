@@ -32,15 +32,42 @@ const buildUserFormData = (payload: AdminUserPayload) => {
   return formData;
 };
 
-export async function getAdminUsers() {
+export async function getAdminUsers(params?: {
+  page?: number;
+  size?: number;
+  search?: string;
+}) {
   try {
-    const response = await api.get(API_URLS.ADMIN.USERS);
+    const response = await api.get(API_URLS.ADMIN.USERS, {
+      params: {
+        page: params?.page,
+        size: params?.size,
+        search: params?.search,
+      },
+    });
+
     return response.data;
   } catch (error: Error | any) {
     const errorMessage =
       error?.response?.data?.message ||
       error.message ||
       "Failed to fetch users";
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+}
+
+export async function getAdminUsersAnalytics() {
+  try {
+    const response = await api.get(API_URLS.ADMIN.USERS_ANALYTICS);
+    return response.data;
+  } catch (error: Error | any) {
+    const errorMessage =
+      error?.response?.data?.message ||
+      error.message ||
+      "Failed to fetch users analytics";
     return {
       success: false,
       message: errorMessage,

@@ -1,17 +1,27 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { isValidObjectId } from 'mongoose';
 import { ApiError } from 'src/common/errors/api-error';
+import { buildPaginationMeta } from 'src/common/utils/pagination';
 import { sanitizeUser } from 'src/common/utils/sanitize-user';
 import { USER_MESSAGES } from 'src/constants/messages.constants';
 import { TCreateUserDTO, TUpdateUserDTO } from 'src/dtos/users/user.dto';
 import { ACUserRepository } from 'src/repositories/user.repository';
+import { UserRole } from 'src/types/user-role.enum';
 
 @Injectable()
 export class AdminUserService {
   constructor(private readonly userRepository: ACUserRepository) {}
 
   async createUser(payload: TCreateUserDTO) {
-    return await this.userRepository.create(payload);
+    const createPayload: Partial<TCreateUserDTO> & {
+      passwordChangedAt?: Date;
+    } = { ...payload };
+
+    if (payload.password) {
+      createPayload.passwordChangedAt = new Date();
+    }
+
+    return await this.userRepository.create(createPayload);
   }
 
   async getUserById(id: string) {
@@ -37,13 +47,73 @@ export class AdminUserService {
     return await this.userRepository.findByEmail(email, options);
   }
 
-  async getAllUsers() {
-    const users = await this.userRepository.findAll();
-    return users.map((user) => sanitizeUser(user));
+  async getAllUsers(options: { page: number; size: number; search?: string }) {
+    const { page, size, search } = options;
+    const { users, total } = await this.userRepository.findAll({
+      page,
+      size,
+      search,
+    });
+
+    return {
+      users: users.map((user) => sanitizeUser(user)),
+      meta: buildPaginationMeta({
+        page,
+        size,
+        totalItems: total,
+        search,
+      }),
+    };
+  }
+
+  async getUsersAnalytics() {
+    const analytics = await this.userRepository.getAnalytics();
+
+    const totalStandardUsers = Math.max(
+      0,
+      analytics.totalUsers - analytics.totalAdmins,
+    );
+
+    const now = new Date();
+    const monthFormatter = new Intl.DateTimeFormat('en-US', { month: 'short' });
+    const buckets = Array.from({ length: 6 }).map((_, index) => {
+      const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
+      return {
+        key: `${date.getFullYear()}-${date.getMonth() + 1}`,
+        label: monthFormatter.format(date),
+        value: 0,
+      };
+    });
+
+    analytics.signupTrend.forEach((item) => {
+      const key = `${item.year}-${item.month}`;
+      const bucket = buckets.find((b) => b.key === key);
+      if (bucket) bucket.value = item.value;
+    });
+
+    return {
+      totalUsers: analytics.totalUsers,
+      totalAdmins: analytics.totalAdmins,
+      totalStandardUsers,
+      newThisWeek: analytics.newThisWeek,
+      roleBreakdown: [
+        { name: UserRole.ADMIN, value: analytics.totalAdmins },
+        { name: UserRole.USER, value: totalStandardUsers },
+      ],
+      signupTrend: buckets.map(({ label, value }) => ({ label, value })),
+    };
   }
 
   async updateUser(id: string, payload: TUpdateUserDTO) {
-    return await this.userRepository.updateById(id, payload);
+    const updatePayload: Partial<TUpdateUserDTO> & {
+      passwordChangedAt?: Date;
+    } = { ...payload };
+
+    if (payload.password) {
+      updatePayload.passwordChangedAt = new Date();
+    }
+
+    return await this.userRepository.updateById(id, updatePayload);
   }
 
   async deleteUser(id: string) {

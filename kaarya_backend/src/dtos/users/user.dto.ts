@@ -22,7 +22,9 @@ export const LoginDTO = UserZodSchema.pick({
   password: true,
 });
 
-export const UpdateUserDTO = UserZodSchema.partial();
+export const UpdateUserDTO = UserZodSchema.omit({
+  passwordChangedAt: true,
+}).partial();
 
 export const UpdateMeDTO = UserZodSchema.pick({
   name: true,
