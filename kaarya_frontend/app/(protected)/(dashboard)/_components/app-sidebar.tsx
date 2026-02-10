@@ -202,9 +202,10 @@ export function AppSidebar({ user }: AppSidebarProps) {
             </div>
             {groupOpen[group.label] ? (
               <SidebarGroupContent>
-                <SidebarMenu>
+                <SidebarMenu className="group-data-[state=collapsed]/sidebar:items-center group-data-[state=collapsed]/sidebar:justify-center">
                   {group.items.map((item) => {
-                    const isActive = pathname === item.href;
+                    const isActive =
+                      pathname === item.href || pathname.startsWith(item.href);
                     const Icon = item.icon;
 
                     const menuButton = (
@@ -408,7 +409,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
               </Popover>
             </div>
 
-            <div className="rounded-xl bg-transparent p-0">
+            <div className="rounded-xl bg-transparent p-0 flex items-center justify-center">
               <Button
                 variant="outline"
                 className="h-9 w-9 justify-center rounded-lg border-sidebar-border bg-white p-0 text-foreground hover:bg-white"
