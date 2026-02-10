@@ -129,11 +129,14 @@ export function JobApplicationSheet({
     setErrorMessage(null);
   }, []);
 
-  const updatePortfolioLink = React.useCallback((index: number, value: string) => {
-    setPortfolioLinks((prev) =>
-      prev.map((link, linkIndex) => (linkIndex === index ? value : link)),
-    );
-  }, []);
+  const updatePortfolioLink = React.useCallback(
+    (index: number, value: string) => {
+      setPortfolioLinks((prev) =>
+        prev.map((link, linkIndex) => (linkIndex === index ? value : link)),
+      );
+    },
+    [],
+  );
 
   const addPortfolioLink = React.useCallback(() => {
     setPortfolioLinks((prev) => [...prev, ""]);
@@ -160,7 +163,9 @@ export function JobApplicationSheet({
         return;
       }
 
-      const normalizedLinks = portfolioLinks.map((link) => link.trim()).filter(Boolean);
+      const normalizedLinks = portfolioLinks
+        .map((link) => link.trim())
+        .filter(Boolean);
       if (normalizedLinks.length === 0) {
         setErrorMessage("Please add at least one portfolio link.");
         return;
@@ -192,7 +197,7 @@ export function JobApplicationSheet({
           </Button>
         </SheetTrigger>
 
-        <SheetContent side="right" className="!w-full sm:!max-w-[560px] p-0">
+        <SheetContent side="right" className="w-full! sm:max-w-[560px]! p-0">
           <div className="flex h-full flex-col">
             <SheetHeader className="border-b border-[#ececf0] px-4 py-3 sm:px-5">
               <SheetTitle className="text-left text-xl font-semibold">
@@ -216,8 +221,12 @@ export function JobApplicationSheet({
                       <p className="truncate text-xs text-white/80">
                         {job.company} - {job.locationLabel}
                       </p>
-                      <p className="truncate text-lg font-semibold">{job.title}</p>
-                      <p className="text-xs text-white/80">{job.postedAtLabel}</p>
+                      <p className="truncate text-lg font-semibold">
+                        {job.title}
+                      </p>
+                      <p className="text-xs text-white/80">
+                        {job.postedAtLabel}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -280,7 +289,9 @@ export function JobApplicationSheet({
                           {uploadBrowseLabel}
                         </button>
                       </p>
-                      <p className="mt-1 text-xs text-muted-foreground">{uploadHelperText}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {uploadHelperText}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -305,7 +316,10 @@ export function JobApplicationSheet({
                   </label>
                   <div className="space-y-2">
                     {portfolioLinks.map((link, index) => (
-                      <div key={`portfolio-link-${index}`} className="flex items-center gap-2">
+                      <div
+                        key={`portfolio-link-${index}`}
+                        className="flex items-center gap-2"
+                      >
                         <Input
                           value={link}
                           onChange={(event) =>
@@ -365,7 +379,9 @@ export function JobApplicationSheet({
       <Dialog open={successOpen} onOpenChange={setSuccessOpen}>
         <DialogContent className="sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle className="text-lg font-semibold">{successTitle}</DialogTitle>
+            <DialogTitle className="text-lg font-semibold">
+              {successTitle}
+            </DialogTitle>
             <DialogDescription>{successDescription}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
