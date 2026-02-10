@@ -27,6 +27,7 @@ export type JobCardProps = {
 };
 
 export function JobCard({
+  id,
   title,
   company,
   statusLabel,
@@ -40,9 +41,11 @@ export function JobCard({
   logoClassName,
   extraTags = [],
   applyLabel = "Apply",
-  applyHref = "/jobs",
+  applyHref,
 }: JobCardProps) {
   const [bookmarked, setBookmarked] = React.useState(false);
+  const resolvedApplyHref =
+    applyHref && applyHref !== "/jobs" ? applyHref : `/jobs/${id}`;
 
   const badgeToneClassName = {
     success: "bg-emerald-100 text-emerald-600",
@@ -119,7 +122,7 @@ export function JobCard({
             "hover:bg-primary/90",
           )}
         >
-          <Link href={applyHref}>{applyLabel}</Link>
+          <Link href={resolvedApplyHref}>{applyLabel}</Link>
         </Button>
         <Button
           variant="outline"
