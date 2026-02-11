@@ -12,6 +12,8 @@ import databaseConfig from './config/database-config';
 import emailConfig from './config/email-config';
 import redisConfig from './config/redis-config';
 import { LoggerModule } from './logger/logger.module';
+import { CompanyModule } from './modules/company.module';
+import { JobPostingModule } from './modules/job-posting.module';
 
 export const InfrastructureDatabaseModule = MongoDatabaseModule;
 
@@ -34,6 +36,8 @@ export const InfrastructureDatabaseModule = MongoDatabaseModule;
     LoggerModule,
     UserModule,
     AuthModule,
+    CompanyModule,
+    JobPostingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
