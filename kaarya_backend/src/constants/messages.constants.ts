@@ -41,6 +41,54 @@ export const USER_MESSAGES = {
   DELETE_SUCCESS: 'User deleted successfully.',
 } as const;
 
+export const COMPANY_MESSAGES = {
+  NOT_FOUND: 'Company not found.',
+  INVALID_ID: 'Invalid company id.',
+  CREATE_SUCCESS: 'Company created successfully.',
+  UPDATE_SUCCESS: 'Company updated successfully.',
+  DELETE_SUCCESS: 'Company deleted successfully.',
+  FETCH_SUCCESS: 'Company fetched successfully.',
+  FETCH_ALL_SUCCESS: 'Companies fetched successfully.',
+  RECRUITER_ALREADY_ASSIGNED:
+    'Recruiter is already assigned to a different company.',
+  RECRUITER_ROLE_REQUIRED: 'Only users with recruiter role can be assigned.',
+  RECRUITER_PROFILE_MISSING:
+    'Recruiter profile not found. Create or attach a company first.',
+  RECRUITER_ATTACH_SUCCESS: 'Recruiter linked to company successfully.',
+  RECRUITER_ASSIGN_SUCCESS: 'Recruiter assigned to company successfully.',
+  RECRUITER_DELETE_SUCCESS: 'Recruiter removed from company successfully.',
+  RECRUITER_NOT_IN_COMPANY:
+    'Recruiter is not assigned to the specified company.',
+  FORBIDDEN_COMPANY_ACCESS: 'You are not allowed to manage this company.',
+  COMPANY_CONTEXT_REQUIRED:
+    'companyId is required to perform this operation.',
+  WORKSPACES_FETCH_SUCCESS: 'Recruiter workspaces fetched successfully.',
+  JOIN_BY_CODE_SUCCESS: 'Joined company workspace successfully.',
+  INVITE_CODE_RESET_SUCCESS: 'Company invite code reset successfully.',
+  INVITE_CODE_INVALID: 'Invalid company invite code.',
+  INVITE_CREATE_SUCCESS: 'Recruiter invite created successfully.',
+  INVITEE_ROLE_REQUIRED:
+    'Only users with recruiter role can accept recruiter invites.',
+  INVITEE_ALREADY_IN_COMPANY: 'Recruiter is already assigned to this company.',
+} as const;
+
+export const JOB_MESSAGES = {
+  NOT_FOUND: 'Job posting not found.',
+  INVALID_ID: 'Invalid job posting id.',
+  CREATE_SUCCESS: 'Job posting created successfully.',
+  UPDATE_SUCCESS: 'Job posting updated successfully.',
+  DELETE_SUCCESS: 'Job posting deleted successfully.',
+  FETCH_SUCCESS: 'Job posting fetched successfully.',
+  FETCH_ALL_SUCCESS: 'Job postings fetched successfully.',
+  RECRUITER_COMPANY_REQUIRED:
+    'Recruiter must be linked to a company before managing job postings.',
+  FORBIDDEN_COMPANY_ACCESS:
+    'You are not allowed to manage job postings for this company.',
+  APPLICATIONS_FETCH_SUCCESS: 'Job applications fetched successfully.',
+  VIEW_RECORDED: 'Job view recorded successfully.',
+  METRICS_FETCH_SUCCESS: 'Job metrics fetched successfully.',
+} as const;
+
 export const RESPONSE_MESSAGES = {
   INTERNAL_SERVER_ERROR: 'Something went wrong.',
   VALIDATION_FAILED: 'Validation failed.',

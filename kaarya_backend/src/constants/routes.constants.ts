@@ -23,4 +23,22 @@ export const ROUTES = {
     BASE: 'users',
     BY_ID: ':id',
   },
+  COMPANY: {
+    BASE: 'companies',
+    BY_ID: ':id',
+    ME: 'me',
+    WORKSPACES_ME: 'workspaces/me',
+    JOIN_BY_CODE: 'join-by-code',
+    INVITE_CODE_RESET: ':id/invite-code/reset',
+    INVITES: ':id/invites',
+    RECRUITERS: ':id/recruiters',
+    RECRUITER_BY_ID: ':id/recruiters/:recruiterId',
+  },
+  JOB: {
+    BASE: 'jobs',
+    BY_ID: ':id',
+    APPLICATIONS: ':id/applications',
+    METRICS: ':id/metrics',
+    VIEW: ':id/view',
+  },
 } as const;
