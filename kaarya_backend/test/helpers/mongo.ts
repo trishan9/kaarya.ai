@@ -7,7 +7,11 @@ export type TestMongo = {
 };
 
 export const startInMemoryMongo = async (): Promise<TestMongo> => {
-  const server = await MongoMemoryServer.create();
+  const server = await MongoMemoryServer.create({
+    instance: {
+      launchTimeout: 60_000,
+    },
+  });
   const uri = server.getUri();
 
   process.env.DATABASE_URL = uri;
@@ -20,7 +24,7 @@ export const startInMemoryMongo = async (): Promise<TestMongo> => {
 
 export const stopInMemoryMongo = async (mongo: TestMongo) => {
   await mongoose.disconnect();
-  await mongo.server.stop();
+  await mongo.server.stop({ doCleanup: true, force: true });
 };
 
 export const clearDatabase = async () => {
