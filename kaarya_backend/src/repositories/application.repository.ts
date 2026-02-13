@@ -11,6 +11,42 @@ export abstract class ACApplicationRepository {
   abstract create(
     payload: Partial<ApplicationSchemaClass>,
   ): Promise<ApplicationSchemaDocument>;
+  abstract findById(id: string): Promise<ApplicationSchemaDocument | null>;
+  abstract findByJobIdAndStudentId(
+    jobId: string,
+    studentId: string,
+  ): Promise<ApplicationSchemaDocument | null>;
+  abstract findByJobIdAndStudentIdWithRelations(
+    jobId: string,
+    studentId: string,
+  ): Promise<ApplicationSchemaDocument | null>;
+  abstract findByIdForJob(
+    jobId: string,
+    applicationId: string,
+  ): Promise<ApplicationSchemaDocument | null>;
+  abstract findByStudentAndJobIds(input: {
+    studentId: string;
+    jobIds: string[];
+  }): Promise<
+    Array<{
+      applicationId: string;
+      jobId: string;
+      status: ApplicationStatus;
+    }>
+  >;
+  abstract findAllByStudentId(options: {
+    studentId: string;
+    page: number;
+    size: number;
+    status?: ApplicationStatus;
+  }): Promise<{
+    applications: ApplicationSchemaDocument[];
+    total: number;
+  }>;
+  abstract updateById(
+    id: string,
+    payload: Partial<ApplicationSchemaClass>,
+  ): Promise<ApplicationSchemaDocument | null>;
   abstract findJobIdsByStudentAndStatuses(input: {
     studentId: string;
     statuses: ApplicationStatus[];
@@ -39,6 +75,175 @@ export class ApplicationRepository implements ACApplicationRepository {
   ): Promise<ApplicationSchemaDocument> {
     const application = new this.applicationModel(payload);
     return await application.save();
+  }
+
+  async findById(id: string): Promise<ApplicationSchemaDocument | null> {
+    if (!id) return null;
+    return await this.applicationModel
+      .findById(id)
+      .populate({
+        path: 'studentId',
+        select: 'name email photo role',
+      })
+      .populate({
+        path: 'jobId',
+      })
+      .populate({
+        path: 'resumeId',
+      })
+      .exec();
+  }
+
+  async findByJobIdAndStudentId(
+    jobId: string,
+    studentId: string,
+  ): Promise<ApplicationSchemaDocument | null> {
+    if (!jobId || !studentId) return null;
+
+    return await this.applicationModel
+      .findOne({
+        $or: [{ jobId: this.toObjectId(jobId) }, { jobId }],
+        $and: [{ $or: [{ studentId: this.toObjectId(studentId) }, { studentId }] }],
+      })
+      .exec();
+  }
+
+  async findByJobIdAndStudentIdWithRelations(
+    jobId: string,
+    studentId: string,
+  ): Promise<ApplicationSchemaDocument | null> {
+    if (!jobId || !studentId) return null;
+
+    return await this.applicationModel
+      .findOne({
+        $or: [{ jobId: this.toObjectId(jobId) }, { jobId }],
+        $and: [{ $or: [{ studentId: this.toObjectId(studentId) }, { studentId }] }],
+      })
+      .populate({
+        path: 'studentId',
+        select: 'name email photo role',
+      })
+      .populate({
+        path: 'jobId',
+      })
+      .populate({
+        path: 'resumeId',
+      })
+      .exec();
+  }
+
+  async findByIdForJob(
+    jobId: string,
+    applicationId: string,
+  ): Promise<ApplicationSchemaDocument | null> {
+    if (!jobId || !applicationId) return null;
+
+    return await this.applicationModel
+      .findOne({
+        _id: this.toObjectId(applicationId),
+        $or: [{ jobId: this.toObjectId(jobId) }, { jobId }],
+      })
+      .populate({
+        path: 'studentId',
+        select: 'name email photo role',
+      })
+      .populate({
+        path: 'resumeId',
+      })
+      .exec();
+  }
+
+  async findByStudentAndJobIds(input: {
+    studentId: string;
+    jobIds: string[];
+  }): Promise<
+    Array<{
+      applicationId: string;
+      jobId: string;
+      status: ApplicationStatus;
+    }>
+  > {
+    if (!input.studentId || !input.jobIds.length) {
+      return [];
+    }
+
+    const uniqueJobIds = Array.from(new Set(input.jobIds)).map((jobId) =>
+      this.toObjectId(jobId),
+    );
+    const rows = await this.applicationModel
+      .find({
+        studentId: this.toObjectId(input.studentId),
+        jobId: { $in: uniqueJobIds },
+      })
+      .select('_id jobId status')
+      .lean()
+      .exec();
+
+    return rows.map((row) => ({
+      applicationId: row._id.toString(),
+      jobId: row.jobId.toString(),
+      status: row.status,
+    }));
+  }
+
+  async findAllByStudentId(options: {
+    studentId: string;
+    page: number;
+    size: number;
+    status?: ApplicationStatus;
+  }): Promise<{
+    applications: ApplicationSchemaDocument[];
+    total: number;
+  }> {
+    const { studentId, page, size, status } = options;
+    if (!studentId) {
+      return { applications: [], total: 0 };
+    }
+
+    const skip = (page - 1) * size;
+    const filter: Record<string, unknown> = {
+      studentId: this.toObjectId(studentId),
+    };
+
+    if (status) {
+      filter.status = status;
+    }
+
+    const [applications, total] = await Promise.all([
+      this.applicationModel
+        .find(filter)
+        .sort({ updatedAt: -1, _id: -1 })
+        .skip(skip)
+        .limit(size)
+        .populate({
+          path: 'jobId',
+        })
+        .populate({
+          path: 'resumeId',
+        })
+        .exec(),
+      this.applicationModel.countDocuments(filter).exec(),
+    ]);
+
+    return { applications, total };
+  }
+
+  async updateById(
+    id: string,
+    payload: Partial<ApplicationSchemaClass>,
+  ): Promise<ApplicationSchemaDocument | null> {
+    if (!id) return null;
+
+    return await this.applicationModel
+      .findByIdAndUpdate(id, payload, { new: true })
+      .populate({
+        path: 'studentId',
+        select: 'name email photo role',
+      })
+      .populate({
+        path: 'resumeId',
+      })
+      .exec();
   }
 
   async findJobIdsByStudentAndStatuses(input: {
@@ -105,6 +310,9 @@ export class ApplicationRepository implements ACApplicationRepository {
         .populate({
           path: 'studentId',
           select: 'name email photo role',
+        })
+        .populate({
+          path: 'resumeId',
         })
         .exec(),
       this.applicationModel.countDocuments(filter).exec(),
