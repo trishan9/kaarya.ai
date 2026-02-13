@@ -35,6 +35,19 @@ export const API_URLS = {
     RECRUITER_BY_ID: (id: string, recruiterId: string) =>
       `/companies/${id}/recruiters/${recruiterId}`,
   },
+  COLLEGE: {
+    LIST: "/colleges",
+    BY_ID: (id: string) => `/colleges/${id}`,
+    ME: "/colleges/me",
+    WORKSPACES_ME: "/colleges/workspaces/me",
+    JOIN_BY_CODE: "/colleges/join-by-code",
+    INVITE_CODE_RESET: (id: string) => `/colleges/${id}/invite-code/reset`,
+    INVITES: (id: string) => `/colleges/${id}/invites`,
+    STUDENTS: (id: string) => `/colleges/${id}/students`,
+    STUDENT_BY_ID: (id: string, studentId: string) =>
+      `/colleges/${id}/students/${studentId}`,
+    METRICS: (id: string) => `/colleges/${id}/metrics`,
+  },
   JOB: {
     LIST: "/jobs",
     BY_ID: (id: string) => `/jobs/${id}`,
@@ -50,5 +63,8 @@ export const API_URLS = {
       `/applications/jobs/${jobId}/${applicationId}`,
     APPLICATION_RESUME_ACTIVITY: (jobId: string, applicationId: string) =>
       `/applications/jobs/${jobId}/${applicationId}/resume-activity`,
+  },
+  LEADERBOARD: {
+    LIST: "/leaderboard",
   },
 };

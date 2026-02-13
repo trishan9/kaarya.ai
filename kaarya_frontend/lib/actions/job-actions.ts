@@ -10,7 +10,9 @@ export type JobListQuery = {
   feed?: TJobFeed;
   search?: string;
   status?: "open" | "closed" | "draft";
+  visibility?: "global" | "college_only";
   companyId?: string;
+  collegeId?: string;
   location?: string;
   employmentType?: string;
   engagementType?: string;
@@ -20,6 +22,8 @@ export type JobListQuery = {
 
 export type CreateJobPostingPayload = {
   companyId?: string;
+  collegeId?: string;
+  visibility?: "global" | "college_only";
   title: string;
   description: string;
   location?: string;
@@ -43,6 +47,7 @@ export type UpdateJobPostingPayload = {
   requirements?: Record<string, unknown>;
   deadline?: string;
   status?: "open" | "closed" | "draft";
+  visibility?: "global" | "college_only";
 };
 
 export type JobApplicationPayload = {
@@ -97,7 +102,9 @@ export async function getJobs(query?: JobListQuery) {
         feed: query?.feed,
         search: toTrimmedOrUndefined(query?.search),
         status: query?.status,
+        visibility: query?.visibility,
         companyId: query?.companyId,
+        collegeId: query?.collegeId,
         location: toTrimmedOrUndefined(query?.location),
         employmentType: toTrimmedOrUndefined(query?.employmentType),
         engagementType: toTrimmedOrUndefined(query?.engagementType),
@@ -134,6 +141,8 @@ export async function createJobPosting(payload: CreateJobPostingPayload) {
   try {
     const response = await api.post(API_URLS.JOB.LIST, {
       companyId: payload.companyId,
+      collegeId: payload.collegeId,
+      visibility: payload.visibility,
       title: payload.title.trim(),
       description: payload.description.trim(),
       location: toTrimmedOrUndefined(payload.location),
@@ -174,6 +183,7 @@ export async function updateJobPosting(
       requirements: payload.requirements,
       deadline: payload.deadline,
       status: payload.status,
+      visibility: payload.visibility,
     });
     return response.data;
   } catch (error: Error | any) {
