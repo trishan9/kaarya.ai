@@ -8,10 +8,13 @@ import { JobPostingService } from 'src/services/job-posting.service';
 import { CompanyService } from 'src/services/company.service';
 import { RecruiterProfileService } from 'src/services/recruiter-profile.service';
 import { ACApplicationRepository } from 'src/repositories/application.repository';
+import { ACCollegeRepository } from 'src/repositories/college.repository';
 import { ACCompanyRepository } from 'src/repositories/company.repository';
 import { ACJobPostingRepository } from 'src/repositories/job-posting.repository';
 import { ACResumeRepository } from 'src/repositories/resume.repository';
+import { CollegeService } from 'src/services/college.service';
 import { EmailService } from 'src/services/email.service';
+import { StudentService } from 'src/services/student.service';
 import { ApplicationStatus } from 'src/types/application-status.enum';
 import { JobFeedFilter } from 'src/types/job-feed-filter.enum';
 import { JobPostingStatus } from 'src/types/job-posting-status.enum';
@@ -23,8 +26,11 @@ describe('JobPostingService', () => {
   let jobPostingRepository: jest.Mocked<ACJobPostingRepository>;
   let applicationRepository: jest.Mocked<ACApplicationRepository>;
   let resumeRepository: jest.Mocked<ACResumeRepository>;
+  let collegeRepository: jest.Mocked<ACCollegeRepository>;
   let companyRepository: jest.Mocked<ACCompanyRepository>;
+  let collegeService: jest.Mocked<CollegeService>;
   let companyService: jest.Mocked<CompanyService>;
+  let studentService: jest.Mocked<StudentService>;
   let recruiterProfileService: jest.Mocked<RecruiterProfileService>;
   let emailService: jest.Mocked<EmailService>;
 
@@ -63,6 +69,7 @@ describe('JobPostingService', () => {
     applicationRepository = {
       create: jest.fn(),
       findJobIdsByStudentAndStatuses: jest.fn(),
+      findByStudentAndJobIds: jest.fn(),
       countByJobId: jest.fn(),
       findAllByJobId: jest.fn(),
     } as unknown as jest.Mocked<ACApplicationRepository>;
@@ -74,6 +81,17 @@ describe('JobPostingService', () => {
       findAllByStudentId: jest.fn(),
     } as unknown as jest.Mocked<ACResumeRepository>;
 
+    collegeRepository = {
+      create: jest.fn(),
+      findById: jest.fn(),
+      findByInviteCode: jest.fn(),
+      findByIds: jest.fn(),
+      findFirstByCreatedBy: jest.fn(),
+      updateById: jest.fn(),
+      deleteById: jest.fn(),
+      findAll: jest.fn(),
+    } as unknown as jest.Mocked<ACCollegeRepository>;
+
     companyRepository = {
       create: jest.fn(),
       findById: jest.fn(),
@@ -84,9 +102,23 @@ describe('JobPostingService', () => {
       findAll: jest.fn(),
     } as unknown as jest.Mocked<ACCompanyRepository>;
 
+    applicationRepository.findByStudentAndJobIds.mockResolvedValue([] as never);
+    companyRepository.findByIds.mockResolvedValue([] as never);
+
+    collegeService = {
+      getCollegeByIdRaw: jest.fn(),
+      assertCanManageCollege: jest.fn(),
+      getMyCollege: jest.fn(),
+    } as unknown as jest.Mocked<CollegeService>;
+
     companyService = {
       getCompanyByIdRaw: jest.fn(),
     } as unknown as jest.Mocked<CompanyService>;
+
+    studentService = {
+      assertStudentMembership: jest.fn(),
+      listStudentCollegeIds: jest.fn(),
+    } as unknown as jest.Mocked<StudentService>;
 
     recruiterProfileService = {
       resolveWritableCompanyIdForRecruiter: jest.fn(),
@@ -101,8 +133,11 @@ describe('JobPostingService', () => {
       jobPostingRepository,
       applicationRepository,
       resumeRepository,
+      collegeRepository,
       companyRepository,
+      collegeService,
       companyService,
+      studentService,
       recruiterProfileService,
       emailService,
     );
