@@ -22,6 +22,8 @@ export const signinSchema = z.object({
 
 export type TSigninSchema = z.infer<typeof signinSchema>;
 
+const signupRoleSchema = z.enum(["user", "recruiter"]);
+
 export const signupSchema = z
   .object({
     firstName: z
@@ -35,12 +37,30 @@ export const signupSchema = z
     email: z
       .email("Email address must be valid.")
       .min(1, "Email address can't be empty."),
+    role: signupRoleSchema,
     password: strongPasswordSchema,
     confirmPassword: strongPasswordSchema,
+    companyName: z.string().trim().optional(),
+    companyIndustry: z.string().trim().optional(),
+    companyLocation: z.string().trim().optional(),
+    designation: z.string().trim().optional(),
   })
-  .refine((value) => value.password === value.confirmPassword, {
-    path: ["confirmPassword"],
-    message: "Please make sure your passwords match.",
+  .superRefine((value, context) => {
+    if (value.password !== value.confirmPassword) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["confirmPassword"],
+        message: "Please make sure your passwords match.",
+      });
+    }
+
+    if (value.role === "recruiter" && !value.companyName?.trim()) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["companyName"],
+        message: "Company name is required for recruiter signup.",
+      });
+    }
   });
 
 export type TSignupSchema = z.infer<typeof signupSchema>;
