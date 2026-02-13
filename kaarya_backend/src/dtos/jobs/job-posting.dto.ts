@@ -1,6 +1,5 @@
 import z from 'zod';
 import { ObjectIdDTO } from 'src/dtos/companies/company.dto';
-import { ApplicationStatus } from 'src/types/application-status.enum';
 import { JobFeedFilter } from 'src/types/job-feed-filter.enum';
 import { JobPostingStatus } from 'src/types/job-posting-status.enum';
 import { JobWorkMode } from 'src/types/job-work-mode.enum';
@@ -109,15 +108,8 @@ export const JobMetricsQueryDTO = z.object({
   }, z.boolean().default(true)),
 });
 
-export const JobApplicationsQueryDTO = z.object({
-  page: z.coerce.number().int().min(1).default(1),
-  size: z.coerce.number().int().min(1).max(100).default(10),
-  status: z.nativeEnum(ApplicationStatus).optional(),
-});
-
 export type TCreateJobPostingDTO = z.infer<typeof CreateJobPostingDTO>;
 export type TUpdateJobPostingDTO = z.infer<typeof UpdateJobPostingDTO>;
 export type TJobPostingQueryDTO = z.infer<typeof JobPostingQueryDTO>;
 export type TJobPostingIdParamDTO = z.infer<typeof JobPostingIdParamDTO>;
 export type TJobMetricsQueryDTO = z.infer<typeof JobMetricsQueryDTO>;
-export type TJobApplicationsQueryDTO = z.infer<typeof JobApplicationsQueryDTO>;
