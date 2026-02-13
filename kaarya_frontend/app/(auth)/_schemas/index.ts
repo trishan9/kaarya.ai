@@ -22,7 +22,7 @@ export const signinSchema = z.object({
 
 export type TSigninSchema = z.infer<typeof signinSchema>;
 
-const signupRoleSchema = z.enum(["user", "recruiter"]);
+const signupRoleSchema = z.enum(["user", "recruiter", "college"]);
 
 export const signupSchema = z
   .object({
@@ -44,6 +44,9 @@ export const signupSchema = z
     companyIndustry: z.string().trim().optional(),
     companyLocation: z.string().trim().optional(),
     designation: z.string().trim().optional(),
+    collegeName: z.string().trim().optional(),
+    collegeInstitutionType: z.string().trim().optional(),
+    collegeLocation: z.string().trim().optional(),
   })
   .superRefine((value, context) => {
     if (value.password !== value.confirmPassword) {
@@ -59,6 +62,14 @@ export const signupSchema = z
         code: z.ZodIssueCode.custom,
         path: ["companyName"],
         message: "Company name is required for recruiter signup.",
+      });
+    }
+
+    if (value.role === "college" && !value.collegeName?.trim()) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["collegeName"],
+        message: "College name is required for college signup.",
       });
     }
   });

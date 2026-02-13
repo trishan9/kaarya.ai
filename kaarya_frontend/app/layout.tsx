@@ -1,40 +1,7 @@
 import type { Metadata } from "next";
-import {
-  DM_Sans,
-  Geist_Mono,
-  Inter,
-  Outfit,
-  Space_Grotesk,
-  Work_Sans,
-} from "next/font/google";
-import localFont from "next/font/local";
+import { Geist_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import ToastProvider from "@/components/providers/toast-provider";
-
-const generalSans = localFont({
-  src: [
-    {
-      path: "../assets/fonts/GeneralSans-Extralight.otf",
-      weight: "200",
-      style: "normal",
-    },
-    {
-      path: "../assets/fonts/GeneralSans-Light.otf",
-      weight: "300",
-      style: "normal",
-    },
-    {
-      path: "../assets/fonts/GeneralSans-Regular.otf",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../assets/fonts/GeneralSans-Medium.otf",
-      weight: "500",
-      style: "normal",
-    },
-  ],
-});
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-grotesk",
@@ -57,7 +24,7 @@ export default function RootLayout({
   modal,
 }: Readonly<{
   children: React.ReactNode;
-  modal: React.ReactNode;
+  modal?: React.ReactNode;
 }>) {
   return (
     <html lang="en">
@@ -65,7 +32,7 @@ export default function RootLayout({
         className={`${spaceGrotesk.className} ${spaceGrotesk.variable} ${geistMono.variable} antialiased`}
       >
         {children}
-        {modal}
+        {modal ?? null}
         <ToastProvider />
       </body>
     </html>

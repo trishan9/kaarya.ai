@@ -4,6 +4,12 @@ import * as React from "react";
 import { MapContainer, TileLayer, CircleMarker, useMapEvents } from "react-leaflet";
 
 type LatLngTuple = [number, number];
+type MapClickEvent = {
+  latlng: {
+    lat: number;
+    lng: number;
+  };
+};
 
 type LocationMapCanvasProps = {
   center: LatLngTuple;
@@ -17,7 +23,7 @@ function ClickHandler({
   onPickLocation: (coords: LatLngTuple) => void;
 }) {
   useMapEvents({
-    click(event) {
+    click(event: MapClickEvent) {
       onPickLocation([event.latlng.lat, event.latlng.lng]);
     },
   });

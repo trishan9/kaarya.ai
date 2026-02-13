@@ -5,7 +5,11 @@ import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signup, signupRecruiterWithCompany } from "@/lib/actions/auth-action";
+import {
+  signup,
+  signupCollegeWithWorkspace,
+  signupRecruiterWithCompany,
+} from "@/lib/actions/auth-action";
 import { createSession } from "@/lib/session";
 import { signupSchema, TSignupSchema } from "../_schemas";
 
@@ -26,6 +30,9 @@ export const useSignUp = () => {
       companyIndustry: "",
       companyLocation: "",
       designation: "",
+      collegeName: "",
+      collegeInstitutionType: "",
+      collegeLocation: "",
     },
   });
 
@@ -35,6 +42,8 @@ export const useSignUp = () => {
         const response =
           data.role === "recruiter"
             ? await signupRecruiterWithCompany(data)
+            : data.role === "college"
+              ? await signupCollegeWithWorkspace(data)
             : await signup(data);
 
         if (!response?.success) {
@@ -42,20 +51,21 @@ export const useSignUp = () => {
           return;
         }
 
-        if (data.role === "recruiter") {
+        if (data.role === "recruiter" || data.role === "college") {
           const accessToken = response?.data?.accessToken;
-          const companyId = response?.data?.company?.id;
+          const workspaceId =
+            response?.data?.company?.id ?? response?.data?.college?.id;
 
           if (!accessToken) {
-            toast.error("Recruiter created, but session could not be created.");
+            toast.error("Workspace created, but session could not be created.");
             router.push("/sign-in");
             return;
           }
 
           await createSession(accessToken);
-          toast.success(response?.message || "Recruiter workspace is ready.");
+          toast.success(response?.message || "Workspace is ready.");
           router.replace(
-            companyId ? `/overview?workspace=${companyId}` : "/overview",
+            workspaceId ? `/overview?workspace=${workspaceId}` : "/overview",
           );
           router.refresh();
           return;

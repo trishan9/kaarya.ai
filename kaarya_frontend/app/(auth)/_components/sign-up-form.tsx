@@ -21,6 +21,7 @@ export function SignupForm() {
   const { form, isSubmitting, onSubmit } = useSignUp();
   const role = form.watch("role");
   const isRecruiter = role === "recruiter";
+  const isCollege = role === "college";
 
   const handleOAuthSignup = (provider: "google" | "github") => {
     if (!API_URLS.BASE) return;
@@ -43,16 +44,24 @@ export function SignupForm() {
         <Field>
           <FieldLabel>Sign up as</FieldLabel>
           <Tabs
-            value={role === "recruiter" ? "recruiter" : "user"}
+            value={
+              role === "recruiter" || role === "college" ? role : "user"
+            }
             onValueChange={(nextRole) =>
-              form.setValue("role", nextRole === "recruiter" ? "recruiter" : "user", {
-                shouldValidate: true,
-                shouldDirty: true,
-              })
+              form.setValue(
+                "role",
+                nextRole === "recruiter" || nextRole === "college"
+                  ? nextRole
+                  : "user",
+                {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                },
+              )
             }
             className="w-full"
           >
-            <TabsList className="grid h-9 w-full grid-cols-2 rounded-lg bg-muted/70 p-1">
+            <TabsList className="grid h-9 w-full grid-cols-3 rounded-lg bg-muted/70 p-1">
               <TabsTrigger value="user" className="h-7 rounded-md px-3 text-xs">
                 Candidate
               </TabsTrigger>
@@ -62,10 +71,17 @@ export function SignupForm() {
               >
                 Recruiter
               </TabsTrigger>
+              <TabsTrigger value="college" className="h-7 rounded-md px-3 text-xs">
+                College
+              </TabsTrigger>
             </TabsList>
           </Tabs>
           <FieldDescription>
-            Recruiter signup will also create your first company workspace.
+            {isRecruiter
+              ? "Recruiter signup will also create your first company workspace."
+              : isCollege
+                ? "College signup will also create your college workspace."
+                : "Candidate signup creates your personal account."}
           </FieldDescription>
         </Field>
 
@@ -219,6 +235,72 @@ export function SignupForm() {
               )}
             />
           </>
+        ) : isCollege ? (
+          <>
+            <Controller
+              name="collegeName"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field>
+                  <FieldLabel htmlFor="collegeName">College Name</FieldLabel>
+                  <Input
+                    {...field}
+                    id="collegeName"
+                    type="text"
+                    aria-invalid={fieldState.invalid}
+                    placeholder="Softwarica College of IT"
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+
+            <div className="flex gap-4">
+              <Controller
+                name="collegeInstitutionType"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field>
+                    <FieldLabel htmlFor="collegeInstitutionType">
+                      Institution Type
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      id="collegeInstitutionType"
+                      type="text"
+                      aria-invalid={fieldState.invalid}
+                      placeholder="Engineering College"
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+
+              <Controller
+                name="collegeLocation"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field>
+                    <FieldLabel htmlFor="collegeLocation">Location</FieldLabel>
+                    <Input
+                      {...field}
+                      id="collegeLocation"
+                      type="text"
+                      aria-invalid={fieldState.invalid}
+                      placeholder="Kathmandu, Nepal"
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+            </div>
+          </>
         ) : null}
 
         <Controller
@@ -265,14 +347,18 @@ export function SignupForm() {
             {isSubmitting
               ? isRecruiter
                 ? "Creating recruiter workspace..."
+                : isCollege
+                  ? "Creating college workspace..."
                 : "Creating your account..."
               : isRecruiter
                 ? "Create Recruiter Workspace"
+                : isCollege
+                  ? "Create College Workspace"
                 : "Sign Up"}
           </Button>
         </Field>
 
-        {isRecruiter ? null : (
+        {isRecruiter || isCollege ? null : (
           <>
             <FieldSeparator>Or</FieldSeparator>
 
