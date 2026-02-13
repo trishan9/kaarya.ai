@@ -3,18 +3,25 @@
 import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Controller, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import {
+  Check,
   ChevronDown,
+  ChevronsUpDown,
   Loader2,
   LogOut,
   Moon,
+  Plus,
   Search,
   Sun,
   Wallet,
+  Workflow,
 } from "lucide-react";
 
-import { sidebarNavGroups } from "../_config/sidebar-items";
+import { getSidebarNavGroups } from "../_config/sidebar-items";
 import { cn } from "@/lib/utils";
 import {
   Sidebar,
@@ -35,6 +42,20 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -54,15 +75,76 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { TUser } from "@/lib/definitions";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Role, TRecruiterWorkspace, TUser } from "@/lib/definitions";
 import { useLogOut } from "@/app/(auth)/_hooks/use-log-out";
+import { createCompany, joinCompanyByCode } from "@/lib/actions/company-actions";
+import { LocationPicker } from "@/components/location/location-picker";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  createCompanyWorkspaceSchema,
+  joinWorkspaceByCodeSchema,
+  TCreateCompanyWorkspaceSchema,
+  TJoinWorkspaceByCodeSchema,
+} from "../company-settings/_schemas";
 
 type AppSidebarProps = {
   user: TUser | null;
+  recruiterWorkspaces?: TRecruiterWorkspace[];
 };
 
-export function AppSidebar({ user }: AppSidebarProps) {
+const workspaceScopedPrefixes = [
+  "/overview",
+  "/jobs",
+  "/company-settings",
+  "/inbox",
+];
+
+const industryOptions = [
+  "Technology",
+  "Finance",
+  "Healthcare",
+  "Education",
+  "E-commerce",
+  "Manufacturing",
+  "Consulting",
+  "Media",
+  "Telecommunications",
+  "Government",
+];
+
+const workspaceInitials = (name?: string | null) => {
+  const parts = (name ?? "Workspace")
+    .split(" ")
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const initials = parts
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+  return initials || "WS";
+};
+
+const routeMatches = (pathname: string, href: string) =>
+  pathname === href || pathname.startsWith(`${href}/`);
+
+export function AppSidebar({
+  user,
+  recruiterWorkspaces = [],
+}: AppSidebarProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { open } = useSidebar();
   const { onLogOut, isLoggingOut } = useLogOut();
@@ -70,6 +152,19 @@ export function AppSidebar({ user }: AppSidebarProps) {
   const [theme, setTheme] = React.useState<"light" | "dark">("light");
   const [profileOpen, setProfileOpen] = React.useState(false);
   const [logoutOpen, setLogoutOpen] = React.useState(false);
+  const [createWorkspaceOpen, setCreateWorkspaceOpen] = React.useState(false);
+  const [isCreatingWorkspace, startCreateWorkspace] = React.useTransition();
+  const [isJoiningWorkspace, startJoinWorkspace] = React.useTransition();
+  const [workspaceOptions, setWorkspaceOptions] = React.useState<
+    TRecruiterWorkspace[]
+  >(recruiterWorkspaces);
+
+  const isRecruiter = user?.role === Role.RECRUITER;
+  const sidebarNavGroups = React.useMemo(
+    () => getSidebarNavGroups(user?.role),
+    [user?.role],
+  );
+
   const [groupOpen, setGroupOpen] = React.useState<Record<string, boolean>>(
     () =>
       sidebarNavGroups.reduce<Record<string, boolean>>((acc, group) => {
@@ -78,22 +173,233 @@ export function AppSidebar({ user }: AppSidebarProps) {
       }, {}),
   );
 
+  React.useEffect(() => {
+    setWorkspaceOptions(recruiterWorkspaces);
+  }, [recruiterWorkspaces]);
+
+  const activeWorkspaceIdFromQuery = searchParams.get("workspace");
+  const activeWorkspace =
+    workspaceOptions.find(
+      (workspace) => workspace.company.id === activeWorkspaceIdFromQuery,
+    ) ?? workspaceOptions[0];
+
+  const activeWorkspaceId = activeWorkspace?.company.id ?? null;
+
+  const withWorkspace = React.useCallback(
+    (href: string) => {
+      if (!isRecruiter || !activeWorkspaceId) return href;
+      if (!workspaceScopedPrefixes.some((prefix) => href.startsWith(prefix))) {
+        return href;
+      }
+
+      const url = new URL(href, "http://kaarya.local");
+      if (!url.searchParams.has("workspace")) {
+        url.searchParams.set("workspace", activeWorkspaceId);
+      }
+
+      return `${url.pathname}${url.search}`;
+    },
+    [activeWorkspaceId, isRecruiter],
+  );
+
+  const workspaceSwitchHref = React.useCallback(
+    (workspaceId: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("workspace", workspaceId);
+      const query = params.toString();
+      return `${pathname}${query ? `?${query}` : ""}`;
+    },
+    [pathname, searchParams],
+  );
+
   const handleSearch = React.useCallback(() => {
     const query = searchQuery.trim();
     if (!query) return;
-    router.push(`/search?query=${encodeURIComponent(query)}`);
-  }, [router, searchQuery]);
+    router.push(withWorkspace(`/jobs?search=${encodeURIComponent(query)}`));
+  }, [router, searchQuery, withWorkspace]);
 
   const handleGroupToggle = React.useCallback((label: string) => {
     setGroupOpen((prev) => ({ ...prev, [label]: !prev[label] }));
   }, []);
 
-  React.useEffect(() => {
-    const currentTheme = document.documentElement.classList.contains("dark")
-      ? "dark"
-      : "light";
-    setTheme(currentTheme);
-  }, []);
+  const createWorkspaceForm = useForm<TCreateCompanyWorkspaceSchema>({
+    resolver: zodResolver(createCompanyWorkspaceSchema),
+    defaultValues: {
+      name: "",
+      industry: "",
+      location: "",
+      designation: "",
+    },
+  });
+  const joinWorkspaceForm = useForm<TJoinWorkspaceByCodeSchema>({
+    resolver: zodResolver(joinWorkspaceByCodeSchema),
+    defaultValues: {
+      inviteCode: "",
+      designation: "",
+    },
+  });
+
+  const getActiveHref = React.useCallback(
+    (hrefs: string[]) => {
+      const matches = hrefs.filter((href) => routeMatches(pathname, href));
+      if (matches.length === 0) return null;
+      return matches.sort((a, b) => b.length - a.length)[0];
+    },
+    [pathname],
+  );
+
+  const onCreateWorkspace = React.useCallback(
+    (values: TCreateCompanyWorkspaceSchema) => {
+      startCreateWorkspace(async () => {
+        const response = await createCompany({
+          name: values.name,
+          industry: values.industry,
+          location: values.location,
+          designation: values.designation,
+        });
+
+        if (!response?.success) {
+          toast.error(response?.message || "Failed to create company workspace.");
+          return;
+        }
+
+        const workspaceId = (response?.data?.id ??
+          response?.data?.company?.id) as string | undefined;
+        const workspaceName = (response?.data?.name ??
+          response?.data?.company?.name) as string | undefined;
+        const workspaceLogo =
+          (response?.data?.logo as string | null | undefined) ??
+          (response?.data?.company?.logo as string | null | undefined) ??
+          null;
+        const membershipId =
+          (response?.data?.membershipId as string | undefined) ??
+          `workspace-${workspaceId ?? crypto.randomUUID()}`;
+        const joinedAt =
+          (response?.data?.joinedAt as string | undefined) ??
+          new Date().toISOString();
+
+        if (workspaceId) {
+          setWorkspaceOptions((current) => {
+            if (current.some((workspace) => workspace.company.id === workspaceId)) {
+              return current;
+            }
+
+            const optimisticWorkspace: TRecruiterWorkspace = {
+              company: {
+                id: workspaceId,
+                name: workspaceName ?? values.name,
+                logo: workspaceLogo,
+              },
+              membershipId,
+              designation:
+                (response?.data?.designation as string | null | undefined) ??
+                (values.designation?.trim() || "Recruiter"),
+              joinedAt,
+            };
+
+            return [optimisticWorkspace, ...current];
+          });
+        }
+
+        toast.success(response?.message || "Company workspace created.");
+        setCreateWorkspaceOpen(false);
+        createWorkspaceForm.reset();
+
+        if (workspaceId) {
+          router.push(workspaceSwitchHref(workspaceId));
+        }
+        router.refresh();
+      });
+    },
+    [createWorkspaceForm, router, workspaceSwitchHref],
+  );
+
+  const onJoinWorkspace = React.useCallback(
+    (values: TJoinWorkspaceByCodeSchema) => {
+      startJoinWorkspace(async () => {
+        const response = await joinCompanyByCode({
+          inviteCode: values.inviteCode,
+          designation: values.designation,
+        });
+
+        if (!response?.success) {
+          toast.error(response?.message || "Failed to join workspace.");
+          return;
+        }
+
+        const workspaceId = (response?.data?.workspace?.id as string | undefined) ?? null;
+        const workspaceName = (response?.data?.workspace?.name as string | undefined) ?? null;
+        const workspaceLogo =
+          (response?.data?.workspace?.logo as string | null | undefined) ?? null;
+        const workspaceInviteCode =
+          (response?.data?.workspace?.inviteCode as string | null | undefined) ??
+          values.inviteCode.trim().toUpperCase();
+        const membershipId =
+          (response?.data?.member?.id as string | undefined) ??
+          (response?.data?.member?._id as string | undefined) ??
+          `workspace-${workspaceId ?? crypto.randomUUID()}`;
+        const designation =
+          (response?.data?.member?.designation as string | null | undefined) ??
+          (values.designation?.trim() || "Recruiter");
+        const joinedAt =
+          (response?.data?.member?.createdAt as string | undefined) ??
+          new Date().toISOString();
+
+        if (workspaceId) {
+          setWorkspaceOptions((current) => {
+            const existingIndex = current.findIndex(
+              (workspace) => workspace.company.id === workspaceId,
+            );
+            const nextWorkspace: TRecruiterWorkspace = {
+              company: {
+                id: workspaceId,
+                name: workspaceName ?? "Company Workspace",
+                logo: workspaceLogo,
+                inviteCode: workspaceInviteCode,
+              },
+              membershipId,
+              designation,
+              joinedAt,
+            };
+
+            if (existingIndex === -1) {
+              return [nextWorkspace, ...current];
+            }
+
+            const next = [...current];
+            next[existingIndex] = {
+              ...next[existingIndex],
+              ...nextWorkspace,
+            };
+            return next;
+          });
+        }
+
+        toast.success(response?.message || "Joined company workspace.");
+        setCreateWorkspaceOpen(false);
+        joinWorkspaceForm.reset();
+
+        if (workspaceId) {
+          router.push(`/overview?workspace=${workspaceId}`);
+        } else {
+          router.push("/overview");
+        }
+        router.refresh();
+      });
+    },
+    [joinWorkspaceForm, router],
+  );
+
+  const handleCreateWorkspaceModalChange = React.useCallback(
+    (openState: boolean) => {
+      setCreateWorkspaceOpen(openState);
+      if (!openState) {
+        createWorkspaceForm.reset();
+        joinWorkspaceForm.reset();
+      }
+    },
+    [createWorkspaceForm, joinWorkspaceForm],
+  );
 
   return (
     <Sidebar
@@ -121,7 +427,9 @@ export function AppSidebar({ user }: AppSidebarProps) {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Quick search..."
+                placeholder={
+                  isRecruiter ? "Search company jobs..." : "Quick search..."
+                }
                 className="h-9 rounded-lg border-sidebar-border bg-white pl-9 text-sm"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
@@ -174,80 +482,194 @@ export function AppSidebar({ user }: AppSidebarProps) {
           )}
         </div>
 
-        {sidebarNavGroups.map((group, index) => (
-          <SidebarGroup
-            key={group.label}
-            className="group-data-[state=collapsed]/sidebar:gap-1.5"
-          >
-            {index > 0 && open ? <Separator className="my-2" /> : null}
+        {isRecruiter ? (
+          <SidebarGroup className="group-data-[state=collapsed]/sidebar:gap-1.5">
             <div className="flex items-center justify-between px-3 group-data-[state=collapsed]/sidebar:hidden">
-              <SidebarGroupLabel className="px-0">
-                {group.label}
-              </SidebarGroupLabel>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => handleGroupToggle(group.label)}
-                className="h-7 w-7 rounded-md text-muted-foreground group-data-[state=collapsed]/sidebar:hidden"
-                aria-pressed={groupOpen[group.label]}
-              >
-                <ChevronDown
-                  className={cn(
-                    "h-4 w-4 transition-transform",
-                    groupOpen[group.label] ? "rotate-0" : "-rotate-90",
-                  )}
-                />
-                <span className="sr-only">Toggle {group.label} navigation</span>
-              </Button>
+              <SidebarGroupLabel className="px-0">Workspaces</SidebarGroupLabel>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    className="h-7 w-7 rounded-md text-muted-foreground"
+                    onClick={() => setCreateWorkspaceOpen(true)}
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span className="sr-only">Create or join workspace</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right" sideOffset={8}>
+                  Create or join workspace
+                </TooltipContent>
+              </Tooltip>
             </div>
-            {groupOpen[group.label] ? (
-              <SidebarGroupContent>
-                <SidebarMenu className="group-data-[state=collapsed]/sidebar:items-center group-data-[state=collapsed]/sidebar:justify-center">
-                  {group.items.map((item) => {
-                    const isActive =
-                      pathname === item.href || pathname.startsWith(item.href);
-                    const Icon = item.icon;
-
-                    const menuButton = (
-                      <SidebarMenuButton
-                        asChild
-                        isActive={isActive}
-                        className="group-data-[state=collapsed]/sidebar:h-9 group-data-[state=collapsed]/sidebar:w-9"
+            <SidebarGroupContent>
+              {open ? (
+                <div className="space-y-2 px-1">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="h-10 w-full justify-between rounded-lg border-[#d8dde4] bg-white px-3 text-sm"
                       >
-                        <Link
-                          href={item.href}
-                          className="flex w-full items-center"
-                        >
-                          <Icon className="h-4 w-4" />
-                          <span className="truncate group-data-[state=collapsed]/sidebar:hidden">
-                            {item.label}
+                        <span className="flex min-w-0 items-center gap-2">
+                          <Avatar className="h-6 w-6 rounded-md">
+                            <AvatarImage
+                              src={activeWorkspace?.company.logo ?? ""}
+                              alt={activeWorkspace?.company.name ?? "Workspace"}
+                            />
+                            <AvatarFallback className="rounded-md bg-primary/10 text-[10px] font-semibold text-primary">
+                              {workspaceInitials(activeWorkspace?.company.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="truncate">
+                            {activeWorkspace?.company.name ?? "Select workspace"}
                           </span>
-                        </Link>
-                      </SidebarMenuButton>
-                    );
-
-                    return (
-                      <SidebarMenuItem key={item.label}>
-                        {open ? (
-                          menuButton
-                        ) : (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              {menuButton}
-                            </TooltipTrigger>
-                            <TooltipContent side="right" sideOffset={8}>
-                              {item.label}
-                            </TooltipContent>
-                          </Tooltip>
-                        )}
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            ) : null}
+                        </span>
+                        <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-64">
+                      {workspaceOptions.length === 0 ? (
+                        <DropdownMenuItem disabled>
+                          No workspaces yet. Create one.
+                        </DropdownMenuItem>
+                      ) : null}
+                      {workspaceOptions.map((workspace) => {
+                        const isActiveWorkspace =
+                          workspace.company.id === activeWorkspaceId;
+                        return (
+                          <DropdownMenuItem key={workspace.membershipId} asChild>
+                            <Link
+                              href={workspaceSwitchHref(workspace.company.id)}
+                              className="flex w-full items-center justify-between gap-2"
+                            >
+                              <div className="flex min-w-0 items-center gap-2">
+                                <Avatar className="h-7 w-7 rounded-md">
+                                  <AvatarImage
+                                    src={workspace.company.logo ?? ""}
+                                    alt={workspace.company.name ?? "Workspace"}
+                                  />
+                                  <AvatarFallback className="rounded-md bg-primary/10 text-[10px] font-semibold text-primary">
+                                    {workspaceInitials(workspace.company.name)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex min-w-0 flex-col">
+                                  <span className="truncate font-medium">
+                                    {workspace.company.name ?? "Untitled company"}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {workspace.designation ?? "Recruiter"}
+                                  </span>
+                                </div>
+                              </div>
+                              {isActiveWorkspace ? (
+                                <Check className="h-4 w-4 text-primary" />
+                              ) : null}
+                            </Link>
+                          </DropdownMenuItem>
+                        );
+                      })}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              ) : (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="mx-auto h-9 w-9 rounded-lg"
+                      onClick={() => setCreateWorkspaceOpen(true)}
+                    >
+                      <Plus className="h-4 w-4" />
+                      <span className="sr-only">Create or join workspace</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" sideOffset={8}>
+                    Create or join workspace
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </SidebarGroupContent>
           </SidebarGroup>
-        ))}
+        ) : null}
+
+        {sidebarNavGroups.map((group, index) => {
+          const activeHref = getActiveHref(group.items.map((item) => item.href));
+
+          return (
+            <SidebarGroup
+              key={group.label}
+              className="group-data-[state=collapsed]/sidebar:gap-1.5"
+            >
+              {index > 0 && open ? <Separator className="my-2" /> : null}
+              <div className="flex items-center justify-between px-3 group-data-[state=collapsed]/sidebar:hidden">
+                <SidebarGroupLabel className="px-0">
+                  {group.label}
+                </SidebarGroupLabel>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => handleGroupToggle(group.label)}
+                  className="h-7 w-7 rounded-md text-muted-foreground group-data-[state=collapsed]/sidebar:hidden"
+                  aria-pressed={groupOpen[group.label] ?? true}
+                >
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 transition-transform",
+                      groupOpen[group.label] ?? true ? "rotate-0" : "-rotate-90",
+                    )}
+                  />
+                  <span className="sr-only">Toggle {group.label} navigation</span>
+                </Button>
+              </div>
+              {groupOpen[group.label] ?? true ? (
+                <SidebarGroupContent>
+                  <SidebarMenu className="group-data-[state=collapsed]/sidebar:items-center group-data-[state=collapsed]/sidebar:justify-center">
+                    {group.items.map((item) => {
+                      const resolvedHref = withWorkspace(item.href);
+                      const isActive = item.href === activeHref;
+                      const Icon = item.icon;
+
+                      const menuButton = (
+                        <SidebarMenuButton
+                          asChild
+                          isActive={isActive}
+                          className="group-data-[state=collapsed]/sidebar:h-9 group-data-[state=collapsed]/sidebar:w-9"
+                        >
+                          <Link href={resolvedHref} className="flex w-full items-center">
+                            <Icon className="h-4 w-4" />
+                            <span className="truncate group-data-[state=collapsed]/sidebar:hidden">
+                              {item.label}
+                            </span>
+                          </Link>
+                        </SidebarMenuButton>
+                      );
+
+                      return (
+                        <SidebarMenuItem key={item.label}>
+                          {open ? (
+                            menuButton
+                          ) : (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                {menuButton}
+                              </TooltipTrigger>
+                              <TooltipContent side="right" sideOffset={8}>
+                                {item.label}
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                        </SidebarMenuItem>
+                      );
+                    })}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              ) : null}
+            </SidebarGroup>
+          );
+        })}
       </SidebarContent>
 
       <SidebarFooter className="space-y-3 pt-4 group-data-[state=collapsed]/sidebar:space-y-2">
@@ -282,7 +704,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
                 variant="secondary"
                 className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
               >
-                Free
+                {isRecruiter ? "Recruiter" : "Free"}
               </Badge>
               <Popover open={profileOpen} onOpenChange={setProfileOpen}>
                 <PopoverTrigger asChild>
@@ -429,6 +851,190 @@ export function AppSidebar({ user }: AppSidebarProps) {
           </>
         )}
       </SidebarFooter>
+
+      <Dialog
+        open={createWorkspaceOpen}
+        onOpenChange={handleCreateWorkspaceModalChange}
+      >
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Create or Join Workspace</DialogTitle>
+            <DialogDescription>
+              Create a new company workspace or join an existing one via invite code.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Tabs defaultValue="create" className="pt-2">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="create">Create Workspace</TabsTrigger>
+              <TabsTrigger value="join">Join By Code</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="create">
+              <form
+                onSubmit={createWorkspaceForm.handleSubmit(onCreateWorkspace)}
+                className="pt-2"
+              >
+                <FieldGroup>
+                  <Controller
+                    name="name"
+                    control={createWorkspaceForm.control}
+                    render={({ field, fieldState }) => (
+                      <Field>
+                        <FieldLabel htmlFor="newWorkspaceName">Company Name</FieldLabel>
+                        <Input
+                          {...field}
+                          id="newWorkspaceName"
+                          placeholder="Kaarya AI"
+                          aria-invalid={fieldState.invalid}
+                        />
+                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      </Field>
+                    )}
+                  />
+
+                  <Controller
+                    name="industry"
+                    control={createWorkspaceForm.control}
+                    render={({ field, fieldState }) => (
+                      <Field>
+                        <FieldLabel htmlFor="newWorkspaceIndustry">Industry</FieldLabel>
+                        <Select
+                          value={field.value || ""}
+                          onValueChange={(nextValue) => field.onChange(nextValue)}
+                        >
+                          <SelectTrigger
+                            id="newWorkspaceIndustry"
+                            className="w-full"
+                            aria-invalid={fieldState.invalid}
+                          >
+                            <SelectValue placeholder="Select industry" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {industryOptions.map((option) => (
+                              <SelectItem key={option} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      </Field>
+                    )}
+                  />
+
+                  <Controller
+                    name="location"
+                    control={createWorkspaceForm.control}
+                    render={({ field, fieldState }) => (
+                      <Field>
+                        <FieldLabel htmlFor="newWorkspaceLocation">Location</FieldLabel>
+                        <LocationPicker
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Search city, office, or click on map"
+                        />
+                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      </Field>
+                    )}
+                  />
+
+                  <Controller
+                    name="designation"
+                    control={createWorkspaceForm.control}
+                    render={({ field, fieldState }) => (
+                      <Field>
+                        <FieldLabel htmlFor="newWorkspaceDesignation">
+                          Your Designation
+                        </FieldLabel>
+                        <Input
+                          {...field}
+                          id="newWorkspaceDesignation"
+                          placeholder="Hiring Manager"
+                          aria-invalid={fieldState.invalid}
+                        />
+                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      </Field>
+                    )}
+                  />
+
+                  <Button type="submit" disabled={isCreatingWorkspace || isJoiningWorkspace}>
+                    {isCreatingWorkspace ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Creating Workspace...
+                      </>
+                    ) : (
+                      "Create Workspace"
+                    )}
+                  </Button>
+                </FieldGroup>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="join">
+              <form
+                onSubmit={joinWorkspaceForm.handleSubmit(onJoinWorkspace)}
+                className="pt-2"
+              >
+                <FieldGroup>
+                  <Controller
+                    name="inviteCode"
+                    control={joinWorkspaceForm.control}
+                    render={({ field, fieldState }) => (
+                      <Field>
+                        <FieldLabel htmlFor="sidebarJoinInviteCode">Invite Code</FieldLabel>
+                        <Input
+                          {...field}
+                          id="sidebarJoinInviteCode"
+                          placeholder="KR-AB12CD34"
+                          aria-invalid={fieldState.invalid}
+                        />
+                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      </Field>
+                    )}
+                  />
+
+                  <Controller
+                    name="designation"
+                    control={joinWorkspaceForm.control}
+                    render={({ field, fieldState }) => (
+                      <Field>
+                        <FieldLabel htmlFor="sidebarJoinDesignation">Designation</FieldLabel>
+                        <Input
+                          {...field}
+                          id="sidebarJoinDesignation"
+                          placeholder="Talent Partner"
+                          aria-invalid={fieldState.invalid}
+                        />
+                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      </Field>
+                    )}
+                  />
+
+                  <Button
+                    type="submit"
+                    variant="outline"
+                    disabled={isCreatingWorkspace || isJoiningWorkspace}
+                  >
+                    {isJoiningWorkspace ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Joining Workspace...
+                      </>
+                    ) : (
+                      <>
+                        <Workflow className="h-4 w-4" />
+                        Join Workspace
+                      </>
+                    )}
+                  </Button>
+                </FieldGroup>
+              </form>
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
         <AlertDialogContent>
