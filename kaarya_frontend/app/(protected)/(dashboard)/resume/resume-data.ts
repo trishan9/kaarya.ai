@@ -42,7 +42,7 @@ const RESUME_BUILDER_PAGE_DEFAULT_DATA: ResumeBuilderPageData = {
       "application/msword",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ],
-    uploadMaxFileSizeMb: 8,
+    uploadMaxFileSizeMb: 10,
     additionalDetailsLabel: "Additional Details",
     additionalDetailsPlaceholder:
       "Enter your detailed prompt here to help us shape your resume more precisely. Include extra details about your background, accomplishments, and strengths, or explain how you want your resume to be aligned with a specific role, industry, or career path. The more context you provide, the more tailored and impactful your resume will be.",
