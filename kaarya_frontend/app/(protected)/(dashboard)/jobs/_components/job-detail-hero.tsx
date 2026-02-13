@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Bookmark, MoreHorizontal, Share2 } from "lucide-react";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -12,7 +13,9 @@ export type JobDetailHeroProps = {
   hiringStatusTone: "open" | "closed" | "urgent";
   postedAtLabel: string;
   applicantCountLabel: string;
+  viewsCountLabel?: string;
   logoText: string;
+  logoUrl?: string;
   logoClassName?: string;
   applyAction: ReactNode;
 };
@@ -39,7 +42,9 @@ export function JobDetailHero({
   hiringStatusTone,
   postedAtLabel,
   applicantCountLabel,
+  viewsCountLabel,
   logoText,
+  logoUrl,
   logoClassName,
   applyAction,
 }: JobDetailHeroProps) {
@@ -57,12 +62,23 @@ export function JobDetailHero({
                 logoClassName,
               )}
             >
-              {logoText}
+              {logoUrl ? (
+                <Image
+                  src={logoUrl}
+                  alt={`${company} logo`}
+                  width={56}
+                  height={56}
+                  className="h-14 w-14 rounded-lg object-contain"
+                />
+              ) : (
+                logoText
+              )}
             </div>
 
             <div className="min-w-0">
               <p className="text-sm text-white/85">
-                {postedAtLabel} • {applicantCountLabel}
+                {postedAtLabel} - {applicantCountLabel}
+                {viewsCountLabel ? ` - ${viewsCountLabel}` : ""}
               </p>
               <div className="flex flex-wrap items-end gap-x-3 gap-y-1">
                 <h2 className="truncate text-3xl font-semibold leading-tight sm:text-4xl">
@@ -78,7 +94,7 @@ export function JobDetailHero({
                 </span>
               </div>
               <p className="truncate text-sm text-white/85">
-                {company} • {locationLabel}
+                {company} - {locationLabel}
               </p>
             </div>
           </div>

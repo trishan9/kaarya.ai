@@ -1,7 +1,10 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import { CirclePlus, Link2, Trash2, UploadCloud } from "lucide-react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -22,6 +25,14 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { createJobApplication, getMyResumes } from "@/lib/actions/job-actions";
 
 type JobSheetSummary = {
   id: string;
@@ -30,7 +41,14 @@ type JobSheetSummary = {
   locationLabel: string;
   postedAtLabel: string;
   logoText: string;
+  logoUrl?: string;
   logoClassName?: string;
+};
+
+type ResumeLibraryItem = {
+  id: string;
+  fileName: string;
+  createdAt?: string;
 };
 
 export type JobApplicationSheetProps = {
@@ -74,21 +92,32 @@ function isValidPortfolioLink(value: string) {
 }
 
 function validateResumeFile(file: File) {
-  const maxSizeInMb = 8;
+  const maxSizeInMb = 10;
   const maxBytes = maxSizeInMb * 1024 * 1024;
   const extensionAllowed = /\.(pdf|doc|docx)$/i.test(file.name);
   const mimeTypeAllowed = ACCEPTED_FILE_TYPES.includes(file.type);
 
   if (!extensionAllowed && !mimeTypeAllowed) {
-    return "Only PDF or Word files are supported.";
+    return "Only PDF, DOC, or DOCX files are supported.";
   }
 
   if (file.size > maxBytes) {
-    return "File must be smaller than 8 MB.";
+    return "File must be smaller than 10 MB.";
   }
 
   return null;
 }
+
+const formatResumeDate = (value?: string) => {
+  if (!value) return "Recently uploaded";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Recently uploaded";
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  });
+};
 
 export function JobApplicationSheet({
   job,
@@ -109,12 +138,63 @@ export function JobApplicationSheet({
 }: JobApplicationSheetProps) {
   const [open, setOpen] = React.useState(false);
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+  const [selectedResumeId, setSelectedResumeId] = React.useState<string>("");
+  const [resumeLibrary, setResumeLibrary] = React.useState<ResumeLibraryItem[]>([]);
+  const [isLoadingResumes, setIsLoadingResumes] = React.useState(false);
   const [coverLetter, setCoverLetter] = React.useState("");
   const [portfolioLinks, setPortfolioLinks] = React.useState<string[]>([""]);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [successOpen, setSuccessOpen] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+  const router = useRouter();
+
+  React.useEffect(() => {
+    if (!open) return;
+
+    let isMounted = true;
+    setIsLoadingResumes(true);
+    getMyResumes({ page: 1, size: 100 })
+      .then((response) => {
+        if (!isMounted) return;
+
+        const rawResumes = Array.isArray(response?.data?.resumes)
+          ? response.data.resumes
+          : [];
+        const mapped = rawResumes
+          .map((resume: any) => {
+            const id =
+              typeof resume?.id === "string"
+                ? resume.id
+                : typeof resume?._id === "string"
+                  ? resume._id
+                  : null;
+            const fileName =
+              typeof resume?.fileName === "string" && resume.fileName.trim()
+                ? resume.fileName.trim()
+                : "resume.pdf";
+            if (!id) return null;
+            return {
+              id,
+              fileName,
+              createdAt:
+                typeof resume?.createdAt === "string" ? resume.createdAt : undefined,
+            } satisfies ResumeLibraryItem;
+          })
+          .filter(Boolean) as ResumeLibraryItem[];
+        setResumeLibrary(mapped);
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLoadingResumes(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [open]);
 
   const applyFile = React.useCallback((file: File | null) => {
     if (!file) return;
@@ -126,6 +206,7 @@ export function JobApplicationSheet({
     }
 
     setSelectedFile(file);
+    setSelectedResumeId("");
     setErrorMessage(null);
   }, []);
 
@@ -150,11 +231,13 @@ export function JobApplicationSheet({
   }, []);
 
   const onSubmitApplication = React.useCallback(
-    (event: React.FormEvent<HTMLFormElement>) => {
+    async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
 
-      if (!selectedFile) {
-        setErrorMessage("Please upload your resume/CV before submitting.");
+      if (!selectedFile && !selectedResumeId) {
+        setErrorMessage(
+          "Please choose an existing resume or upload your resume/CV before submitting.",
+        );
         return;
       }
 
@@ -177,14 +260,34 @@ export function JobApplicationSheet({
       }
 
       setErrorMessage(null);
-      setOpen(false);
-      setSuccessOpen(true);
+      setIsSubmitting(true);
+      try {
+        const response = await createJobApplication(job.id, {
+          resumeFile: selectedFile ?? undefined,
+          resumeId: selectedResumeId || undefined,
+          coverLetter,
+          portfolioLinks: normalizedLinks,
+        });
+
+        if (!response?.success) {
+          setErrorMessage(response?.message || "Failed to submit application.");
+          return;
+        }
+
+        toast.success(response?.message || "Application submitted.");
+        setOpen(false);
+        setSuccessOpen(true);
+        router.refresh();
+      } finally {
+        setIsSubmitting(false);
+      }
     },
-    [coverLetter, portfolioLinks, selectedFile],
+    [coverLetter, job.id, portfolioLinks, router, selectedFile, selectedResumeId],
   );
 
   const isSubmitDisabled =
-    !selectedFile ||
+    isSubmitting ||
+    (!selectedFile && !selectedResumeId) ||
     coverLetter.trim().length < 20 ||
     portfolioLinks.map((link) => link.trim()).filter(Boolean).length === 0;
 
@@ -211,30 +314,74 @@ export function JobApplicationSheet({
                   <div className="flex items-center gap-3">
                     <div
                       className={cn(
-                        "flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white text-xl font-bold text-[#4285f4]",
+                        "flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-xl font-bold text-[#4285f4]",
+                        job.logoUrl ? "bg-white p-1" : "bg-white",
                         job.logoClassName,
                       )}
                     >
-                      {job.logoText}
+                      {job.logoUrl ? (
+                        <Image
+                          src={job.logoUrl}
+                          alt={`${job.company} logo`}
+                          width={36}
+                          height={36}
+                          className="h-9 w-9 rounded-md object-contain"
+                        />
+                      ) : (
+                        job.logoText
+                      )}
                     </div>
                     <div className="min-w-0">
                       <p className="truncate text-xs text-white/80">
                         {job.company} - {job.locationLabel}
                       </p>
-                      <p className="truncate text-lg font-semibold">
-                        {job.title}
-                      </p>
-                      <p className="text-xs text-white/80">
-                        {job.postedAtLabel}
-                      </p>
+                      <p className="truncate text-lg font-semibold">{job.title}</p>
+                      <p className="text-xs text-white/80">{job.postedAtLabel}</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-foreground">
+                    Choose Existing Resume
+                  </label>
+                  <Select
+                    value={selectedResumeId}
+                    onValueChange={(value) => {
+                      setSelectedResumeId(value);
+                      setSelectedFile(null);
+                      setErrorMessage(null);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select one from your uploaded resumes" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {isLoadingResumes ? (
+                        <SelectItem value="loading" disabled>
+                          Loading resumes...
+                        </SelectItem>
+                      ) : resumeLibrary.length === 0 ? (
+                        <SelectItem value="empty" disabled>
+                          No resumes uploaded yet
+                        </SelectItem>
+                      ) : (
+                        resumeLibrary.map((resume) => (
+                          <SelectItem key={resume.id} value={resume.id}>
+                            {resume.fileName} - {formatResumeDate(resume.createdAt)}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Select from your library or upload a new file below.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-foreground">
                     {uploadLabel}
-                    <span className="text-rose-500"> *</span>
                   </label>
 
                   <input
@@ -290,7 +437,7 @@ export function JobApplicationSheet({
                         </button>
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {uploadHelperText}
+                        {uploadHelperText} (PDF, DOC, DOCX)
                       </p>
                     </div>
                   )}
@@ -366,8 +513,14 @@ export function JobApplicationSheet({
                     className="h-10 w-full rounded-xl bg-primary text-sm font-semibold text-white hover:bg-primary/90"
                     disabled={isSubmitDisabled}
                   >
-                    <Link2 className="h-4 w-4" />
-                    {submitLabel}
+                    {isSubmitting ? (
+                      <>Submitting...</>
+                    ) : (
+                      <>
+                        <Link2 className="h-4 w-4" />
+                        {submitLabel}
+                      </>
+                    )}
                   </Button>
                 </div>
               </form>

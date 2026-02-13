@@ -9,6 +9,7 @@ export type ExploreJobsHeroProps = {
   searchPlaceholder: string;
   locationPlaceholder: string;
   actionLabel: string;
+  workspaceId?: string;
 };
 
 export function ExploreJobsHero({
@@ -17,6 +18,7 @@ export function ExploreJobsHero({
   searchPlaceholder,
   locationPlaceholder,
   actionLabel,
+  workspaceId,
 }: ExploreJobsHeroProps) {
   return (
     <section className="relative overflow-hidden rounded-2xl bg-linear-to-r from-[#00629F]/80 to-[#00629F] px-4 py-8 text-white sm:px-8">
@@ -31,11 +33,14 @@ export function ExploreJobsHero({
         </div>
 
         <form action="/jobs" className="rounded-xl bg-white p-1.5 shadow-sm">
+          {workspaceId ? (
+            <input type="hidden" name="workspace" value={workspaceId} />
+          ) : null}
           <div className="grid gap-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_130px]">
             <div className="flex items-center gap-2 rounded-lg px-3">
               <Search className="h-4 w-4 text-muted-foreground" />
               <Input
-                name="query"
+                name="search"
                 placeholder={searchPlaceholder}
                 className="h-10 border-0 px-0 text-sm shadow-none focus-visible:ring-0 text-foreground"
               />

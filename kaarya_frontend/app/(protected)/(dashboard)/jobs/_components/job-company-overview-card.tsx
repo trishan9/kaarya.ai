@@ -1,3 +1,5 @@
+import Link from "next/link";
+import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -12,6 +14,7 @@ export type JobCompanyOverviewCardProps = {
   profileActionLabel: string;
   profileHref: string;
   logoText: string;
+  logoUrl?: string | null;
   logoClassName?: string;
 };
 
@@ -25,6 +28,7 @@ export function JobCompanyOverviewCard({
   profileActionLabel,
   profileHref,
   logoText,
+  logoUrl,
   logoClassName,
 }: JobCompanyOverviewCardProps) {
   return (
@@ -34,11 +38,22 @@ export function JobCompanyOverviewCard({
       <div className="flex items-center gap-3">
         <div
           className={cn(
-            "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-lg font-bold text-white",
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-lg font-bold",
+            logoUrl ? "bg-white p-1 text-transparent" : "bg-primary text-white",
             logoClassName,
           )}
         >
-          {logoText}
+          {logoUrl ? (
+            <Image
+              src={logoUrl}
+              alt={`${companyName} logo`}
+              width={36}
+              height={36}
+              className="h-9 w-9 rounded-md object-contain"
+            />
+          ) : (
+            logoText
+          )}
         </div>
         <div className="min-w-0">
           <p className="truncate text-lg font-semibold text-foreground">
@@ -69,4 +84,3 @@ export function JobCompanyOverviewCard({
     </Card>
   );
 }
-import Link from "next/link";

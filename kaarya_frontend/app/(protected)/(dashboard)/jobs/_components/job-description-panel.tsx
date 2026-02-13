@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { ChevronDown } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
+import { QuillViewer } from "@/components/rich-text/quill-viewer";
 
 export type JobDescriptionPanelProps = {
   descriptionTitle: string;
@@ -23,8 +23,8 @@ export function JobDescriptionPanel({
   showLessLabel = "Show less",
 }: JobDescriptionPanelProps) {
   const [expanded, setExpanded] = React.useState(false);
-
-  const shouldCollapse = description.length > 240 || qualifications.length > 5;
+  const plainTextLength = description.replace(/<[^>]+>/g, "").length;
+  const shouldCollapse = plainTextLength > 420 || qualifications.length > 5;
 
   return (
     <section className="space-y-5 rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5">
@@ -36,7 +36,10 @@ export function JobDescriptionPanel({
         >
           <div className="space-y-2">
             <h3 className="text-2xl font-semibold text-foreground">{descriptionTitle}</h3>
-            <p className="text-sm leading-6 text-muted-foreground">{description}</p>
+            <QuillViewer
+              value={description}
+              className="text-sm leading-6 text-muted-foreground [&_.ql-editor]:p-0 [&_.ql-editor_h1]:text-xl [&_.ql-editor_h1]:font-semibold [&_.ql-editor_h2]:text-lg [&_.ql-editor_h2]:font-semibold [&_.ql-editor_h3]:text-base [&_.ql-editor_h3]:font-semibold [&_.ql-editor_ol]:list-decimal [&_.ql-editor_ol]:pl-5 [&_.ql-editor_p]:mb-2 [&_.ql-editor_strong]:font-semibold [&_.ql-editor_ul]:list-disc [&_.ql-editor_ul]:pl-5"
+            />
           </div>
 
           <div className="space-y-2">
