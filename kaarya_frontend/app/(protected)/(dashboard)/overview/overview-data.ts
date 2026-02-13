@@ -475,6 +475,7 @@ export type RecruiterOverviewDashboardData = {
 type RecruiterOverviewOptions = {
   workspaceId?: string | null;
   workspaceName?: string | null;
+  workspaceType?: "company" | "college";
 };
 
 const RECRUITER_EMPTY_OVERVIEW: RecruiterOverviewDashboardData = {
@@ -622,6 +623,7 @@ export async function getRecruiterOverviewDashboardData(
 ): Promise<RecruiterOverviewDashboardData> {
   const workspaceName = options?.workspaceName?.trim() || "Selected Workspace";
   const workspaceId = options?.workspaceId?.trim();
+  const workspaceType = options?.workspaceType ?? "company";
 
   if (!workspaceId) {
     return {
@@ -631,28 +633,33 @@ export async function getRecruiterOverviewDashboardData(
   }
 
   try {
+    const workspaceFilter =
+      workspaceType === "college"
+        ? { collegeId: workspaceId, visibility: "college_only" as const }
+        : { companyId: workspaceId };
+
     const [allResponse, openResponse, closedResponse, draftResponse] =
       await Promise.all([
-        getJobs({ page: 1, size: 100, feed: "all", companyId: workspaceId }),
+        getJobs({ page: 1, size: 100, feed: "all", ...workspaceFilter }),
         getJobs({
           page: 1,
           size: 100,
           feed: "all",
-          companyId: workspaceId,
+          ...workspaceFilter,
           status: "open",
         }),
         getJobs({
           page: 1,
           size: 100,
           feed: "all",
-          companyId: workspaceId,
+          ...workspaceFilter,
           status: "closed",
         }),
         getJobs({
           page: 1,
           size: 100,
           feed: "all",
-          companyId: workspaceId,
+          ...workspaceFilter,
           status: "draft",
         }),
       ]);

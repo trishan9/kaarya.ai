@@ -1,11 +1,5 @@
 import Link from "next/link";
-import {
-  BriefcaseBusiness,
-  Eye,
-  FileClock,
-  Target,
-  Users,
-} from "lucide-react";
+import { BriefcaseBusiness, Eye, FileClock, Target, Users } from "lucide-react";
 import { DashboardHeader } from "../_components/dashboard-header";
 import { ApplicationsSummaryCard } from "./_components/applications-summary-card";
 import { DeadlineCard } from "./_components/deadline-card";
@@ -20,11 +14,21 @@ import {
   getRecruiterOverviewDashboardData,
 } from "./overview-data";
 import { getCurrentUser } from "@/lib/dal";
-import { Role, TRecruiterWorkspace } from "@/lib/definitions";
+import { listCollegeWorkspaces } from "@/lib/actions/college-actions";
+import {
+  Role,
+} from "@/lib/definitions";
 import { listRecruiterWorkspaces } from "@/lib/actions/company-actions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import {
+  extractCollegeWorkspaces,
+  extractRecruiterWorkspaces,
+  extractWorkspaceRows,
+  resolveCollegeWorkspace,
+  resolveRecruiterWorkspace,
+} from "@/lib/workspaces";
 
 type OverviewPageProps = {
   searchParams?: Promise<{
@@ -32,27 +36,42 @@ type OverviewPageProps = {
   }>;
 };
 
-export default async function OverviewPage({ searchParams }: OverviewPageProps) {
+export default async function OverviewPage({
+  searchParams,
+}: OverviewPageProps) {
   const user = await getCurrentUser();
   const params = await searchParams;
 
-  if (user?.role === Role.RECRUITER) {
+  if (user?.role === Role.RECRUITER || user?.role === Role.COLLEGE) {
+    const isCollege = user.role === Role.COLLEGE;
     const requestedWorkspaceId =
       typeof params?.workspace === "string" ? params.workspace : null;
-    const workspaceResponse = await listRecruiterWorkspaces({ page: 1, size: 50 });
-    const recruiterWorkspaces = Array.isArray(workspaceResponse?.data?.workspaces)
-      ? (workspaceResponse.data.workspaces as TRecruiterWorkspace[])
-      : [];
+    const workspaceResponse = isCollege
+      ? await listCollegeWorkspaces({ page: 1, size: 50 })
+      : await listRecruiterWorkspaces({ page: 1, size: 50 });
+    const workspaceRows = extractWorkspaceRows(workspaceResponse);
+    const recruiterWorkspaces = extractRecruiterWorkspaces(workspaceRows);
+    const collegeWorkspaces = extractCollegeWorkspaces(workspaceRows);
 
-    const activeWorkspace =
-      recruiterWorkspaces.find(
-        (workspace) => workspace.company.id === requestedWorkspaceId,
-      ) ?? recruiterWorkspaces[0];
-    const activeWorkspaceId = activeWorkspace?.company.id ?? null;
+    const activeRecruiterWorkspace = resolveRecruiterWorkspace({
+      workspaces: recruiterWorkspaces,
+      requestedId: requestedWorkspaceId,
+    });
+    const activeCollegeWorkspace = resolveCollegeWorkspace({
+      workspaces: collegeWorkspaces,
+      requestedId: requestedWorkspaceId,
+    });
+    const activeWorkspaceId = isCollege
+      ? (activeCollegeWorkspace?.college?.id ?? null)
+      : (activeRecruiterWorkspace?.company?.id ?? null);
+    const activeWorkspaceName = isCollege
+      ? activeCollegeWorkspace?.college?.name
+      : activeRecruiterWorkspace?.company?.name;
 
     const overviewData = await getRecruiterOverviewDashboardData({
       workspaceId: activeWorkspaceId,
-      workspaceName: activeWorkspace?.company.name,
+      workspaceName: activeWorkspaceName,
+      workspaceType: isCollege ? "college" : "company",
     });
     const createJobHref = activeWorkspaceId
       ? `/jobs/new?workspace=${activeWorkspaceId}`
@@ -99,7 +118,7 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
       <div className="min-h-svh bg-neutral-100 p-2 sm:p-4 lg:pl-0 lg:p-5">
         <div className="rounded-xl bg-white sm:rounded-2xl">
           <DashboardHeader
-            title="Recruiter Overview"
+            title={isCollege ? "College Overview" : "Recruiter Overview"}
             actions={
               <Button asChild className="h-9 rounded-lg text-xs font-semibold">
                 <Link href={createJobHref}>Create Job Posting</Link>
@@ -134,13 +153,18 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
                     <p className="text-2xl font-semibold text-foreground">
                       {stat.value}
                     </p>
-                    <p className="text-xs text-muted-foreground">{stat.helper}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {stat.helper}
+                    </p>
                   </Card>
                 );
               })}
             </div>
 
-            <OverviewAnalyticsCharts data={overviewData.analytics} variant="recruiter" />
+            <OverviewAnalyticsCharts
+              data={overviewData.analytics}
+              variant="recruiter"
+            />
 
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
               <Card className="gap-4 rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5">
@@ -154,8 +178,12 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
                   {overviewData.insights.workModeDistribution.map((item) => (
                     <div key={item.mode} className="space-y-1">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="font-medium text-foreground">{item.mode}</span>
-                        <span className="text-muted-foreground">{item.count}</span>
+                        <span className="font-medium text-foreground">
+                          {item.mode}
+                        </span>
+                        <span className="text-muted-foreground">
+                          {item.count}
+                        </span>
                       </div>
                       <div className="h-2 rounded-full bg-neutral-100">
                         <div
