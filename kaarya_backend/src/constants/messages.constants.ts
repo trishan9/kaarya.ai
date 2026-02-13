@@ -85,6 +85,16 @@ export const JOB_MESSAGES = {
   FORBIDDEN_COMPANY_ACCESS:
     'You are not allowed to manage job postings for this company.',
   APPLICATIONS_FETCH_SUCCESS: 'Job applications fetched successfully.',
+  MY_APPLICATIONS_FETCH_SUCCESS: 'Your job applications fetched successfully.',
+  MY_APPLICATION_FETCH_SUCCESS: 'Your job application fetched successfully.',
+  APPLICATION_CREATE_SUCCESS: 'Job application submitted successfully.',
+  APPLICATION_UPDATE_SUCCESS: 'Job application updated successfully.',
+  APPLICATION_RESUME_ACTIVITY_UPDATED:
+    'Resume activity updated successfully.',
+  APPLICATION_ALREADY_EXISTS: 'You have already applied for this job.',
+  APPLICATION_NOT_FOUND: 'Job application not found.',
+  APPLICATION_FORBIDDEN:
+    'You are not allowed to apply or manage applications for this job.',
   VIEW_RECORDED: 'Job view recorded successfully.',
   METRICS_FETCH_SUCCESS: 'Job metrics fetched successfully.',
 } as const;

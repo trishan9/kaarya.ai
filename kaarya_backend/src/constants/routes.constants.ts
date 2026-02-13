@@ -37,8 +37,17 @@ export const ROUTES = {
   JOB: {
     BASE: 'jobs',
     BY_ID: ':id',
-    APPLICATIONS: ':id/applications',
     METRICS: ':id/metrics',
     VIEW: ':id/view',
+  },
+  APPLICATION: {
+    BASE: 'applications',
+    JOB_APPLICATIONS: 'jobs/:jobId',
+    MY_APPLICATIONS: 'me',
+    MY_APPLICATION_BY_JOB: 'job/:jobId/me',
+    RESUMES_ME: 'resumes/me',
+    APPLICATION_BY_JOB: 'jobs/:jobId/:applicationId',
+    APPLICATION_RESUME_ACTIVITY:
+      'jobs/:jobId/:applicationId/resume-activity',
   },
 } as const;
