@@ -4,6 +4,7 @@ import { ApiError } from 'src/common/errors/api-error';
 import { buildPaginationMeta } from 'src/common/utils/pagination';
 import { sanitizeDocument } from 'src/common/utils/sanitize-document';
 import {
+  COLLEGE_MESSAGES,
   COMPANY_MESSAGES,
   JOB_MESSAGES,
 } from 'src/constants/messages.constants';
@@ -21,6 +22,7 @@ import {
 } from 'src/dtos/jobs/job-application.dto';
 import { ApplicationSchemaClass } from 'src/entities/application.schema';
 import { ACApplicationRepository } from 'src/repositories/application.repository';
+import { ACCollegeRepository } from 'src/repositories/college.repository';
 import { ACCompanyRepository } from 'src/repositories/company.repository';
 import { ACJobPostingRepository } from 'src/repositories/job-posting.repository';
 import { ACResumeRepository } from 'src/repositories/resume.repository';
@@ -28,11 +30,14 @@ import { ApplicationStatus } from 'src/types/application-status.enum';
 import { TAuthenticatedUser } from 'src/types/authenticated-user.type';
 import { JobFeedFilter } from 'src/types/job-feed-filter.enum';
 import { JobPostingStatus } from 'src/types/job-posting-status.enum';
+import { JobVisibility } from 'src/types/job-visibility.enum';
 import { UserRole } from 'src/types/user-role.enum';
 import { JobWorkMode } from 'src/types/job-work-mode.enum';
+import { CollegeService } from './college.service';
 import { CompanyService } from './company.service';
 import { EmailService } from './email.service';
 import { RecruiterProfileService } from './recruiter-profile.service';
+import { StudentService } from './student.service';
 
 @Injectable()
 export class JobPostingService {
@@ -40,8 +45,11 @@ export class JobPostingService {
     private readonly jobPostingRepository: ACJobPostingRepository,
     private readonly applicationRepository: ACApplicationRepository,
     private readonly resumeRepository: ACResumeRepository,
+    private readonly collegeRepository: ACCollegeRepository,
     private readonly companyRepository: ACCompanyRepository,
+    private readonly collegeService: CollegeService,
     private readonly companyService: CompanyService,
+    private readonly studentService: StudentService,
     private readonly recruiterProfileService: RecruiterProfileService,
     private readonly emailService: EmailService,
   ) {}
@@ -50,17 +58,32 @@ export class JobPostingService {
     currentUser: TAuthenticatedUser,
     payload: TCreateJobPostingDTO,
   ) {
-    const companyId = await this.resolveWritableCompanyId(currentUser, {
+    const writableWorkspace = await this.resolveWritableWorkspace(currentUser, {
       requestedCompanyId: payload.companyId,
+      requestedCollegeId: payload.collegeId,
+      requestedVisibility: payload.visibility,
     });
 
-    const company = await this.companyService.getCompanyByIdRaw(companyId);
+    const company = writableWorkspace.companyId
+      ? await this.companyService.getCompanyByIdRaw(writableWorkspace.companyId)
+      : null;
+    const college = writableWorkspace.collegeId
+      ? await this.collegeService.getCollegeByIdRaw(writableWorkspace.collegeId)
+      : null;
+
     const createdJob = await this.jobPostingRepository.create({
-      companyId: new Types.ObjectId(companyId),
+      companyId: writableWorkspace.companyId
+        ? new Types.ObjectId(writableWorkspace.companyId)
+        : null,
+      collegeId: writableWorkspace.collegeId
+        ? new Types.ObjectId(writableWorkspace.collegeId)
+        : null,
+      visibility: writableWorkspace.visibility,
       createdBy: new Types.ObjectId(currentUser.id),
       title: payload.title,
       description: payload.description,
-      location: payload.location ?? company.location ?? 'Remote',
+      location:
+        payload.location ?? company?.location ?? college?.location ?? 'Remote',
       employmentType: payload.employmentType ?? 'Full-Time',
       engagementType: payload.engagementType ?? 'Full-Time',
       workMode: payload.workMode ?? JobWorkMode.ONSITE,
@@ -69,9 +92,13 @@ export class JobPostingService {
       deadline: payload.deadline,
       status: payload.status ?? JobPostingStatus.OPEN,
     });
-
-    const companyMap = await this.buildCompanyMap([companyId]);
-    return this.buildJobResponse(createdJob, companyMap);
+    const companyMap = await this.buildCompanyMap(
+      writableWorkspace.companyId ? [writableWorkspace.companyId] : [],
+    );
+    const collegeMap = await this.buildCollegeMap(
+      writableWorkspace.collegeId ? [writableWorkspace.collegeId] : [],
+    );
+    return this.buildJobResponse(createdJob, companyMap, { collegeMap });
   }
 
   async getJobPostingById(currentUser: TAuthenticatedUser, jobId: string) {
@@ -89,13 +116,20 @@ export class JobPostingService {
         message: JOB_MESSAGES.NOT_FOUND,
       });
     }
+    await this.assertCanAccessJob(currentUser, job);
 
-    const companyMap = await this.buildCompanyMap([job.companyId.toString()]);
+    const companyMap = await this.buildCompanyMap(
+      job.companyId ? [job.companyId.toString()] : [],
+    );
+    const collegeMap = await this.buildCollegeMap(
+      job.collegeId ? [job.collegeId.toString()] : [],
+    );
     const myApplicationByJobId = await this.buildMyApplicationMetaByJobId(
       currentUser,
       [job.id],
     );
     return this.buildJobResponse(job, companyMap, {
+      collegeMap,
       myApplicationByJobId,
     });
   }
@@ -158,8 +192,14 @@ export class JobPostingService {
       ...query,
       ...feedOptions,
     });
-    const companyIds = jobs.map((job) => job.companyId.toString());
+    const companyIds = jobs
+      .map((job) => (job.companyId ? job.companyId.toString() : null))
+      .filter(Boolean) as string[];
+    const collegeIds = jobs
+      .map((job) => (job.collegeId ? job.collegeId.toString() : null))
+      .filter(Boolean) as string[];
     const companyMap = await this.buildCompanyMap(companyIds);
+    const collegeMap = await this.buildCollegeMap(collegeIds);
     const myApplicationByJobId = await this.buildMyApplicationMetaByJobId(
       currentUser,
       jobs.map((job) => job.id),
@@ -169,6 +209,7 @@ export class JobPostingService {
       jobs: jobs
         .map((job) =>
           this.buildJobResponse(job, companyMap, {
+            collegeMap,
             myApplicationByJobId,
           }),
         )
@@ -189,7 +230,7 @@ export class JobPostingService {
     query: TJobApplicationsQueryDTO,
   ) {
     const job = await this.getJobPostingByIdRaw(jobId);
-    await this.assertCanManageCompany(currentUser, job.companyId.toString());
+    await this.assertCanManageJob(currentUser, job);
 
     const { applications, total } =
       await this.applicationRepository.findAllByJobId({
@@ -199,9 +240,21 @@ export class JobPostingService {
         status: query.status,
       });
 
+    const companyMap = await this.buildCompanyMap(
+      job.companyId ? [job.companyId.toString()] : [],
+    );
+    const collegeMap = await this.buildCollegeMap(
+      job.collegeId ? [job.collegeId.toString()] : [],
+    );
+
     return {
       applications: applications
-        .map((application) => this.buildApplicationResponse(application))
+        .map((application) =>
+          this.buildApplicationResponse(application, {
+            companyMap,
+            collegeMap,
+          }),
+        )
         .filter(Boolean) as Array<Record<string, unknown>>,
       meta: buildPaginationMeta({
         page: query.page,
@@ -254,7 +307,23 @@ export class JobPostingService {
       })
       .filter(Boolean) as string[];
 
+    const collegeIds = applications
+      .map((application) => {
+        const rawJob = (application as { jobId?: unknown }).jobId;
+        if (typeof rawJob !== 'object' || !rawJob) return null;
+        const sanitizedJob = sanitizeDocument(rawJob);
+        if (!sanitizedJob) return null;
+        const collegeId =
+          typeof sanitizedJob.collegeId === 'string'
+            ? sanitizedJob.collegeId
+            : ((sanitizedJob.collegeId as { toString?: () => string } | undefined)
+                ?.toString?.() ?? null);
+        return collegeId;
+      })
+      .filter(Boolean) as string[];
+
     const companyMap = await this.buildCompanyMap(companyIds);
+    const collegeMap = await this.buildCollegeMap(collegeIds);
     const myApplicationByJobId = await this.buildMyApplicationMetaByJobId(
       currentUser,
       jobIds,
@@ -265,6 +334,7 @@ export class JobPostingService {
         .map((application) =>
           this.buildApplicationResponse(application, {
             companyMap,
+            collegeMap,
             myApplicationByJobId,
           }),
         )
@@ -281,6 +351,7 @@ export class JobPostingService {
     this.assertCandidateRole(currentUser);
 
     const job = await this.getJobPostingByIdRaw(jobId);
+    await this.assertCanAccessJob(currentUser, job);
     const application =
       await this.applicationRepository.findByJobIdAndStudentIdWithRelations(
         job.id,
@@ -291,8 +362,13 @@ export class JobPostingService {
       return null;
     }
 
-    const companyMap = await this.buildCompanyMap([job.companyId.toString()]);
-    return this.buildApplicationResponse(application, { companyMap });
+    const companyMap = await this.buildCompanyMap(
+      job.companyId ? [job.companyId.toString()] : [],
+    );
+    const collegeMap = await this.buildCollegeMap(
+      job.collegeId ? [job.collegeId.toString()] : [],
+    );
+    return this.buildApplicationResponse(application, { companyMap, collegeMap });
   }
 
   async createJobApplication(
@@ -303,6 +379,7 @@ export class JobPostingService {
     this.assertCandidateRole(currentUser);
 
     const job = await this.getJobPostingByIdRaw(jobId);
+    await this.assertCanAccessJob(currentUser, job);
     if (job.status !== JobPostingStatus.OPEN) {
       throw new ApiError({
         statusCode: HttpStatus.BAD_REQUEST,
@@ -390,8 +467,17 @@ export class JobPostingService {
       job.id,
       createdApplication.id,
     );
+    const companyMap = await this.buildCompanyMap(
+      job.companyId ? [job.companyId.toString()] : [],
+    );
+    const collegeMap = await this.buildCollegeMap(
+      job.collegeId ? [job.collegeId.toString()] : [],
+    );
 
-    return this.buildApplicationResponse(hydratedApplication ?? createdApplication);
+    return this.buildApplicationResponse(
+      hydratedApplication ?? createdApplication,
+      { companyMap, collegeMap },
+    );
   }
 
   async updateJobApplication(
@@ -401,7 +487,7 @@ export class JobPostingService {
     payload: TUpdateJobApplicationDTO,
   ) {
     const job = await this.getJobPostingByIdRaw(jobId);
-    await this.assertCanManageCompany(currentUser, job.companyId.toString());
+    await this.assertCanManageJob(currentUser, job);
 
     const existingApplication = await this.applicationRepository.findByIdForJob(
       job.id,
@@ -469,8 +555,16 @@ export class JobPostingService {
       nextStatus,
     });
 
-    const companyMap = await this.buildCompanyMap([job.companyId.toString()]);
-    return this.buildApplicationResponse(updatedApplication, { companyMap });
+    const companyMap = await this.buildCompanyMap(
+      job.companyId ? [job.companyId.toString()] : [],
+    );
+    const collegeMap = await this.buildCollegeMap(
+      job.collegeId ? [job.collegeId.toString()] : [],
+    );
+    return this.buildApplicationResponse(updatedApplication, {
+      companyMap,
+      collegeMap,
+    });
   }
 
   async updateApplicationResumeActivity(
@@ -480,7 +574,7 @@ export class JobPostingService {
     payload: TUpdateResumeActivityDTO,
   ) {
     const job = await this.getJobPostingByIdRaw(jobId);
-    await this.assertCanManageCompany(currentUser, job.companyId.toString());
+    await this.assertCanManageJob(currentUser, job);
 
     const application = await this.applicationRepository.findByIdForJob(
       job.id,
@@ -521,8 +615,16 @@ export class JobPostingService {
       });
     }
 
-    const companyMap = await this.buildCompanyMap([job.companyId.toString()]);
-    return this.buildApplicationResponse(updatedApplication, { companyMap });
+    const companyMap = await this.buildCompanyMap(
+      job.companyId ? [job.companyId.toString()] : [],
+    );
+    const collegeMap = await this.buildCollegeMap(
+      job.collegeId ? [job.collegeId.toString()] : [],
+    );
+    return this.buildApplicationResponse(updatedApplication, {
+      companyMap,
+      collegeMap,
+    });
   }
 
   async updateJobPosting(
@@ -545,10 +647,7 @@ export class JobPostingService {
       });
     }
 
-    await this.assertCanManageCompany(
-      currentUser,
-      existingJob.companyId.toString(),
-    );
+    await this.assertCanManageJob(currentUser, existingJob);
 
     const updatedJob = await this.jobPostingRepository.updateById(
       jobId,
@@ -561,10 +660,13 @@ export class JobPostingService {
       });
     }
 
-    const companyMap = await this.buildCompanyMap([
-      updatedJob.companyId.toString(),
-    ]);
-    return this.buildJobResponse(updatedJob, companyMap);
+    const companyMap = await this.buildCompanyMap(
+      updatedJob.companyId ? [updatedJob.companyId.toString()] : [],
+    );
+    const collegeMap = await this.buildCollegeMap(
+      updatedJob.collegeId ? [updatedJob.collegeId.toString()] : [],
+    );
+    return this.buildJobResponse(updatedJob, companyMap, { collegeMap });
   }
 
   async deleteJobPosting(currentUser: TAuthenticatedUser, jobId: string) {
@@ -583,10 +685,7 @@ export class JobPostingService {
       });
     }
 
-    await this.assertCanManageCompany(
-      currentUser,
-      existingJob.companyId.toString(),
-    );
+    await this.assertCanManageJob(currentUser, existingJob);
 
     const deletedJob = await this.jobPostingRepository.deleteById(jobId);
     if (!deletedJob) {
@@ -596,72 +695,172 @@ export class JobPostingService {
       });
     }
 
-    const companyMap = await this.buildCompanyMap([
-      existingJob.companyId.toString(),
-    ]);
-    return this.buildJobResponse(deletedJob, companyMap);
+    const companyMap = await this.buildCompanyMap(
+      existingJob.companyId ? [existingJob.companyId.toString()] : [],
+    );
+    const collegeMap = await this.buildCollegeMap(
+      existingJob.collegeId ? [existingJob.collegeId.toString()] : [],
+    );
+    return this.buildJobResponse(deletedJob, companyMap, { collegeMap });
   }
 
-  private async resolveWritableCompanyId(
+  private async resolveWritableWorkspace(
     currentUser: TAuthenticatedUser,
     input: {
       requestedCompanyId?: string;
+      requestedCollegeId?: string;
+      requestedVisibility?: JobVisibility;
     },
-  ): Promise<string> {
+  ): Promise<{
+    companyId: string | null;
+    collegeId: string | null;
+    visibility: JobVisibility;
+  }> {
     if (currentUser.role === UserRole.ADMIN) {
-      if (
-        !input.requestedCompanyId ||
-        !isValidObjectId(input.requestedCompanyId)
-      ) {
+      if (input.requestedCollegeId) {
+        if (!isValidObjectId(input.requestedCollegeId)) {
+          throw new ApiError({
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: COLLEGE_MESSAGES.INVALID_ID,
+          });
+        }
+
+        return {
+          companyId: null,
+          collegeId: input.requestedCollegeId,
+          visibility: input.requestedVisibility ?? JobVisibility.COLLEGE_ONLY,
+        };
+      }
+
+      if (!input.requestedCompanyId || !isValidObjectId(input.requestedCompanyId)) {
         throw new ApiError({
           statusCode: HttpStatus.BAD_REQUEST,
           message: COMPANY_MESSAGES.INVALID_ID,
         });
       }
 
-      return input.requestedCompanyId;
+      return {
+        companyId: input.requestedCompanyId,
+        collegeId: null,
+        visibility: input.requestedVisibility ?? JobVisibility.GLOBAL,
+      };
     }
 
-    if (currentUser.role !== UserRole.RECRUITER) {
-      throw new ApiError({
-        statusCode: HttpStatus.FORBIDDEN,
-        message: JOB_MESSAGES.FORBIDDEN_COMPANY_ACCESS,
-      });
+    if (currentUser.role === UserRole.RECRUITER) {
+      const companyId =
+        await this.recruiterProfileService.resolveWritableCompanyIdForRecruiter({
+          recruiterId: currentUser.id,
+          requestedCompanyId: input.requestedCompanyId,
+        });
+
+      return {
+        companyId,
+        collegeId: null,
+        visibility: JobVisibility.GLOBAL,
+      };
     }
 
-    return await this.recruiterProfileService.resolveWritableCompanyIdForRecruiter(
-      {
-        recruiterId: currentUser.id,
-        requestedCompanyId: input.requestedCompanyId,
-      },
-    );
+    if (currentUser.role === UserRole.COLLEGE) {
+      let collegeId = input.requestedCollegeId;
+      if (collegeId) {
+        await this.collegeService.assertCanManageCollege(currentUser, collegeId);
+      } else {
+        const myCollege = await this.collegeService.getMyCollege(currentUser);
+        collegeId = (myCollege.college as { id?: string } | undefined)?.id;
+      }
+
+      if (!collegeId) {
+        throw new ApiError({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: COLLEGE_MESSAGES.COLLEGE_CONTEXT_REQUIRED,
+        });
+      }
+
+      return {
+        companyId: null,
+        collegeId,
+        visibility: JobVisibility.COLLEGE_ONLY,
+      };
+    }
+
+    throw new ApiError({
+      statusCode: HttpStatus.FORBIDDEN,
+      message: JOB_MESSAGES.FORBIDDEN_COMPANY_ACCESS,
+    });
   }
 
-  private async assertCanManageCompany(
+  private async assertCanManageJob(
     currentUser: TAuthenticatedUser,
-    companyId: string,
+    job: {
+      companyId?: { toString: () => string } | null;
+      collegeId?: { toString: () => string } | null;
+    },
   ) {
-    if (!companyId || !isValidObjectId(companyId)) {
-      throw new ApiError({
-        statusCode: HttpStatus.BAD_REQUEST,
-        message: COMPANY_MESSAGES.INVALID_ID,
+    if (currentUser.role === UserRole.ADMIN) {
+      return;
+    }
+
+    const companyId = job.companyId ? job.companyId.toString() : null;
+    const collegeId = job.collegeId ? job.collegeId.toString() : null;
+
+    if (companyId && currentUser.role === UserRole.RECRUITER) {
+      await this.recruiterProfileService.assertRecruiterMembership({
+        recruiterId: currentUser.id,
+        companyId,
       });
+      return;
+    }
+
+    if (collegeId && currentUser.role === UserRole.COLLEGE) {
+      await this.collegeService.assertCanManageCollege(currentUser, collegeId);
+      return;
+    }
+
+    throw new ApiError({
+      statusCode: HttpStatus.FORBIDDEN,
+      message: JOB_MESSAGES.FORBIDDEN_COMPANY_ACCESS,
+    });
+  }
+
+  private async assertCanAccessJob(
+    currentUser: TAuthenticatedUser,
+    job: {
+      visibility?: JobVisibility;
+      collegeId?: { toString: () => string } | null;
+    },
+  ) {
+    if (job.visibility !== JobVisibility.COLLEGE_ONLY) {
+      return;
+    }
+
+    const collegeId = job.collegeId ? job.collegeId.toString() : null;
+    if (!collegeId) {
+      return;
     }
 
     if (currentUser.role === UserRole.ADMIN) {
       return;
     }
 
-    if (currentUser.role !== UserRole.RECRUITER) {
-      throw new ApiError({
-        statusCode: HttpStatus.FORBIDDEN,
-        message: JOB_MESSAGES.FORBIDDEN_COMPANY_ACCESS,
-      });
+    if (currentUser.role === UserRole.COLLEGE) {
+      await this.collegeService.assertCanManageCollege(currentUser, collegeId);
+      return;
     }
 
-    await this.recruiterProfileService.assertRecruiterMembership({
-      recruiterId: currentUser.id,
-      companyId,
+    if (
+      currentUser.role === UserRole.USER ||
+      currentUser.role === UserRole.STUDENT
+    ) {
+      await this.studentService.assertStudentMembership({
+        studentId: currentUser.id,
+        collegeId,
+      });
+      return;
+    }
+
+    throw new ApiError({
+      statusCode: HttpStatus.FORBIDDEN,
+      message: JOB_MESSAGES.APPLICATION_FORBIDDEN,
     });
   }
 
@@ -710,14 +909,27 @@ export class JobPostingService {
     jobIds?: string[];
     remoteOnly?: boolean;
     status?: JobPostingStatus;
+    visibility?: JobVisibility;
+    companyId?: string;
+    collegeId?: string;
+    accessibleCollegeIds?: string[];
     forceEmpty?: boolean;
   }> {
+    const workspaceOptions = await this.resolveWorkspaceFeedOptions(
+      currentUser,
+      query,
+    );
+    if (workspaceOptions.forceEmpty) {
+      return workspaceOptions;
+    }
+
     if (query.feed === JobFeedFilter.ALL) {
-      return {};
+      return workspaceOptions;
     }
 
     if (query.feed === JobFeedFilter.TRENDING) {
       return {
+        ...workspaceOptions,
         sort: {
           applicationsCount: -1,
           viewsCount: -1,
@@ -729,12 +941,14 @@ export class JobPostingService {
 
     if (query.feed === JobFeedFilter.LAST_WEEK) {
       return {
+        ...workspaceOptions,
         createdFrom: this.daysAgo(7),
       };
     }
 
     if (query.feed === JobFeedFilter.FOR_YOU) {
       return {
+        ...workspaceOptions,
         status: query.status ?? JobPostingStatus.OPEN,
         remoteOnly: query.remoteOnly ?? false,
         sort: {
@@ -753,7 +967,7 @@ export class JobPostingService {
         currentUser.role !== UserRole.STUDENT &&
         currentUser.role !== UserRole.USER
       ) {
-        return { forceEmpty: true };
+        return { ...workspaceOptions, forceEmpty: true };
       }
 
       const statuses =
@@ -769,13 +983,90 @@ export class JobPostingService {
       );
 
       if (!jobIds.length) {
+        return { ...workspaceOptions, forceEmpty: true };
+      }
+
+      return { ...workspaceOptions, jobIds };
+    }
+
+    return workspaceOptions;
+  }
+
+  private async resolveWorkspaceFeedOptions(
+    currentUser: TAuthenticatedUser,
+    query: TJobPostingQueryDTO,
+  ): Promise<{
+    visibility?: JobVisibility;
+    companyId?: string;
+    collegeId?: string;
+    accessibleCollegeIds?: string[];
+    forceEmpty?: boolean;
+  }> {
+    if (currentUser.role === UserRole.RECRUITER) {
+      if (!query.companyId) {
         return { forceEmpty: true };
       }
 
-      return { jobIds };
+      const companyId =
+        await this.recruiterProfileService.resolveWritableCompanyIdForRecruiter({
+          recruiterId: currentUser.id,
+          requestedCompanyId: query.companyId,
+        });
+
+      return {
+        visibility: query.visibility ?? JobVisibility.GLOBAL,
+        companyId,
+      };
     }
 
-    return {};
+    if (currentUser.role === UserRole.COLLEGE) {
+      let collegeId = query.collegeId;
+      if (collegeId) {
+        await this.collegeService.assertCanManageCollege(currentUser, collegeId);
+      } else {
+        try {
+          const myCollege = await this.collegeService.getMyCollege(currentUser);
+          collegeId = (myCollege.college as { id?: string } | undefined)?.id;
+        } catch {
+          return { forceEmpty: true };
+        }
+      }
+
+      if (!collegeId) {
+        return { forceEmpty: true };
+      }
+
+      return {
+        visibility: JobVisibility.COLLEGE_ONLY,
+        collegeId,
+      };
+    }
+
+    if (
+      currentUser.role === UserRole.USER ||
+      currentUser.role === UserRole.STUDENT
+    ) {
+      const membershipCollegeIds = await this.studentService.listStudentCollegeIds(
+        currentUser.id,
+      );
+      const accessibleCollegeIds = query.collegeId
+        ? membershipCollegeIds.includes(query.collegeId)
+          ? [query.collegeId]
+          : []
+        : membershipCollegeIds;
+
+      return {
+        visibility: query.visibility,
+        companyId: query.companyId,
+        accessibleCollegeIds,
+      };
+    }
+
+    return {
+      visibility: query.visibility,
+      companyId: query.companyId,
+      collegeId: query.collegeId,
+    };
   }
 
   private async buildCompanyMap(companyIds: string[]) {
@@ -786,7 +1077,8 @@ export class JobPostingService {
       return new Map<string, { id: string; name: string; logo: string | null }>();
     }
 
-    const companies = await this.companyRepository.findByIds(validCompanyIds);
+    const companiesRaw = await this.companyRepository.findByIds(validCompanyIds);
+    const companies = Array.isArray(companiesRaw) ? companiesRaw : [];
     const companyMap = new Map<
       string,
       { id: string; name: string; logo: string | null }
@@ -804,10 +1096,38 @@ export class JobPostingService {
     return companyMap;
   }
 
+  private async buildCollegeMap(collegeIds: string[]) {
+    const validCollegeIds = collegeIds.filter((collegeId) =>
+      isValidObjectId(collegeId),
+    );
+    if (!validCollegeIds.length) {
+      return new Map<string, { id: string; name: string; logo: string | null }>();
+    }
+
+    const collegesRaw = await this.collegeRepository.findByIds(validCollegeIds);
+    const colleges = Array.isArray(collegesRaw) ? collegesRaw : [];
+    const collegeMap = new Map<
+      string,
+      { id: string; name: string; logo: string | null }
+    >();
+
+    colleges.forEach((college) => {
+      const collegeId = college.id.toString();
+      collegeMap.set(collegeId, {
+        id: collegeId,
+        name: college.name,
+        logo: college.logo ?? null,
+      });
+    });
+
+    return collegeMap;
+  }
+
   private buildJobResponse(
     job: unknown,
     companyMap: Map<string, { id: string; name: string; logo: string | null }>,
     options?: {
+      collegeMap?: Map<string, { id: string; name: string; logo: string | null }>;
       myApplicationByJobId?: Map<
         string,
         { applicationId: string; status: ApplicationStatus }
@@ -822,7 +1142,16 @@ export class JobPostingService {
         ? jobData.companyId
         : ((jobData.companyId as { toString?: () => string } | undefined)
             ?.toString?.() ?? null);
+    const collegeId =
+      typeof jobData.collegeId === 'string'
+        ? jobData.collegeId
+        : ((jobData.collegeId as { toString?: () => string } | undefined)
+            ?.toString?.() ?? null);
     const company = companyId ? (companyMap.get(companyId) ?? null) : null;
+    const college =
+      collegeId && options?.collegeMap
+        ? (options.collegeMap.get(collegeId) ?? null)
+        : null;
     const jobId = typeof jobData.id === 'string' ? jobData.id : null;
     const myApplication =
       jobId && options?.myApplicationByJobId
@@ -832,7 +1161,9 @@ export class JobPostingService {
     return {
       ...jobData,
       // Frontend derives UI labels (status tone, apply CTA text, etc.) from domain data.
-      company,
+      company: company ?? college,
+      college,
+      workspaceType: college ? 'college' : 'company',
       hasApplied: Boolean(myApplication),
       myApplicationId: myApplication?.applicationId ?? null,
       myApplicationStatus: myApplication?.status ?? null,
@@ -855,6 +1186,7 @@ export class JobPostingService {
     application: unknown,
     options?: {
       companyMap?: Map<string, { id: string; name: string; logo: string | null }>;
+      collegeMap?: Map<string, { id: string; name: string; logo: string | null }>;
       myApplicationByJobId?: Map<
         string,
         { applicationId: string; status: ApplicationStatus }
@@ -890,8 +1222,17 @@ export class JobPostingService {
         : ((jobData?.companyId as { toString?: () => string } | undefined)
             ?.toString?.() ?? null)) ??
       null;
+    const jobCollegeId =
+      (typeof jobData?.collegeId === 'string'
+        ? jobData.collegeId
+        : ((jobData?.collegeId as { toString?: () => string } | undefined)
+            ?.toString?.() ?? null)) ??
+      null;
     const company = jobCompanyId
       ? (options?.companyMap?.get(jobCompanyId) ?? null)
+      : null;
+    const college = jobCollegeId
+      ? (options?.collegeMap?.get(jobCollegeId) ?? null)
       : null;
     const resumeData = this.buildResumeViewModel(
       resume,
@@ -954,7 +1295,9 @@ export class JobPostingService {
         jobData && jobId
           ? {
               ...jobData,
-              company,
+              company: company ?? college,
+              college,
+              workspaceType: college ? 'college' : 'company',
             }
           : typeof applicationData.jobId === 'string'
             ? {
@@ -1127,7 +1470,11 @@ export class JobPostingService {
   }
 
   private async notifyCandidateOnApplicationUpdate(input: {
-    job: { title: string; companyId: { toString: () => string } };
+    job: {
+      title: string;
+      companyId?: { toString: () => string } | null;
+      collegeId?: { toString: () => string } | null;
+    };
     existingApplication: ApplicationSchemaClass;
     updatedApplication: ApplicationSchemaClass;
     nextStatus?: ApplicationStatus;
@@ -1160,16 +1507,23 @@ export class JobPostingService {
       return;
     }
 
-    const companyId = input.job.companyId.toString();
-    const companyMap = await this.buildCompanyMap([companyId]);
-    const companyName = companyMap.get(companyId)?.name ?? 'the company';
+    const companyId = input.job.companyId ? input.job.companyId.toString() : null;
+    const collegeId = input.job.collegeId ? input.job.collegeId.toString() : null;
+    const [companyMap, collegeMap] = await Promise.all([
+      this.buildCompanyMap(companyId ? [companyId] : []),
+      this.buildCollegeMap(collegeId ? [collegeId] : []),
+    ]);
+    const sourceName =
+      (companyId ? companyMap.get(companyId)?.name : null) ??
+      (collegeId ? collegeMap.get(collegeId)?.name : null) ??
+      'the organization';
     const finalStatus = input.nextStatus ?? input.updatedApplication.status;
 
     try {
       await this.emailService.sendApplicationStatusUpdate(email, {
         candidateName:
           typeof student?.name === 'string' ? student.name : undefined,
-        companyName,
+        companyName: sourceName,
         jobTitle: input.job.title,
         status: finalStatus,
         interviewScheduledAt: nextInterviewAt ?? undefined,
@@ -1203,10 +1557,19 @@ export class JobPostingService {
       return map;
     }
 
+    if (
+      typeof this.applicationRepository.findByStudentAndJobIds !== 'function'
+    ) {
+      return map;
+    }
+
     const rows = await this.applicationRepository.findByStudentAndJobIds({
       studentId: currentUser.id,
       jobIds,
     });
+    if (!Array.isArray(rows)) {
+      return map;
+    }
     rows.forEach((row) => {
       map.set(row.jobId, {
         applicationId: row.applicationId,
