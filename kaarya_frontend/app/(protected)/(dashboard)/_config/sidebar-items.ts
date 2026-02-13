@@ -10,11 +10,26 @@ import {
   Inbox,
   FileText,
   Newspaper,
-  LifeBuoy,
   Settings,
+  Building2,
+  BriefcaseBusiness,
+  PlusSquare,
 } from "lucide-react";
+import type { ComponentType } from "react";
+import { Role } from "@/lib/definitions";
 
-export const sidebarNavGroups = [
+export type SidebarNavItem = {
+  label: string;
+  href: string;
+  icon: ComponentType<{ className?: string }>;
+};
+
+export type SidebarNavGroup = {
+  label: string;
+  items: SidebarNavItem[];
+};
+
+const candidateGroups: SidebarNavGroup[] = [
   {
     label: "Main",
     items: [
@@ -42,3 +57,34 @@ export const sidebarNavGroups = [
     ],
   },
 ];
+
+const recruiterGroups: SidebarNavGroup[] = [
+  {
+    label: "Workspace",
+    items: [
+      { label: "Overview", href: "/overview", icon: LayoutDashboard },
+      { label: "Company Jobs", href: "/jobs", icon: BriefcaseBusiness },
+      { label: "Post New Job", href: "/jobs/new", icon: PlusSquare },
+      {
+        label: "Company Settings",
+        href: "/company-settings",
+        icon: Building2,
+      },
+    ],
+  },
+  {
+    label: "Others",
+    items: [
+      { label: "Inbox", href: "/inbox", icon: Inbox },
+      { label: "Blogs & Articles", href: "/blogs", icon: Newspaper },
+      { label: "Settings", href: "/settings", icon: Settings },
+    ],
+  },
+];
+
+export const getSidebarNavGroups = (role?: Role | null): SidebarNavGroup[] => {
+  if (role === Role.RECRUITER) {
+    return recruiterGroups;
+  }
+  return candidateGroups;
+};
