@@ -6,6 +6,7 @@ import {
   JobPostingSchemaDocument,
 } from 'src/entities/job-posting.schema';
 import { JobPostingStatus } from 'src/types/job-posting-status.enum';
+import { JobVisibility } from 'src/types/job-visibility.enum';
 import { JobWorkMode } from 'src/types/job-work-mode.enum';
 
 export type TJobPostingListOptions = {
@@ -13,7 +14,10 @@ export type TJobPostingListOptions = {
   size: number;
   search?: string;
   status?: JobPostingStatus;
+  visibility?: JobVisibility;
   companyId?: string;
+  collegeId?: string;
+  accessibleCollegeIds?: string[];
   location?: string;
   employmentType?: string;
   engagementType?: string;
@@ -41,6 +45,7 @@ export abstract class ACJobPostingRepository {
   ): Promise<JobPostingSchemaDocument | null>;
   abstract deleteById(id: string): Promise<JobPostingSchemaDocument | null>;
   abstract deleteManyByCompanyId(companyId: string): Promise<number>;
+  abstract deleteManyByCollegeId(collegeId: string): Promise<number>;
   abstract incrementViewsCount(
     id: string,
     incrementBy?: number,
@@ -79,7 +84,10 @@ export class JobPostingRepository implements ACJobPostingRepository {
       size,
       search,
       status,
+      visibility,
       companyId,
+      collegeId,
+      accessibleCollegeIds,
       location,
       employmentType,
       engagementType,
@@ -93,70 +101,100 @@ export class JobPostingRepository implements ACJobPostingRepository {
     } = options;
     const skip = (page - 1) * size;
 
-    const filter: Record<string, unknown> = {};
-
+    const andClauses: Record<string, unknown>[] = [];
     if (search?.trim()) {
-      filter.$or = [
-        {
-          title: {
-            $regex: this.escapeRegex(search.trim()),
-            $options: 'i',
+      andClauses.push({
+        $or: [
+          {
+            title: {
+              $regex: this.escapeRegex(search.trim()),
+              $options: 'i',
+            },
           },
-        },
-        {
-          description: {
-            $regex: this.escapeRegex(search.trim()),
-            $options: 'i',
+          {
+            description: {
+              $regex: this.escapeRegex(search.trim()),
+              $options: 'i',
+            },
           },
-        },
-      ];
+        ],
+      });
     }
 
     if (status) {
-      filter.status = status;
+      andClauses.push({ status });
+    }
+
+    if (visibility) {
+      andClauses.push({ visibility });
     }
 
     if (companyId) {
-      filter.companyId = this.toObjectId(companyId);
+      andClauses.push({ companyId: this.toObjectId(companyId) });
+    }
+
+    if (collegeId) {
+      andClauses.push({ collegeId: this.toObjectId(collegeId) });
+    }
+
+    if (accessibleCollegeIds) {
+      const objectIds = accessibleCollegeIds.map((id) => this.toObjectId(id));
+      andClauses.push({
+        $or: [
+          { visibility: JobVisibility.GLOBAL },
+          {
+            visibility: JobVisibility.COLLEGE_ONLY,
+            collegeId: { $in: objectIds },
+          },
+        ],
+      });
     }
 
     if (jobIds?.length) {
-      filter._id = {
-        $in: jobIds.map((id) => this.toObjectId(id)),
-      };
+      andClauses.push({
+        _id: {
+          $in: jobIds.map((id) => this.toObjectId(id)),
+        },
+      });
     }
 
     if (location?.trim()) {
-      filter.location = {
-        $regex: this.escapeRegex(location.trim()),
-        $options: 'i',
-      };
+      andClauses.push({
+        location: {
+          $regex: this.escapeRegex(location.trim()),
+          $options: 'i',
+        },
+      });
     }
 
     if (employmentType?.trim()) {
-      filter.employmentType = {
-        $regex: this.escapeRegex(employmentType.trim()),
-        $options: 'i',
-      };
+      andClauses.push({
+        employmentType: {
+          $regex: this.escapeRegex(employmentType.trim()),
+          $options: 'i',
+        },
+      });
     }
 
     if (engagementType?.trim()) {
-      filter.engagementType = {
-        $regex: this.escapeRegex(engagementType.trim()),
-        $options: 'i',
-      };
+      andClauses.push({
+        engagementType: {
+          $regex: this.escapeRegex(engagementType.trim()),
+          $options: 'i',
+        },
+      });
     }
 
     if (workMode) {
-      filter.workMode = workMode;
+      andClauses.push({ workMode });
     }
 
     if (remoteOnly) {
-      filter.workMode = JobWorkMode.REMOTE;
+      andClauses.push({ workMode: JobWorkMode.REMOTE });
     }
 
     if (createdFrom) {
-      filter.createdAt = { $gte: createdFrom };
+      andClauses.push({ createdAt: { $gte: createdFrom } });
     }
 
     if (deadlineFrom || deadlineTo) {
@@ -167,8 +205,17 @@ export class JobPostingRepository implements ACJobPostingRepository {
       if (deadlineTo) {
         deadlineFilter.$lte = deadlineTo;
       }
-      filter.deadline = deadlineFilter;
+      andClauses.push({
+        deadline: deadlineFilter,
+      });
     }
+
+    const filter =
+      andClauses.length === 0
+        ? {}
+        : andClauses.length === 1
+          ? andClauses[0]
+          : { $and: andClauses };
 
     const [jobs, total] = await Promise.all([
       this.jobPostingModel
@@ -202,6 +249,14 @@ export class JobPostingRepository implements ACJobPostingRepository {
     if (!companyId) return 0;
     const result = await this.jobPostingModel
       .deleteMany({ companyId: this.toObjectId(companyId) })
+      .exec();
+    return result.deletedCount ?? 0;
+  }
+
+  async deleteManyByCollegeId(collegeId: string): Promise<number> {
+    if (!collegeId) return 0;
+    const result = await this.jobPostingModel
+      .deleteMany({ collegeId: this.toObjectId(collegeId) })
       .exec();
     return result.deletedCount ?? 0;
   }

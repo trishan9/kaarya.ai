@@ -52,6 +52,7 @@ export abstract class ACApplicationRepository {
     statuses: ApplicationStatus[];
   }): Promise<string[]>;
   abstract countByJobId(jobId: string): Promise<number>;
+  abstract countByStudentIds(studentIds: string[]): Promise<number>;
   abstract findAllByJobId(options: {
     jobId: string;
     page: number;
@@ -59,6 +60,29 @@ export abstract class ACApplicationRepository {
     status?: ApplicationStatus;
   }): Promise<{
     applications: ApplicationSchemaDocument[];
+    total: number;
+  }>;
+  abstract getStatusCountsByStudentIds(studentIds: string[]): Promise<{
+    applied: number;
+    reviewing: number;
+    shortlisted: number;
+    interviewScheduled: number;
+    accepted: number;
+    rejected: number;
+    withdrawn: number;
+  }>;
+  abstract getLeaderboardRows(input: {
+    page: number;
+    size: number;
+    studentIds?: string[];
+  }): Promise<{
+    rows: Array<{
+      studentId: string;
+      applications: number;
+      interviewScheduled: number;
+      accepted: number;
+      score: number;
+    }>;
     total: number;
   }>;
 }
@@ -103,7 +127,9 @@ export class ApplicationRepository implements ACApplicationRepository {
     return await this.applicationModel
       .findOne({
         $or: [{ jobId: this.toObjectId(jobId) }, { jobId }],
-        $and: [{ $or: [{ studentId: this.toObjectId(studentId) }, { studentId }] }],
+        $and: [
+          { $or: [{ studentId: this.toObjectId(studentId) }, { studentId }] },
+        ],
       })
       .exec();
   }
@@ -117,7 +143,9 @@ export class ApplicationRepository implements ACApplicationRepository {
     return await this.applicationModel
       .findOne({
         $or: [{ jobId: this.toObjectId(jobId) }, { jobId }],
-        $and: [{ $or: [{ studentId: this.toObjectId(studentId) }, { studentId }] }],
+        $and: [
+          { $or: [{ studentId: this.toObjectId(studentId) }, { studentId }] },
+        ],
       })
       .populate({
         path: 'studentId',
@@ -277,6 +305,18 @@ export class ApplicationRepository implements ACApplicationRepository {
       .exec();
   }
 
+  async countByStudentIds(studentIds: string[]): Promise<number> {
+    if (!studentIds.length) return 0;
+
+    return await this.applicationModel
+      .countDocuments({
+        studentId: {
+          $in: studentIds.map((id) => this.toObjectId(id)),
+        },
+      })
+      .exec();
+  }
+
   async findAllByJobId(options: {
     jobId: string;
     page: number;
@@ -319,6 +359,172 @@ export class ApplicationRepository implements ACApplicationRepository {
     ]);
 
     return { applications, total };
+  }
+
+  async getStatusCountsByStudentIds(studentIds: string[]): Promise<{
+    applied: number;
+    reviewing: number;
+    shortlisted: number;
+    interviewScheduled: number;
+    accepted: number;
+    rejected: number;
+    withdrawn: number;
+  }> {
+    if (!studentIds.length) {
+      return {
+        applied: 0,
+        reviewing: 0,
+        shortlisted: 0,
+        interviewScheduled: 0,
+        accepted: 0,
+        rejected: 0,
+        withdrawn: 0,
+      };
+    }
+
+    const result = await this.applicationModel
+      .aggregate<{ _id: string; count: number }>([
+        {
+          $match: {
+            studentId: {
+              $in: studentIds.map((id) => this.toObjectId(id)),
+            },
+          },
+        },
+        {
+          $group: {
+            _id: '$status',
+            count: { $sum: 1 },
+          },
+        },
+      ])
+      .exec();
+
+    const statusMap = new Map(result.map((row) => [row._id, row.count]));
+
+    return {
+      applied: statusMap.get(ApplicationStatus.APPLIED) ?? 0,
+      reviewing: statusMap.get(ApplicationStatus.REVIEWING) ?? 0,
+      shortlisted: statusMap.get(ApplicationStatus.SHORTLISTED) ?? 0,
+      interviewScheduled:
+        statusMap.get(ApplicationStatus.INTERVIEW_SCHEDULED) ?? 0,
+      accepted: statusMap.get(ApplicationStatus.ACCEPTED) ?? 0,
+      rejected: statusMap.get(ApplicationStatus.REJECTED) ?? 0,
+      withdrawn: statusMap.get(ApplicationStatus.WITHDRAWN) ?? 0,
+    };
+  }
+
+  async getLeaderboardRows(input: {
+    page: number;
+    size: number;
+    studentIds?: string[];
+  }): Promise<{
+    rows: Array<{
+      studentId: string;
+      applications: number;
+      interviewScheduled: number;
+      accepted: number;
+      score: number;
+    }>;
+    total: number;
+  }> {
+    const { page, size, studentIds } = input;
+    if (Array.isArray(studentIds) && studentIds.length === 0) {
+      return {
+        rows: [],
+        total: 0,
+      };
+    }
+
+    const skip = (page - 1) * size;
+
+    const matchStage =
+      studentIds && studentIds.length > 0
+        ? {
+            $match: {
+              studentId: {
+                $in: studentIds.map((id) => this.toObjectId(id)),
+              },
+            },
+          }
+        : null;
+
+    const pipeline = [
+      ...(matchStage ? [matchStage] : []),
+      {
+        $group: {
+          _id: '$studentId',
+          applications: { $sum: 1 },
+          interviewScheduled: {
+            $sum: {
+              $cond: [
+                { $eq: ['$status', ApplicationStatus.INTERVIEW_SCHEDULED] },
+                1,
+                0,
+              ],
+            },
+          },
+          accepted: {
+            $sum: {
+              $cond: [{ $eq: ['$status', ApplicationStatus.ACCEPTED] }, 1, 0],
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          score: {
+            $add: [
+              { $multiply: ['$applications', 5] },
+              { $multiply: ['$interviewScheduled', 20] },
+              { $multiply: ['$accepted', 50] },
+            ],
+          },
+        },
+      },
+      {
+        $sort: {
+          score: -1,
+          accepted: -1,
+          interviewScheduled: -1,
+          applications: -1,
+          _id: 1,
+        },
+      },
+      {
+        $facet: {
+          rows: [{ $skip: skip }, { $limit: size }],
+          meta: [{ $count: 'total' }],
+        },
+      },
+    ];
+
+    const [result] = await this.applicationModel
+      .aggregate<{
+        rows: Array<{
+          _id: Types.ObjectId;
+          applications: number;
+          interviewScheduled: number;
+          accepted: number;
+          score: number;
+        }>;
+        meta: Array<{ total: number }>;
+      }>(pipeline as any)
+      .exec();
+
+    const rowsRaw = result?.rows ?? [];
+    const total = result?.meta?.[0]?.total ?? 0;
+
+    return {
+      rows: rowsRaw.map((row) => ({
+        studentId: row._id.toString(),
+        applications: row.applications ?? 0,
+        interviewScheduled: row.interviewScheduled ?? 0,
+        accepted: row.accepted ?? 0,
+        score: row.score ?? 0,
+      })),
+      total,
+    };
   }
 
   private toObjectId(value: string) {
