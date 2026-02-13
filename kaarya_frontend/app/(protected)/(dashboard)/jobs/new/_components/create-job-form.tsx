@@ -30,10 +30,11 @@ import { useCreateJob } from "../_hooks/use-create-job";
 import type { TCreateJobPostingSchema } from "../_schemas";
 
 type CreateJobFormProps = {
-  companyId: string;
+  workspaceId: string;
+  workspaceType: "company" | "college";
   mode?: "create" | "edit";
   jobId?: string;
-  workspaceId?: string | null;
+  activeWorkspaceId?: string | null;
   initialValues?: Partial<TCreateJobPostingSchema>;
   submitLabel?: string;
 };
@@ -231,18 +232,20 @@ function SkillsInput({ value, onChange }: SkillsInputProps) {
 }
 
 export function CreateJobForm({
-  companyId,
+  workspaceId,
+  workspaceType,
   mode = "create",
   jobId,
-  workspaceId,
+  activeWorkspaceId,
   initialValues,
   submitLabel,
 }: CreateJobFormProps) {
   const { form, onSubmit, isSubmitting } = useCreateJob({
-    companyId,
+    workspaceId,
+    workspaceType,
     mode,
     jobId,
-    workspaceId,
+    activeWorkspaceId,
     initialValues,
   });
   const watchedSalaryRange = useWatch({

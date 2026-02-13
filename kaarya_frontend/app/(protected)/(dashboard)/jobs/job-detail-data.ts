@@ -5,6 +5,7 @@ import {
   getMyApplicationForJob,
 } from "@/lib/actions/job-actions";
 import { getCompanyById } from "@/lib/actions/company-actions";
+import { getCollegeById } from "@/lib/actions/college-actions";
 import type { TJob } from "@/lib/definitions";
 import type { JobCardProps } from "../_components/job-card";
 import { formatRelativeTime } from "@/lib/date/relative-time";
@@ -412,11 +413,14 @@ export async function getJobDetailPageData(
   }
 
   const job = jobResponse.data as TJob;
+  const isCollegeJob = job.workspaceType === "college" || Boolean(job.collegeId);
   const similarResponse = await getJobs({
     page: 1,
     size: 10,
     feed: "all",
-    companyId: job.companyId,
+    ...(isCollegeJob
+      ? { collegeId: job.collegeId ?? undefined, visibility: "college_only" as const }
+      : { companyId: job.companyId ?? undefined }),
     status: "open",
   });
   const similarJobs = Array.isArray(similarResponse?.data?.jobs)
@@ -438,16 +442,20 @@ export async function getJobDetailPageData(
     myApplicationId || job.hasApplied || (typeof myApplication?.status === "string" && myApplication.status),
   );
 
-  const companyName = job.company?.name ?? "Company";
-  const companyId = job.company?.id ?? job.companyId;
-  const companyResponse = companyId ? await getCompanyById(companyId) : null;
+  const companyName = job.company?.name ?? (isCollegeJob ? "College" : "Company");
+  const companyId = !isCollegeJob ? (job.company?.id ?? job.companyId ?? null) : null;
+  const collegeId = isCollegeJob ? (job.college?.id ?? job.collegeId ?? null) : null;
+  const workspaceResponse = isCollegeJob
+    ? (collegeId ? await getCollegeById(collegeId) : null)
+    : (companyId ? await getCompanyById(companyId) : null);
   const companyData =
-    companyResponse?.success && companyResponse?.data
-      ? (companyResponse.data as {
+    workspaceResponse?.success && workspaceResponse?.data
+      ? (workspaceResponse.data as {
           id?: string;
           name?: string;
           location?: string | null;
           industry?: string | null;
+          institutionType?: string | null;
           logo?: string | null;
         })
       : null;
@@ -459,8 +467,9 @@ export async function getJobDetailPageData(
     "Remote";
   const companyIndustry =
     asString(companyData?.industry) ??
+    asString(companyData?.institutionType) ??
     asString(job.requirements?.industry) ??
-    "Technology";
+    (isCollegeJob ? "Educational Institution" : "Technology");
   const companySize = asString(job.requirements?.companySize) ?? "Growing team";
   const companyDescription =
     asString(job.requirements?.companyDescription) ??
@@ -502,6 +511,8 @@ export async function getJobDetailPageData(
       logoUrl: companyLogo,
       profileHref: companyId
         ? `/companies/${companyId}?from=${encodeURIComponent(`/jobs/${job.id}`)}`
+        : collegeId
+          ? `/overview?workspace=${collegeId}`
         : `/jobs?search=${encodeURIComponent(resolvedCompanyName)}`,
     },
     similarJobs: mapSimilarJobs(similarJobs, job.id, options),

@@ -28,14 +28,16 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
     typeof queryParams?.location === "string" ? queryParams.location : "";
 
   const isRecruiter = user?.role === Role.RECRUITER;
+  const isCollege = user?.role === Role.COLLEGE;
   const exploreJobsData = await getExploreJobsPageData({
     isRecruiter,
+    isCollege,
     workspaceId,
     search,
     location,
   });
 
-  const headerActions = isRecruiter ? (
+  const headerActions = isRecruiter || isCollege ? (
     <Button asChild className="h-9 rounded-lg text-xs font-semibold">
       <Link
         href={workspaceId ? `/jobs/new?workspace=${workspaceId}` : "/jobs/new"}
@@ -52,14 +54,22 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
     <div className="min-h-svh bg-neutral-100 p-2 sm:p-4 lg:pl-0 lg:p-5">
       <div className="rounded-xl bg-white sm:rounded-2xl">
         <DashboardHeader
-          title={isRecruiter ? "Company Jobs" : "Explore Jobs & Internships"}
+          title={
+            isRecruiter
+              ? "Company Jobs"
+              : isCollege
+                ? "College Jobs"
+                : "Explore Jobs & Internships"
+          }
           actions={headerActions}
         />
 
         <div className="space-y-6 px-3 pb-6 sm:px-4 sm:pb-8">
           <ExploreJobsHero
             {...exploreJobsData.hero}
-            workspaceId={isRecruiter ? (workspaceId ?? undefined) : undefined}
+            workspaceId={
+              isRecruiter || isCollege ? (workspaceId ?? undefined) : undefined
+            }
           />
           <JobRecommendationsCard {...exploreJobsData.jobsSection} />
         </div>

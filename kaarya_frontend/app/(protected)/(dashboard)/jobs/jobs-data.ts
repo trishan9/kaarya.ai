@@ -26,6 +26,7 @@ export type ExploreJobsPageData = {
 
 export type ExploreJobsPageOptions = {
   isRecruiter?: boolean;
+  isCollege?: boolean;
   workspaceId?: string | null;
   search?: string;
   location?: string;
@@ -45,6 +46,15 @@ const RECRUITER_HERO: ExploreJobsHeroProps = {
   description:
     "Track all openings in your selected workspace and post new roles without leaving your dashboard.",
   searchPlaceholder: "Search your company jobs...",
+  locationPlaceholder: "Filter by location...",
+  actionLabel: "Find Job",
+};
+
+const COLLEGE_HERO: ExploreJobsHeroProps = {
+  title: "Manage Jobs For Your College Students",
+  description:
+    "Track college-specific opportunities and publish roles visible only within your college workspace.",
+  searchPlaceholder: "Search college jobs...",
   locationPlaceholder: "Filter by location...",
   actionLabel: "Find Job",
 };
@@ -76,7 +86,11 @@ const companyInitials = (companyName?: string | null) => {
 
 const toJobCards = (
   jobs: TJob[],
-  options?: { isRecruiter?: boolean; workspaceId?: string | null },
+  options?: {
+    isRecruiter?: boolean;
+    workspaceId?: string | null;
+    featuredCollegeId?: string | null;
+  },
 ) =>
   jobs.map<JobCardProps>((job) => ({
     ...(job.hasApplied && !options?.isRecruiter
@@ -102,9 +116,24 @@ const toJobCards = (
     salaryRange: job.salaryRange || "Compensation not specified",
     logoText: companyInitials(job.company?.name),
     logoUrl: job.company?.logo ?? undefined,
-    extraTags: options?.isRecruiter
-      ? [`${job.applicationsCount ?? 0} applicants`, `${job.viewsCount ?? 0} views`]
-      : [`${job.applicationsCount ?? 0} applicants`],
+    extraTags: (() => {
+      const isFeaturedCollegeJob =
+        !options?.isRecruiter &&
+        Boolean(options?.featuredCollegeId) &&
+        (job.collegeId === options?.featuredCollegeId ||
+          job.college?.id === options?.featuredCollegeId);
+
+      const baseTags = options?.isRecruiter
+        ? [
+            `${job.applicationsCount ?? 0} applicants`,
+            `${job.viewsCount ?? 0} views`,
+          ]
+        : [`${job.applicationsCount ?? 0} applicants`];
+
+      return isFeaturedCollegeJob
+        ? ["Your College Featured Job", ...baseTags]
+        : baseTags;
+    })(),
     applyLabel: options?.isRecruiter
       ? "Manage Job"
       : job.hasApplied
@@ -125,80 +154,133 @@ const extractJobs = (response: any): TJob[] => {
   return Array.isArray(jobs) ? (jobs as TJob[]) : [];
 };
 
+const prioritizeFeaturedCollegeJobs = (
+  jobs: TJob[],
+  featuredCollegeId?: string | null,
+) => {
+  const normalizedCollegeId = featuredCollegeId?.trim();
+  if (!normalizedCollegeId) {
+    return jobs;
+  }
+
+  const isFeatured = (job: TJob) =>
+    job.collegeId === normalizedCollegeId || job.college?.id === normalizedCollegeId;
+
+  return [...jobs].sort((left, right) => {
+    const leftScore = isFeatured(left) ? 1 : 0;
+    const rightScore = isFeatured(right) ? 1 : 0;
+    return rightScore - leftScore;
+  });
+};
+
 const loadJobCards = async (
   query: JobListQuery,
-  options?: { isRecruiter?: boolean; workspaceId?: string | null },
+  options?: {
+    isRecruiter?: boolean;
+    workspaceId?: string | null;
+    featuredCollegeId?: string | null;
+  },
 ) => {
   const response = await getJobs(query);
-  return toJobCards(extractJobs(response), options);
+  const jobs = extractJobs(response);
+  const prioritizedJobs = prioritizeFeaturedCollegeJobs(
+    jobs,
+    options?.featuredCollegeId,
+  );
+  return toJobCards(prioritizedJobs, options);
 };
 
 export async function getExploreJobsPageData(
   options?: ExploreJobsPageOptions,
 ): Promise<ExploreJobsPageData> {
   const isRecruiter = Boolean(options?.isRecruiter);
+  const isCollege = Boolean(options?.isCollege);
+  const isManager = isRecruiter || isCollege;
   const search = options?.search?.trim() || undefined;
   const location = options?.location?.trim() || undefined;
+  const candidateFeaturedCollegeId = !isManager
+    ? options?.workspaceId ?? undefined
+    : undefined;
 
-  if (isRecruiter) {
+  if (isManager) {
     const workspaceId = options?.workspaceId ?? undefined;
+    const managerHero = isRecruiter ? RECRUITER_HERO : COLLEGE_HERO;
 
     if (!workspaceId) {
       return {
-        hero: RECRUITER_HERO,
+        hero: managerHero,
         jobsSection: {
-          title: "Company Jobs",
-          tabs: ["All Company Jobs"],
-          activeTab: "All Company Jobs",
-          jobsByTab: { "All Company Jobs": [] },
+          title: isRecruiter ? "Company Jobs" : "College Jobs",
+          tabs: [isRecruiter ? "All Company Jobs" : "All College Jobs"],
+          activeTab: isRecruiter ? "All Company Jobs" : "All College Jobs",
+          jobsByTab: {
+            [isRecruiter ? "All Company Jobs" : "All College Jobs"]: [],
+          },
           showToolbar: true,
           sortLabel: "Sort By",
           filterLabel: "Filter",
           surface: "plain",
           gridClassName: "md:grid-cols-2 xl:grid-cols-3",
           emptyMessage:
-            "No workspace selected. Choose a company workspace to view jobs.",
+            "No workspace selected. Choose a workspace to view jobs.",
         },
       };
     }
 
+    const workspaceFilter = isRecruiter
+      ? { companyId: workspaceId }
+      : { collegeId: workspaceId, visibility: "college_only" as const };
+
     const [allJobs, openJobs, closedJobs] = await Promise.all([
-      loadJobCards({
-        page: 1,
-        size: 40,
-        feed: "all",
-        companyId: workspaceId,
-        search,
-        location,
-      }, { isRecruiter: true, workspaceId }),
-      loadJobCards({
-        page: 1,
-        size: 40,
-        feed: "all",
-        companyId: workspaceId,
-        status: "open",
-        search,
-        location,
-      }, { isRecruiter: true, workspaceId }),
-      loadJobCards({
-        page: 1,
-        size: 40,
-        feed: "all",
-        companyId: workspaceId,
-        status: "closed",
-        search,
-        location,
-      }, { isRecruiter: true, workspaceId }),
+      loadJobCards(
+        {
+          page: 1,
+          size: 40,
+          feed: "all",
+          ...workspaceFilter,
+          search,
+          location,
+        },
+        { isRecruiter: isManager, workspaceId },
+      ),
+      loadJobCards(
+        {
+          page: 1,
+          size: 40,
+          feed: "all",
+          ...workspaceFilter,
+          status: "open",
+          search,
+          location,
+        },
+        { isRecruiter: isManager, workspaceId },
+      ),
+      loadJobCards(
+        {
+          page: 1,
+          size: 40,
+          feed: "all",
+          ...workspaceFilter,
+          status: "closed",
+          search,
+          location,
+        },
+        { isRecruiter: isManager, workspaceId },
+      ),
     ]);
 
     return {
-      hero: RECRUITER_HERO,
+      hero: managerHero,
       jobsSection: {
-        title: "Company Jobs",
-        tabs: ["All Company Jobs", "Open Jobs", "Closed Jobs"],
-        activeTab: "All Company Jobs",
+        title: isRecruiter ? "Company Jobs" : "College Jobs",
+        tabs: [
+          isRecruiter ? "All Company Jobs" : "All College Jobs",
+          "Open Jobs",
+          "Closed Jobs",
+        ],
+        activeTab: isRecruiter ? "All Company Jobs" : "All College Jobs",
         jobsByTab: {
-          "All Company Jobs": allJobs,
+          [isRecruiter ? "All Company Jobs" : "All College Jobs"]: allJobs,
           "Open Jobs": openJobs,
           "Closed Jobs": closedJobs,
         },
@@ -220,6 +302,8 @@ export async function getExploreJobsPageData(
       feed: "for_you",
       search,
       location,
+    }, {
+      featuredCollegeId: candidateFeaturedCollegeId,
     }),
     loadJobCards({
       page: 1,
@@ -227,6 +311,8 @@ export async function getExploreJobsPageData(
       feed: "trending",
       search,
       location,
+    }, {
+      featuredCollegeId: candidateFeaturedCollegeId,
     }),
     loadJobCards({
       page: 1,
@@ -234,6 +320,8 @@ export async function getExploreJobsPageData(
       feed: "last_week",
       search,
       location,
+    }, {
+      featuredCollegeId: candidateFeaturedCollegeId,
     }),
     loadJobCards({
       page: 1,
@@ -242,6 +330,8 @@ export async function getExploreJobsPageData(
       remoteOnly: true,
       search,
       location,
+    }, {
+      featuredCollegeId: candidateFeaturedCollegeId,
     }),
   ]);
 

@@ -2,7 +2,15 @@ import { redirect } from "next/navigation";
 import { DashboardHeader } from "../../_components/dashboard-header";
 import { getCurrentUser } from "@/lib/dal";
 import { listRecruiterWorkspaces } from "@/lib/actions/company-actions";
-import { Role, TRecruiterWorkspace } from "@/lib/definitions";
+import { listCollegeWorkspaces } from "@/lib/actions/college-actions";
+import { Role } from "@/lib/definitions";
+import {
+  extractCollegeWorkspaces,
+  extractRecruiterWorkspaces,
+  extractWorkspaceRows,
+  resolveCollegeWorkspace,
+  resolveRecruiterWorkspace,
+} from "@/lib/workspaces";
 import { CreateJobForm } from "./_components/create-job-form";
 
 type NewJobPageProps = {
@@ -13,7 +21,7 @@ type NewJobPageProps = {
 
 export default async function NewJobPage({ searchParams }: NewJobPageProps) {
   const user = await getCurrentUser();
-  if (!user || user.role !== Role.RECRUITER) {
+  if (!user || (user.role !== Role.RECRUITER && user.role !== Role.COLLEGE)) {
     redirect("/overview");
   }
 
@@ -21,16 +29,31 @@ export default async function NewJobPage({ searchParams }: NewJobPageProps) {
   const requestedWorkspaceId =
     typeof params?.workspace === "string" ? params.workspace : null;
 
-  const workspaceResponse = await listRecruiterWorkspaces({ page: 1, size: 50 });
-  const workspaces = Array.isArray(workspaceResponse?.data?.workspaces)
-    ? (workspaceResponse.data.workspaces as TRecruiterWorkspace[])
-    : [];
+  const isCollege = user.role === Role.COLLEGE;
+  const workspaceResponse = isCollege
+    ? await listCollegeWorkspaces({ page: 1, size: 50 })
+    : await listRecruiterWorkspaces({ page: 1, size: 50 });
+  const workspaceRows = extractWorkspaceRows(workspaceResponse);
+  const recruiterWorkspaces = extractRecruiterWorkspaces(workspaceRows);
+  const collegeWorkspaces = extractCollegeWorkspaces(workspaceRows);
 
-  const activeWorkspace =
-    workspaces.find((workspace) => workspace.company.id === requestedWorkspaceId) ??
-    workspaces[0];
+  const activeRecruiterWorkspace = resolveRecruiterWorkspace({
+    workspaces: recruiterWorkspaces,
+    requestedId: requestedWorkspaceId,
+  });
+  const activeCollegeWorkspace = resolveCollegeWorkspace({
+    workspaces: collegeWorkspaces,
+    requestedId: requestedWorkspaceId,
+  });
 
-  if (!activeWorkspace?.company.id) {
+  const activeWorkspaceId = isCollege
+    ? activeCollegeWorkspace?.college?.id
+    : activeRecruiterWorkspace?.company?.id;
+  const activeWorkspaceName = isCollege
+    ? activeCollegeWorkspace?.college?.name
+    : activeRecruiterWorkspace?.company?.name;
+
+  if (!activeWorkspaceId) {
     redirect("/overview");
   }
 
@@ -42,14 +65,18 @@ export default async function NewJobPage({ searchParams }: NewJobPageProps) {
           <section className="rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5">
             <div className="mb-4">
               <h2 className="text-lg font-semibold text-foreground">
-                {activeWorkspace.company.name ?? "Company Workspace"}
+                {activeWorkspaceName ?? "Workspace"}
               </h2>
               <p className="text-sm text-muted-foreground">
                 Craft a high-quality role brief with structured hiring details for
                 the selected workspace.
               </p>
             </div>
-            <CreateJobForm companyId={activeWorkspace.company.id} />
+            <CreateJobForm
+              workspaceId={activeWorkspaceId}
+              workspaceType={isCollege ? "college" : "company"}
+              activeWorkspaceId={activeWorkspaceId}
+            />
           </section>
         </div>
       </div>

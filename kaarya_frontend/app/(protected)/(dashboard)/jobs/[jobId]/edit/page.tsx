@@ -3,7 +3,15 @@ import { DashboardHeader } from "../../../_components/dashboard-header";
 import { getCurrentUser } from "@/lib/dal";
 import { getJobById } from "@/lib/actions/job-actions";
 import { listRecruiterWorkspaces } from "@/lib/actions/company-actions";
-import { Role, TJob, TRecruiterWorkspace } from "@/lib/definitions";
+import { listCollegeWorkspaces } from "@/lib/actions/college-actions";
+import { Role, TJob } from "@/lib/definitions";
+import {
+  extractCollegeWorkspaces,
+  extractRecruiterWorkspaces,
+  extractWorkspaceRows,
+  resolveCollegeWorkspace,
+  resolveRecruiterWorkspace,
+} from "@/lib/workspaces";
 import { CreateJobForm } from "../../new/_components/create-job-form";
 
 type EditJobPageProps = {
@@ -37,7 +45,7 @@ export default async function EditJobPage({
   searchParams,
 }: EditJobPageProps) {
   const user = await getCurrentUser();
-  if (!user || user.role !== Role.RECRUITER) {
+  if (!user || (user.role !== Role.RECRUITER && user.role !== Role.COLLEGE)) {
     redirect("/overview");
   }
 
@@ -52,17 +60,29 @@ export default async function EditJobPage({
   }
 
   const job = jobResponse.data as TJob;
-  const workspaceResponse = await listRecruiterWorkspaces({ page: 1, size: 50 });
-  const workspaces = Array.isArray(workspaceResponse?.data?.workspaces)
-    ? (workspaceResponse.data.workspaces as TRecruiterWorkspace[])
-    : [];
+  const isCollegeWorkspace = Boolean(job.collegeId);
+  const workspaceResponse = isCollegeWorkspace
+    ? await listCollegeWorkspaces({ page: 1, size: 50 })
+    : await listRecruiterWorkspaces({ page: 1, size: 50 });
+  const workspaceRows = extractWorkspaceRows(workspaceResponse);
+  const recruiterWorkspaces = extractRecruiterWorkspaces(workspaceRows);
+  const collegeWorkspaces = extractCollegeWorkspaces(workspaceRows);
 
-  const activeWorkspace =
-    workspaces.find((workspace) => workspace.company.id === requestedWorkspaceId) ??
-    workspaces.find((workspace) => workspace.company.id === job.companyId) ??
-    workspaces[0];
+  const activeRecruiterWorkspace = resolveRecruiterWorkspace({
+    workspaces: recruiterWorkspaces,
+    requestedId: requestedWorkspaceId,
+    fallbackIds: [job.companyId],
+  });
+  const activeCollegeWorkspace = resolveCollegeWorkspace({
+    workspaces: collegeWorkspaces,
+    requestedId: requestedWorkspaceId,
+    fallbackIds: [job.collegeId],
+  });
 
-  const workspaceId = activeWorkspace?.company.id ?? job.companyId;
+  const workspaceId = isCollegeWorkspace
+    ? (activeCollegeWorkspace?.college?.id ?? job.collegeId ?? null)
+    : (activeRecruiterWorkspace?.company?.id ?? job.companyId ?? null);
+
   if (!workspaceId) {
     redirect("/jobs");
   }
@@ -75,19 +95,20 @@ export default async function EditJobPage({
           <section className="rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5">
             <div className="mb-4">
               <h2 className="text-lg font-semibold text-foreground">
-                {job.company?.name ?? "Company Workspace"}
+                {job.company?.name ?? "Workspace"}
               </h2>
               <p className="text-sm text-muted-foreground">
-                Update the role using the same structured form used for creating a
-                new posting.
+                Update the role using the same structured form used for creating
+                a new posting.
               </p>
             </div>
 
             <CreateJobForm
-              companyId={workspaceId}
+              workspaceId={workspaceId}
+              workspaceType={isCollegeWorkspace ? "college" : "company"}
               mode="edit"
               jobId={job.id}
-              workspaceId={workspaceId}
+              activeWorkspaceId={workspaceId}
               initialValues={{
                 title: job.title ?? "",
                 description: job.description ?? "",

@@ -12,10 +12,11 @@ import {
 } from "../_schemas";
 
 type UseCreateJobOptions = {
-  companyId: string;
+  workspaceId: string;
+  workspaceType: "company" | "college";
   mode?: "create" | "edit";
   jobId?: string;
-  workspaceId?: string | null;
+  activeWorkspaceId?: string | null;
   initialValues?: Partial<TCreateJobPostingSchema>;
 };
 
@@ -45,10 +46,11 @@ const resolveInitialValues = (
 });
 
 export const useCreateJob = ({
-  companyId,
+  workspaceId,
+  workspaceType,
   mode = "create",
   jobId,
-  workspaceId,
+  activeWorkspaceId,
   initialValues,
 }: UseCreateJobOptions) => {
   const router = useRouter();
@@ -87,7 +89,12 @@ export const useCreateJob = ({
       mode === "edit"
         ? await updateJobPosting(jobId ?? "", payload)
         : await createJobPosting({
-            companyId,
+            ...(workspaceType === "college"
+              ? {
+                  collegeId: workspaceId,
+                  visibility: "college_only" as const,
+                }
+              : { companyId: workspaceId }),
             ...payload,
           });
 
@@ -108,12 +115,14 @@ export const useCreateJob = ({
 
     if (mode === "edit" && jobId) {
       router.push(
-        workspaceId ? `/jobs/${jobId}?workspace=${workspaceId}` : `/jobs/${jobId}`,
+        activeWorkspaceId
+          ? `/jobs/${jobId}?workspace=${activeWorkspaceId}`
+          : `/jobs/${jobId}`,
       );
       return;
     }
 
-    router.push(`/jobs?workspace=${companyId}`);
+    router.push(`/jobs?workspace=${workspaceId}`);
   }
 
   return {
