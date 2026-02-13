@@ -12,9 +12,13 @@ import {
 import {
   Role,
   TCompanyWorkspaceMembersResponse,
-  TRecruiterWorkspace,
   TWorkspaceMember,
 } from "@/lib/definitions";
+import {
+  extractRecruiterWorkspaces,
+  extractWorkspaceRows,
+  resolveRecruiterWorkspace,
+} from "@/lib/workspaces";
 import { CompanySettingsPanel } from "./_components/company-settings-panel";
 
 type CompanySettingsPageProps = {
@@ -35,16 +39,19 @@ export default async function CompanySettingsPage({
   const requestedWorkspaceId =
     typeof params?.workspace === "string" ? params.workspace : null;
 
-  const workspaceResponse = await listRecruiterWorkspaces({ page: 1, size: 50 });
-  const workspaces = Array.isArray(workspaceResponse?.data?.workspaces)
-    ? (workspaceResponse.data.workspaces as TRecruiterWorkspace[])
-    : [];
+  const workspaceResponse = await listRecruiterWorkspaces({
+    page: 1,
+    size: 50,
+  });
+  const workspaces = extractRecruiterWorkspaces(
+    extractWorkspaceRows(workspaceResponse),
+  );
+  const activeWorkspace = resolveRecruiterWorkspace({
+    workspaces,
+    requestedId: requestedWorkspaceId,
+  });
 
-  const activeWorkspace =
-    workspaces.find((workspace) => workspace.company.id === requestedWorkspaceId) ??
-    workspaces[0];
-
-  if (!activeWorkspace?.company.id) {
+  if (!activeWorkspace?.company?.id) {
     return (
       <div className="min-h-svh bg-neutral-100 p-2 sm:p-4 lg:pl-0 lg:p-5">
         <div className="rounded-xl bg-white sm:rounded-2xl">
@@ -53,10 +60,11 @@ export default async function CompanySettingsPage({
             <Card className="gap-3 rounded-2xl border border-[#ececf0] bg-white p-6 shadow-sm">
               <h2 className="text-lg font-semibold">No workspace selected</h2>
               <p className="text-sm text-muted-foreground">
-                Create or join a company workspace before managing company settings.
+                Create or join a company workspace before managing company
+                settings.
               </p>
               <Button asChild className="w-fit">
-                <Link href="/company-settings/workspaces">Open Workspace Hub</Link>
+                <Link href="/overview">Go to Overview</Link>
               </Button>
             </Card>
           </div>
@@ -65,18 +73,22 @@ export default async function CompanySettingsPage({
     );
   }
 
-  const membersResponse = await listCompanyRecruiters(activeWorkspace.company.id, {
-    page: 1,
-    size: 100,
-  });
-  const membersData = (membersResponse?.data ?? {}) as Partial<TCompanyWorkspaceMembersResponse>;
+  const membersResponse = await listCompanyRecruiters(
+    activeWorkspace.company.id,
+    {
+      page: 1,
+      size: 100,
+    },
+  );
+  const membersData = (membersResponse?.data ??
+    {}) as Partial<TCompanyWorkspaceMembersResponse>;
   const members = Array.isArray(membersData.members)
     ? (membersData.members as TWorkspaceMember[])
     : [];
   const inviteCode =
     typeof membersData.workspace?.inviteCode === "string"
       ? membersData.workspace.inviteCode
-      : activeWorkspace.company.inviteCode ?? null;
+      : (activeWorkspace.company.inviteCode ?? null);
   const companyResponse = await getCompanyById(activeWorkspace.company.id);
   const companyData = (companyResponse?.data ?? null) as {
     name?: string;
@@ -87,11 +99,11 @@ export default async function CompanySettingsPage({
   const workspaceName =
     typeof companyData?.name === "string"
       ? companyData.name
-      : activeWorkspace.company.name ?? "Company Workspace";
+      : (activeWorkspace.company.name ?? "Company Workspace");
   const workspaceLogo =
     typeof companyData?.logo === "string"
       ? companyData.logo
-      : activeWorkspace.company.logo ?? null;
+      : (activeWorkspace.company.logo ?? null);
   const workspaceIndustry =
     typeof companyData?.industry === "string" ? companyData.industry : null;
   const workspaceLocation =
