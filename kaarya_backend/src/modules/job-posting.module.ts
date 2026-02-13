@@ -26,12 +26,14 @@ import {
 import { CloudinaryService } from 'src/services/cloudinary.service';
 import { JobApplicationService } from 'src/services/job-application.service';
 import { JobPostingService } from 'src/services/job-posting.service';
+import { CollegeModule } from './college.module';
 import { CompanyModule } from './company.module';
 import { EmailModule } from './email.module';
 
 @Module({
   imports: [
     CompanyModule,
+    CollegeModule,
     EmailModule,
     MongooseModule.forFeature([
       { name: JobPostingSchemaClass.name, schema: JobPostingSchema },
