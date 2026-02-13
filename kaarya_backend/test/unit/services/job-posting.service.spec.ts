@@ -10,6 +10,8 @@ import { RecruiterProfileService } from 'src/services/recruiter-profile.service'
 import { ACApplicationRepository } from 'src/repositories/application.repository';
 import { ACCompanyRepository } from 'src/repositories/company.repository';
 import { ACJobPostingRepository } from 'src/repositories/job-posting.repository';
+import { ACResumeRepository } from 'src/repositories/resume.repository';
+import { EmailService } from 'src/services/email.service';
 import { ApplicationStatus } from 'src/types/application-status.enum';
 import { JobFeedFilter } from 'src/types/job-feed-filter.enum';
 import { JobPostingStatus } from 'src/types/job-posting-status.enum';
@@ -20,9 +22,11 @@ describe('JobPostingService', () => {
   let service: JobPostingService;
   let jobPostingRepository: jest.Mocked<ACJobPostingRepository>;
   let applicationRepository: jest.Mocked<ACApplicationRepository>;
+  let resumeRepository: jest.Mocked<ACResumeRepository>;
   let companyRepository: jest.Mocked<ACCompanyRepository>;
   let companyService: jest.Mocked<CompanyService>;
   let recruiterProfileService: jest.Mocked<RecruiterProfileService>;
+  let emailService: jest.Mocked<EmailService>;
 
   const recruiterId = '507f191e810c19729de860ea';
   const studentId = '507f191e810c19729de860eb';
@@ -63,6 +67,13 @@ describe('JobPostingService', () => {
       findAllByJobId: jest.fn(),
     } as unknown as jest.Mocked<ACApplicationRepository>;
 
+    resumeRepository = {
+      create: jest.fn(),
+      findById: jest.fn(),
+      findByIdAndStudentId: jest.fn(),
+      findAllByStudentId: jest.fn(),
+    } as unknown as jest.Mocked<ACResumeRepository>;
+
     companyRepository = {
       create: jest.fn(),
       findById: jest.fn(),
@@ -82,12 +93,18 @@ describe('JobPostingService', () => {
       assertRecruiterMembership: jest.fn(),
     } as unknown as jest.Mocked<RecruiterProfileService>;
 
+    emailService = {
+      sendApplicationStatusUpdate: jest.fn(),
+    } as unknown as jest.Mocked<EmailService>;
+
     service = new JobPostingService(
       jobPostingRepository,
       applicationRepository,
+      resumeRepository,
       companyRepository,
       companyService,
       recruiterProfileService,
+      emailService,
     );
   });
 

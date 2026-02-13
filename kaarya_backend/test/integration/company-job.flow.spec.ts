@@ -261,7 +261,13 @@ describe('Company + Job flow (integration)', () => {
 
   it('should reject metrics and job lookup for invalid ids', async () => {
     await expectApiError(
-      jobPostingService.getJobPostingById('invalid'),
+      jobPostingService.getJobPostingById(
+        {
+          id: '507f191e810c19729de860ef',
+          role: UserRole.STUDENT,
+        },
+        'invalid',
+      ),
       HttpStatus.BAD_REQUEST,
       JOB_MESSAGES.INVALID_ID,
     );
