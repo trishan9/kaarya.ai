@@ -5,7 +5,11 @@ import { Card } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/dal";
 import { getCompanyById, listRecruiterWorkspaces } from "@/lib/actions/company-actions";
 import { getJobs } from "@/lib/actions/job-actions";
-import { Role, TRecruiterWorkspace } from "@/lib/definitions";
+import { Role } from "@/lib/definitions";
+import {
+  extractRecruiterWorkspaces,
+  extractWorkspaceRows,
+} from "@/lib/workspaces";
 import { CompanyInviteJoinCard } from "./_components/company-invite-join-card";
 
 type CompanyInvitesPageProps = {
@@ -55,15 +59,15 @@ export default async function CompanyInvitesPage({
   }
 
   const workspaceResponse = await listRecruiterWorkspaces({ page: 1, size: 50 });
-  const workspaces = Array.isArray(workspaceResponse?.data?.workspaces)
-    ? (workspaceResponse.data.workspaces as TRecruiterWorkspace[])
-    : [];
+  const workspaces = extractRecruiterWorkspaces(
+    extractWorkspaceRows(workspaceResponse),
+  );
   const normalizedInviteCode = inviteCode.toUpperCase();
   const existingWorkspace =
-    workspaces.find((workspace) => workspace.company.id === companyId) ??
+    workspaces.find((workspace) => workspace.company?.id === companyId) ??
     workspaces.find(
       (workspace) =>
-        typeof workspace.company.inviteCode === "string" &&
+        typeof workspace.company?.inviteCode === "string" &&
         workspace.company.inviteCode.toUpperCase() === normalizedInviteCode,
     ) ??
     null;
@@ -117,7 +121,7 @@ export default async function CompanyInvitesPage({
           companyLocation={companyLocation}
           openRolesCount={openRolesCount}
           alreadyMember={Boolean(existingWorkspace)}
-          existingWorkspaceId={existingWorkspace?.company.id ?? null}
+          existingWorkspaceId={existingWorkspace?.company?.id ?? null}
           currentUserName={user.name}
           currentUserEmail={user.email ?? null}
         />

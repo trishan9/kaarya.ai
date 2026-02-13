@@ -64,7 +64,7 @@ export function CompanyInviteJoinCard({
   currentUserEmail,
 }: CompanyInviteJoinCardProps) {
   const router = useRouter();
-  const [isPending, startTransition] = React.useTransition();
+  const [isPending, setIsPending] = React.useState(false);
 
   const joinForm = useForm<TJoinWorkspaceByCodeSchema>({
     resolver: zodResolver(joinWorkspaceByCodeSchema),
@@ -75,8 +75,9 @@ export function CompanyInviteJoinCard({
   });
 
   const onJoinWorkspace = React.useCallback(
-    (values: TJoinWorkspaceByCodeSchema) => {
-      startTransition(async () => {
+    async (values: TJoinWorkspaceByCodeSchema) => {
+      setIsPending(true);
+      try {
         const response = await joinCompanyByCode({
           inviteCode: values.inviteCode,
           designation: values.designation,
@@ -89,9 +90,10 @@ export function CompanyInviteJoinCard({
 
         const workspaceId = response?.data?.workspace?.id as string | undefined;
         toast.success(response?.message || "Joined company workspace.");
-        router.push(workspaceId ? `/overview?workspace=${workspaceId}` : "/overview");
-        router.refresh();
-      });
+        router.replace(workspaceId ? `/overview?workspace=${workspaceId}` : "/overview");
+      } finally {
+        setIsPending(false);
+      }
     },
     [router],
   );
