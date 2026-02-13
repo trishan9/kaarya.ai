@@ -1,3 +1,11 @@
+import Link from "next/link";
+import {
+  BriefcaseBusiness,
+  Eye,
+  FileClock,
+  Target,
+  Users,
+} from "lucide-react";
 import { DashboardHeader } from "../_components/dashboard-header";
 import { ApplicationsSummaryCard } from "./_components/applications-summary-card";
 import { DeadlineCard } from "./_components/deadline-card";
@@ -7,9 +15,231 @@ import { JobRecommendationsCard } from "../_components/job-recommendations-card"
 import { TipsCard } from "./_components/tips-card";
 import { OverviewHeaderActions } from "./_components/overview-header-actions";
 import { OverviewAnalyticsCharts } from "./_components/overview-analytics-charts";
-import { getOverviewDashboardData } from "./overview-data";
+import {
+  getOverviewDashboardData,
+  getRecruiterOverviewDashboardData,
+} from "./overview-data";
+import { getCurrentUser } from "@/lib/dal";
+import { Role, TRecruiterWorkspace } from "@/lib/definitions";
+import { listRecruiterWorkspaces } from "@/lib/actions/company-actions";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 
-export default async function OverviewPage() {
+type OverviewPageProps = {
+  searchParams?: Promise<{
+    workspace?: string;
+  }>;
+};
+
+export default async function OverviewPage({ searchParams }: OverviewPageProps) {
+  const user = await getCurrentUser();
+  const params = await searchParams;
+
+  if (user?.role === Role.RECRUITER) {
+    const requestedWorkspaceId =
+      typeof params?.workspace === "string" ? params.workspace : null;
+    const workspaceResponse = await listRecruiterWorkspaces({ page: 1, size: 50 });
+    const recruiterWorkspaces = Array.isArray(workspaceResponse?.data?.workspaces)
+      ? (workspaceResponse.data.workspaces as TRecruiterWorkspace[])
+      : [];
+
+    const activeWorkspace =
+      recruiterWorkspaces.find(
+        (workspace) => workspace.company.id === requestedWorkspaceId,
+      ) ?? recruiterWorkspaces[0];
+    const activeWorkspaceId = activeWorkspace?.company.id ?? null;
+
+    const overviewData = await getRecruiterOverviewDashboardData({
+      workspaceId: activeWorkspaceId,
+      workspaceName: activeWorkspace?.company.name,
+    });
+    const createJobHref = activeWorkspaceId
+      ? `/jobs/new?workspace=${activeWorkspaceId}`
+      : "/jobs/new";
+
+    const recruiterStats = [
+      {
+        label: "Open Jobs",
+        value: overviewData.summary.activeJobs,
+        helper: "Live roles currently hiring",
+        icon: BriefcaseBusiness,
+      },
+      {
+        label: "Draft Jobs",
+        value: overviewData.summary.draftJobs,
+        helper: "Roles saved but not published",
+        icon: FileClock,
+      },
+      {
+        label: "Total Applicants",
+        value: overviewData.summary.totalApplicants,
+        helper: "Applicants across tracked roles",
+        icon: Users,
+      },
+      {
+        label: "Job Views",
+        value: overviewData.summary.totalViews,
+        helper: "Total visibility across roles",
+        icon: Eye,
+      },
+      {
+        label: "Closing Soon",
+        value: overviewData.summary.closingSoon,
+        helper: "Open roles closing in 14 days",
+        icon: Target,
+      },
+    ];
+    const maxWorkModeCount = Math.max(
+      ...overviewData.insights.workModeDistribution.map((item) => item.count),
+      1,
+    );
+
+    return (
+      <div className="min-h-svh bg-neutral-100 p-2 sm:p-4 lg:pl-0 lg:p-5">
+        <div className="rounded-xl bg-white sm:rounded-2xl">
+          <DashboardHeader
+            title="Recruiter Overview"
+            actions={
+              <Button asChild className="h-9 rounded-lg text-xs font-semibold">
+                <Link href={createJobHref}>Create Job Posting</Link>
+              </Button>
+            }
+          />
+
+          <div className="space-y-4 px-3 pb-6 sm:px-4 sm:pb-8">
+            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[#ececf0] bg-neutral-50 px-3 py-2">
+              <span className="text-sm text-muted-foreground">Workspace</span>
+              <Badge variant="secondary">
+                {overviewData.workspaceName || "No workspace selected"}
+              </Badge>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+              {recruiterStats.map((stat) => {
+                const Icon = stat.icon;
+                return (
+                  <Card
+                    key={stat.label}
+                    className="gap-3 rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        {stat.label}
+                      </p>
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <Icon className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <p className="text-2xl font-semibold text-foreground">
+                      {stat.value}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{stat.helper}</p>
+                  </Card>
+                );
+              })}
+            </div>
+
+            <OverviewAnalyticsCharts data={overviewData.analytics} variant="recruiter" />
+
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
+              <Card className="gap-4 rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5">
+                <div className="space-y-1">
+                  <h3 className="text-sm font-semibold">Work Mode Split</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Distribution of roles by work arrangement.
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  {overviewData.insights.workModeDistribution.map((item) => (
+                    <div key={item.mode} className="space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-medium text-foreground">{item.mode}</span>
+                        <span className="text-muted-foreground">{item.count}</span>
+                      </div>
+                      <div className="h-2 rounded-full bg-neutral-100">
+                        <div
+                          className="h-2 rounded-full bg-primary"
+                          style={{
+                            width: `${Math.max(
+                              8,
+                              Math.round((item.count / maxWorkModeCount) * 100),
+                            )}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+
+              <Card className="gap-4 rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5">
+                <div className="space-y-1">
+                  <h3 className="text-sm font-semibold">Top Skills Demand</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Most frequently requested skills across active role briefs.
+                  </p>
+                </div>
+                {overviewData.insights.topSkills.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Add skills in role descriptions to populate this section.
+                  </p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {overviewData.insights.topSkills.map((item) => (
+                      <Badge
+                        key={item.skill}
+                        variant="secondary"
+                        className="rounded-md"
+                      >
+                        {item.skill} ({item.count})
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </Card>
+
+              <Card className="gap-4 rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5">
+                <div className="space-y-1">
+                  <h3 className="text-sm font-semibold">Upcoming Deadlines</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Open roles closing in the next 30 days.
+                  </p>
+                </div>
+                {overviewData.insights.upcomingDeadlines.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    No upcoming deadlines right now.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {overviewData.insights.upcomingDeadlines.map((item) => (
+                      <div
+                        key={item.id}
+                        className="rounded-lg border border-[#ececf0] bg-neutral-50 p-2.5"
+                      >
+                        <p className="truncate text-sm font-medium text-foreground">
+                          {item.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Deadline: {item.deadlineLabel}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {item.applicants} applicants
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
+            </div>
+
+            <JobRecommendationsCard {...overviewData.jobRecommendations} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const overviewData = await getOverviewDashboardData();
 
   return (

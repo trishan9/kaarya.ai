@@ -53,6 +53,8 @@ export type OverviewAnalyticsData = {
   invitationMix: InvitationMixPoint[];
 };
 
+type OverviewAnalyticsVariant = "candidate" | "recruiter";
+
 const DEFAULT_ANALYTICS_DATA: OverviewAnalyticsData = {
   summary: {
     applicationsThisWeek: 139,
@@ -117,14 +119,57 @@ const invitationMixConfig = {
   },
 } satisfies ChartConfig;
 
+const analyticsCopy: Record<
+  OverviewAnalyticsVariant,
+  {
+    momentumTitle: string;
+    momentumDescription: string;
+    primaryLabel: string;
+    secondaryLabel: string;
+    pipelineTitle: string;
+    pipelineDescription: string;
+    mixTitle: string;
+    mixDescription: string;
+    mixFooter: (total: number) => string;
+  }
+> = {
+  candidate: {
+    momentumTitle: "Application Momentum",
+    momentumDescription: "Weekly activity overview with interview conversion trend.",
+    primaryLabel: "This Week Applications",
+    secondaryLabel: "Interview Conversion",
+    pipelineTitle: "Application Progress",
+    pipelineDescription: "Week-over-week progress by hiring stage.",
+    mixTitle: "Invitation Responses",
+    mixDescription: "Response status distribution for recent invites.",
+    mixFooter: (total) =>
+      `Based on ${total} invitations from the last 30 days.`,
+  },
+  recruiter: {
+    momentumTitle: "Hiring Momentum",
+    momentumDescription:
+      "Weekly applicant flow and interview throughput for your workspace.",
+    primaryLabel: "New Applicants",
+    secondaryLabel: "Interview Rate",
+    pipelineTitle: "Pipeline Health",
+    pipelineDescription: "Week-over-week movement across core hiring stages.",
+    mixTitle: "Role Status Mix",
+    mixDescription: "Open, draft, and closed role distribution.",
+    mixFooter: (total) => `Calculated from ${total} tracked roles this week.`,
+  },
+};
+
 type OverviewAnalyticsChartsProps = {
   data?: OverviewAnalyticsData;
+  variant?: OverviewAnalyticsVariant;
 };
 
 export function OverviewAnalyticsCharts({
   data = DEFAULT_ANALYTICS_DATA,
+  variant = "candidate",
 }: OverviewAnalyticsChartsProps) {
   const [isMobile, setIsMobile] = React.useState(false);
+  const copy = analyticsCopy[variant];
 
   React.useEffect(() => {
     const updateViewport = () => setIsMobile(window.innerWidth < 640);
@@ -137,6 +182,7 @@ export function OverviewAnalyticsCharts({
     (sum, item) => sum + item.value,
     0,
   );
+  const mixValueSuffix = variant === "candidate" ? "%" : "";
 
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
@@ -144,10 +190,10 @@ export function OverviewAnalyticsCharts({
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <h3 className="font-semibold text-foreground">
-              Application Momentum
+              {copy.momentumTitle}
             </h3>
             <p className="text-xs text-muted-foreground">
-              Weekly activity overview with interview conversion trend.
+              {copy.momentumDescription}
             </p>
           </div>
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -158,7 +204,7 @@ export function OverviewAnalyticsCharts({
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="rounded-lg bg-white/80 px-3 py-2">
             <div className="text-[11px] text-muted-foreground">
-              This Week Applications
+              {copy.primaryLabel}
             </div>
             <div className="text-lg font-semibold text-foreground">
               {data.summary.applicationsThisWeek}
@@ -166,7 +212,7 @@ export function OverviewAnalyticsCharts({
           </div>
           <div className="rounded-lg bg-white/80 px-3 py-2">
             <div className="text-[11px] text-muted-foreground">
-              Interview Conversion
+              {copy.secondaryLabel}
             </div>
             <div className="text-lg font-semibold text-foreground">
               {data.summary.interviewConversion.toFixed(1)}%
@@ -271,10 +317,10 @@ export function OverviewAnalyticsCharts({
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <h3 className="text-sm font-semibold text-foreground">
-              Application Progress
+              {copy.pipelineTitle}
             </h3>
             <p className="text-xs text-muted-foreground">
-              Week-over-week progress by hiring stage.
+              {copy.pipelineDescription}
             </p>
           </div>
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#e8f1fb] text-primary">
@@ -337,10 +383,10 @@ export function OverviewAnalyticsCharts({
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <h3 className="text-sm font-semibold text-foreground">
-              Invitation Responses
+              {copy.mixTitle}
             </h3>
             <p className="text-xs text-muted-foreground">
-              Response status distribution for recent invites.
+              {copy.mixDescription}
             </p>
           </div>
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#e8f1fb] text-primary">
@@ -386,12 +432,13 @@ export function OverviewAnalyticsCharts({
                   <span className="text-muted-foreground">{item.name}</span>
                 </div>
                 <span className="font-semibold text-foreground">
-                  {item.value}%
+                  {item.value}
+                  {mixValueSuffix}
                 </span>
               </div>
             ))}
             <div className="pt-2 text-[11px] text-muted-foreground">
-              Based on {totalInvitations} invitations from the last 30 days.
+              {copy.mixFooter(totalInvitations)}
             </div>
           </div>
         </div>
