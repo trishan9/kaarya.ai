@@ -34,6 +34,18 @@ export const ROUTES = {
     RECRUITERS: ':id/recruiters',
     RECRUITER_BY_ID: ':id/recruiters/:recruiterId',
   },
+  COLLEGE: {
+    BASE: 'colleges',
+    BY_ID: ':id',
+    ME: 'me',
+    WORKSPACES_ME: 'workspaces/me',
+    JOIN_BY_CODE: 'join-by-code',
+    INVITE_CODE_RESET: ':id/invite-code/reset',
+    INVITES: ':id/invites',
+    STUDENTS: ':id/students',
+    STUDENT_BY_ID: ':id/students/:studentId',
+    METRICS: ':id/metrics',
+  },
   JOB: {
     BASE: 'jobs',
     BY_ID: ':id',
@@ -49,5 +61,8 @@ export const ROUTES = {
     APPLICATION_BY_JOB: 'jobs/:jobId/:applicationId',
     APPLICATION_RESUME_ACTIVITY:
       'jobs/:jobId/:applicationId/resume-activity',
+  },
+  LEADERBOARD: {
+    BASE: 'leaderboard',
   },
 } as const;

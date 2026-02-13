@@ -72,6 +72,30 @@ export const COMPANY_MESSAGES = {
   INVITEE_ALREADY_IN_COMPANY: 'Recruiter is already assigned to this company.',
 } as const;
 
+export const COLLEGE_MESSAGES = {
+  NOT_FOUND: 'College not found.',
+  INVALID_ID: 'Invalid college id.',
+  CREATE_SUCCESS: 'College created successfully.',
+  UPDATE_SUCCESS: 'College updated successfully.',
+  DELETE_SUCCESS: 'College deleted successfully.',
+  FETCH_SUCCESS: 'College fetched successfully.',
+  FETCH_ALL_SUCCESS: 'Colleges fetched successfully.',
+  STUDENT_ROLE_REQUIRED: 'Only users with user/student role can join colleges.',
+  COLLEGE_ROLE_REQUIRED: 'Only users with college role can manage colleges.',
+  FORBIDDEN_COLLEGE_ACCESS: 'You are not allowed to manage this college.',
+  COLLEGE_CONTEXT_REQUIRED: 'collegeId is required to perform this operation.',
+  WORKSPACES_FETCH_SUCCESS: 'College workspaces fetched successfully.',
+  JOIN_BY_CODE_SUCCESS: 'Joined college workspace successfully.',
+  INVITE_CODE_RESET_SUCCESS: 'College invite code reset successfully.',
+  INVITE_CODE_INVALID: 'Invalid college invite code.',
+  INVITE_CREATE_SUCCESS: 'Student invite created successfully.',
+  INVITEE_ALREADY_IN_COLLEGE: 'User is already a member of this college.',
+  STUDENT_ASSIGN_SUCCESS: 'Student added to college successfully.',
+  STUDENT_DELETE_SUCCESS: 'Student removed from college successfully.',
+  STUDENT_NOT_IN_COLLEGE: 'Student is not assigned to the specified college.',
+  METRICS_FETCH_SUCCESS: 'College metrics fetched successfully.',
+} as const;
+
 export const JOB_MESSAGES = {
   NOT_FOUND: 'Job posting not found.',
   INVALID_ID: 'Invalid job posting id.',
@@ -82,6 +106,8 @@ export const JOB_MESSAGES = {
   FETCH_ALL_SUCCESS: 'Job postings fetched successfully.',
   RECRUITER_COMPANY_REQUIRED:
     'Recruiter must be linked to a company before managing job postings.',
+  COLLEGE_WORKSPACE_REQUIRED:
+    'College user must be linked to a college workspace before managing job postings.',
   FORBIDDEN_COMPANY_ACCESS:
     'You are not allowed to manage job postings for this company.',
   APPLICATIONS_FETCH_SUCCESS: 'Job applications fetched successfully.',
@@ -97,6 +123,11 @@ export const JOB_MESSAGES = {
     'You are not allowed to apply or manage applications for this job.',
   VIEW_RECORDED: 'Job view recorded successfully.',
   METRICS_FETCH_SUCCESS: 'Job metrics fetched successfully.',
+} as const;
+
+export const LEADERBOARD_MESSAGES = {
+  FETCH_SUCCESS: 'Leaderboard fetched successfully.',
+  FORBIDDEN: 'You are not allowed to view this leaderboard.',
 } as const;
 
 export const RESPONSE_MESSAGES = {

@@ -2,6 +2,7 @@ import z from 'zod';
 import { ObjectIdDTO } from 'src/dtos/companies/company.dto';
 import { JobFeedFilter } from 'src/types/job-feed-filter.enum';
 import { JobPostingStatus } from 'src/types/job-posting-status.enum';
+import { JobVisibility } from 'src/types/job-visibility.enum';
 import { JobWorkMode } from 'src/types/job-work-mode.enum';
 
 const optionalTrimmedText = z.preprocess((value) => {
@@ -36,6 +37,8 @@ export const CreateJobPostingDTO = z.object({
   deadline: z.coerce.date(),
   status: z.nativeEnum(JobPostingStatus).optional(),
   companyId: ObjectIdDTO.optional(),
+  collegeId: ObjectIdDTO.optional(),
+  visibility: z.nativeEnum(JobVisibility).optional(),
 });
 
 export const UpdateJobPostingDTO = z
@@ -75,6 +78,8 @@ export const JobPostingQueryDTO = z.object({
   }, z.string().min(1).optional()),
   status: z.nativeEnum(JobPostingStatus).optional(),
   companyId: ObjectIdDTO.optional(),
+  collegeId: ObjectIdDTO.optional(),
+  visibility: z.nativeEnum(JobVisibility).optional(),
   location: optionalTrimmedText,
   employmentType: optionalTrimmedText,
   engagementType: optionalTrimmedText,
