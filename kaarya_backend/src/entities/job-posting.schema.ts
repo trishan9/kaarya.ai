@@ -1,7 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, SchemaTypes, Types, now } from 'mongoose';
 import { JobPostingStatus } from 'src/types/job-posting-status.enum';
+import { JobVisibility } from 'src/types/job-visibility.enum';
 import { JobWorkMode } from 'src/types/job-work-mode.enum';
+import { CollegeSchemaClass } from './college.schema';
 import { CompanySchemaClass } from './company.schema';
 import { UserSchemaClass } from './user.schema';
 
@@ -18,10 +20,26 @@ export class JobPostingSchemaClass {
   @Prop({
     type: Types.ObjectId,
     ref: CompanySchemaClass.name,
-    required: true,
+    default: null,
     index: true,
   })
-  companyId: Types.ObjectId;
+  companyId?: Types.ObjectId | null;
+
+  @Prop({
+    type: Types.ObjectId,
+    ref: CollegeSchemaClass.name,
+    default: null,
+    index: true,
+  })
+  collegeId?: Types.ObjectId | null;
+
+  @Prop({
+    type: String,
+    enum: Object.values(JobVisibility),
+    default: JobVisibility.GLOBAL,
+    index: true,
+  })
+  visibility: JobVisibility;
 
   @Prop({
     type: Types.ObjectId,
@@ -138,6 +156,7 @@ export const JobPostingSchema = SchemaFactory.createForClass(
 );
 
 JobPostingSchema.index({ companyId: 1, createdAt: -1 });
+JobPostingSchema.index({ collegeId: 1, createdAt: -1 });
 JobPostingSchema.index({ status: 1, deadline: 1 });
 JobPostingSchema.index({ title: 'text', description: 'text' });
 JobPostingSchema.index({ workMode: 1, createdAt: -1 });
