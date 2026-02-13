@@ -167,7 +167,7 @@ export class JobApplicationController {
     });
   }
 
-  @Roles(UserRole.ADMIN, UserRole.RECRUITER)
+  @Roles(UserRole.ADMIN, UserRole.RECRUITER, UserRole.COLLEGE)
   @UseGuards(RolesGuard)
   @Get(ROUTES.APPLICATION.JOB_APPLICATIONS)
   @ApiOperation({
@@ -331,7 +331,7 @@ export class JobApplicationController {
     });
   }
 
-  @Roles(UserRole.ADMIN, UserRole.RECRUITER)
+  @Roles(UserRole.ADMIN, UserRole.RECRUITER, UserRole.COLLEGE)
   @UseGuards(RolesGuard)
   @Patch(ROUTES.APPLICATION.APPLICATION_BY_JOB)
   @ApiOperation({
@@ -382,7 +382,7 @@ export class JobApplicationController {
     });
   }
 
-  @Roles(UserRole.ADMIN, UserRole.RECRUITER)
+  @Roles(UserRole.ADMIN, UserRole.RECRUITER, UserRole.COLLEGE)
   @UseGuards(RolesGuard)
   @Patch(ROUTES.APPLICATION.APPLICATION_RESUME_ACTIVITY)
   @ApiOperation({

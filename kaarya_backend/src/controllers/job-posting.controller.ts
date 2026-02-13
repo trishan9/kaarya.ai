@@ -162,7 +162,7 @@ export class JobPostingController {
     });
   }
 
-  @Roles(UserRole.ADMIN, UserRole.RECRUITER)
+  @Roles(UserRole.ADMIN, UserRole.RECRUITER, UserRole.COLLEGE)
   @UseGuards(RolesGuard)
   @Post()
   @ApiOperation({
@@ -175,6 +175,8 @@ export class JobPostingController {
       type: 'object',
       properties: {
         companyId: { type: 'string', example: '65f1ac85a0b5bf507c66d2c9' },
+        collegeId: { type: 'string', example: '65f1ac85a0b5bf507c66d2c9' },
+        visibility: { type: 'string', example: 'college_only' },
         title: { type: 'string', example: 'Backend Engineer' },
         description: {
           type: 'string',
@@ -221,7 +223,7 @@ export class JobPostingController {
     });
   }
 
-  @Roles(UserRole.ADMIN, UserRole.RECRUITER)
+  @Roles(UserRole.ADMIN, UserRole.RECRUITER, UserRole.COLLEGE)
   @UseGuards(RolesGuard)
   @Patch(ROUTES.JOB.BY_ID)
   @ApiOperation({
@@ -262,7 +264,7 @@ export class JobPostingController {
     });
   }
 
-  @Roles(UserRole.ADMIN, UserRole.RECRUITER)
+  @Roles(UserRole.ADMIN, UserRole.RECRUITER, UserRole.COLLEGE)
   @UseGuards(RolesGuard)
   @Delete(ROUTES.JOB.BY_ID)
   @ApiOperation({
