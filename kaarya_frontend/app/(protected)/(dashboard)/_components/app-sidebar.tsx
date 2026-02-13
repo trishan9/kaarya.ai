@@ -87,7 +87,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Role, TRecruiterWorkspace, TUser } from "@/lib/definitions";
+import {
+  Role,
+  TCollegeWorkspace,
+  TRecruiterWorkspace,
+  TUser,
+} from "@/lib/definitions";
+import {
+  extractCollegeWorkspaces,
+  extractRecruiterWorkspaces,
+  resolveCollegeWorkspace,
+  resolveRecruiterWorkspace,
+} from "@/lib/workspaces";
 import { useLogOut } from "@/app/(auth)/_hooks/use-log-out";
 import { createCompany, joinCompanyByCode } from "@/lib/actions/company-actions";
 import { LocationPicker } from "@/components/location/location-picker";
@@ -102,12 +113,15 @@ import {
 type AppSidebarProps = {
   user: TUser | null;
   recruiterWorkspaces?: TRecruiterWorkspace[];
+  collegeWorkspaces?: TCollegeWorkspace[];
 };
 
 const workspaceScopedPrefixes = [
   "/overview",
   "/jobs",
   "/company-settings",
+  "/college-settings",
+  "/leaderboard",
   "/inbox",
 ];
 
@@ -142,6 +156,7 @@ const routeMatches = (pathname: string, href: string) =>
 export function AppSidebar({
   user,
   recruiterWorkspaces = [],
+  collegeWorkspaces = [],
 }: AppSidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -153,13 +168,28 @@ export function AppSidebar({
   const [profileOpen, setProfileOpen] = React.useState(false);
   const [logoutOpen, setLogoutOpen] = React.useState(false);
   const [createWorkspaceOpen, setCreateWorkspaceOpen] = React.useState(false);
-  const [isCreatingWorkspace, startCreateWorkspace] = React.useTransition();
-  const [isJoiningWorkspace, startJoinWorkspace] = React.useTransition();
-  const [workspaceOptions, setWorkspaceOptions] = React.useState<
+  const [isCreatingWorkspace, setIsCreatingWorkspace] = React.useState(false);
+  const [isJoiningWorkspace, setIsJoiningWorkspace] = React.useState(false);
+  const safeRecruiterWorkspaces = React.useMemo(
+    () => extractRecruiterWorkspaces(recruiterWorkspaces as unknown[]),
+    [recruiterWorkspaces],
+  );
+  const safeCollegeWorkspaces = React.useMemo(
+    () => extractCollegeWorkspaces(collegeWorkspaces as unknown[]),
+    [collegeWorkspaces],
+  );
+  const [recruiterWorkspaceOptions, setRecruiterWorkspaceOptions] = React.useState<
     TRecruiterWorkspace[]
-  >(recruiterWorkspaces);
+  >(safeRecruiterWorkspaces);
 
   const isRecruiter = user?.role === Role.RECRUITER;
+  const isCollegeUser = user?.role === Role.COLLEGE;
+  const canUseCollegeWorkspaces =
+    user?.role === Role.USER ||
+    user?.role === Role.STUDENT ||
+    user?.role === Role.COLLEGE;
+  const showCollegeWorkspaceSwitcher =
+    canUseCollegeWorkspaces && safeCollegeWorkspaces.length > 0;
   const sidebarNavGroups = React.useMemo(
     () => getSidebarNavGroups(user?.role),
     [user?.role],
@@ -174,20 +204,29 @@ export function AppSidebar({
   );
 
   React.useEffect(() => {
-    setWorkspaceOptions(recruiterWorkspaces);
-  }, [recruiterWorkspaces]);
+    setRecruiterWorkspaceOptions(safeRecruiterWorkspaces);
+  }, [safeRecruiterWorkspaces]);
 
   const activeWorkspaceIdFromQuery = searchParams.get("workspace");
-  const activeWorkspace =
-    workspaceOptions.find(
-      (workspace) => workspace.company.id === activeWorkspaceIdFromQuery,
-    ) ?? workspaceOptions[0];
+  const activeRecruiterWorkspace = resolveRecruiterWorkspace({
+    workspaces: recruiterWorkspaceOptions,
+    requestedId: activeWorkspaceIdFromQuery,
+  });
+  const activeCollegeWorkspace = resolveCollegeWorkspace({
+    workspaces: safeCollegeWorkspaces,
+    requestedId: activeWorkspaceIdFromQuery,
+  });
 
-  const activeWorkspaceId = activeWorkspace?.company.id ?? null;
+  const activeWorkspaceId = isRecruiter
+    ? (activeRecruiterWorkspace?.company?.id ?? null)
+    : showCollegeWorkspaceSwitcher
+      ? (activeCollegeWorkspace?.college?.id ?? null)
+      : null;
 
   const withWorkspace = React.useCallback(
     (href: string) => {
-      if (!isRecruiter || !activeWorkspaceId) return href;
+      if (!activeWorkspaceId) return href;
+      if (!isRecruiter && !showCollegeWorkspaceSwitcher) return href;
       if (!workspaceScopedPrefixes.some((prefix) => href.startsWith(prefix))) {
         return href;
       }
@@ -199,7 +238,7 @@ export function AppSidebar({
 
       return `${url.pathname}${url.search}`;
     },
-    [activeWorkspaceId, isRecruiter],
+    [activeWorkspaceId, isRecruiter, showCollegeWorkspaceSwitcher],
   );
 
   const workspaceSwitchHref = React.useCallback(
@@ -249,8 +288,9 @@ export function AppSidebar({
   );
 
   const onCreateWorkspace = React.useCallback(
-    (values: TCreateCompanyWorkspaceSchema) => {
-      startCreateWorkspace(async () => {
+    async (values: TCreateCompanyWorkspaceSchema) => {
+      setIsCreatingWorkspace(true);
+      try {
         const response = await createCompany({
           name: values.name,
           industry: values.industry,
@@ -279,7 +319,7 @@ export function AppSidebar({
           new Date().toISOString();
 
         if (workspaceId) {
-          setWorkspaceOptions((current) => {
+          setRecruiterWorkspaceOptions((current) => {
             if (current.some((workspace) => workspace.company.id === workspaceId)) {
               return current;
             }
@@ -306,17 +346,19 @@ export function AppSidebar({
         createWorkspaceForm.reset();
 
         if (workspaceId) {
-          router.push(workspaceSwitchHref(workspaceId));
+          router.replace(workspaceSwitchHref(workspaceId));
         }
-        router.refresh();
-      });
+      } finally {
+        setIsCreatingWorkspace(false);
+      }
     },
     [createWorkspaceForm, router, workspaceSwitchHref],
   );
 
   const onJoinWorkspace = React.useCallback(
-    (values: TJoinWorkspaceByCodeSchema) => {
-      startJoinWorkspace(async () => {
+    async (values: TJoinWorkspaceByCodeSchema) => {
+      setIsJoiningWorkspace(true);
+      try {
         const response = await joinCompanyByCode({
           inviteCode: values.inviteCode,
           designation: values.designation,
@@ -346,7 +388,7 @@ export function AppSidebar({
           new Date().toISOString();
 
         if (workspaceId) {
-          setWorkspaceOptions((current) => {
+          setRecruiterWorkspaceOptions((current) => {
             const existingIndex = current.findIndex(
               (workspace) => workspace.company.id === workspaceId,
             );
@@ -380,12 +422,13 @@ export function AppSidebar({
         joinWorkspaceForm.reset();
 
         if (workspaceId) {
-          router.push(`/overview?workspace=${workspaceId}`);
+          router.replace(`/overview?workspace=${workspaceId}`);
         } else {
-          router.push("/overview");
+          router.replace("/overview");
         }
-        router.refresh();
-      });
+      } finally {
+        setIsJoiningWorkspace(false);
+      }
     },
     [joinWorkspaceForm, router],
   );
@@ -428,7 +471,11 @@ export function AppSidebar({
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder={
-                  isRecruiter ? "Search company jobs..." : "Quick search..."
+                  isRecruiter
+                    ? "Search company jobs..."
+                    : isCollegeUser
+                      ? "Search college jobs..."
+                      : "Quick search..."
                 }
                 className="h-9 rounded-lg border-sidebar-border bg-white pl-9 text-sm"
                 value={searchQuery}
@@ -515,27 +562,27 @@ export function AppSidebar({
                         <span className="flex min-w-0 items-center gap-2">
                           <Avatar className="h-6 w-6 rounded-md">
                             <AvatarImage
-                              src={activeWorkspace?.company.logo ?? ""}
-                              alt={activeWorkspace?.company.name ?? "Workspace"}
+                              src={activeRecruiterWorkspace?.company.logo ?? ""}
+                              alt={activeRecruiterWorkspace?.company.name ?? "Workspace"}
                             />
                             <AvatarFallback className="rounded-md bg-primary/10 text-[10px] font-semibold text-primary">
-                              {workspaceInitials(activeWorkspace?.company.name)}
+                              {workspaceInitials(activeRecruiterWorkspace?.company.name)}
                             </AvatarFallback>
                           </Avatar>
                           <span className="truncate">
-                            {activeWorkspace?.company.name ?? "Select workspace"}
+                            {activeRecruiterWorkspace?.company.name ?? "Select workspace"}
                           </span>
                         </span>
                         <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-64">
-                      {workspaceOptions.length === 0 ? (
+                      {recruiterWorkspaceOptions.length === 0 ? (
                         <DropdownMenuItem disabled>
                           No workspaces yet. Create one.
                         </DropdownMenuItem>
                       ) : null}
-                      {workspaceOptions.map((workspace) => {
+                      {recruiterWorkspaceOptions.map((workspace) => {
                         const isActiveWorkspace =
                           workspace.company.id === activeWorkspaceId;
                         return (
@@ -588,6 +635,103 @@ export function AppSidebar({
                   </TooltipTrigger>
                   <TooltipContent side="right" sideOffset={8}>
                     Create or join workspace
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : null}
+
+        {showCollegeWorkspaceSwitcher && !isRecruiter ? (
+          <SidebarGroup className="group-data-[state=collapsed]/sidebar:gap-1.5">
+            <div className="flex items-center justify-between px-3 group-data-[state=collapsed]/sidebar:hidden">
+              <SidebarGroupLabel className="px-0">Colleges</SidebarGroupLabel>
+            </div>
+            <SidebarGroupContent>
+              {open ? (
+                <div className="space-y-2 px-1">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="h-10 w-full justify-between rounded-lg border-[#d8dde4] bg-white px-3 text-sm"
+                      >
+                        <span className="flex min-w-0 items-center gap-2">
+                          <Avatar className="h-6 w-6 rounded-md">
+                            <AvatarImage
+                              src={activeCollegeWorkspace?.college.logo ?? ""}
+                              alt={activeCollegeWorkspace?.college.name ?? "College"}
+                            />
+                            <AvatarFallback className="rounded-md bg-primary/10 text-[10px] font-semibold text-primary">
+                              {workspaceInitials(activeCollegeWorkspace?.college.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="truncate">
+                            {activeCollegeWorkspace?.college.name ?? "Select college"}
+                          </span>
+                        </span>
+                        <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-64">
+                      {safeCollegeWorkspaces.map((workspace) => {
+                        const isActiveWorkspace =
+                          workspace.college.id === activeWorkspaceId;
+                        const membershipLabel = isCollegeUser
+                          ? "College Admin"
+                          : [workspace.program, workspace.year ? `Year ${workspace.year}` : null]
+                              .filter(Boolean)
+                              .join(" - ") || "Student";
+
+                        return (
+                          <DropdownMenuItem key={workspace.membershipId} asChild>
+                            <Link
+                              href={workspaceSwitchHref(workspace.college.id)}
+                              className="flex w-full items-center justify-between gap-2"
+                            >
+                              <div className="flex min-w-0 items-center gap-2">
+                                <Avatar className="h-7 w-7 rounded-md">
+                                  <AvatarImage
+                                    src={workspace.college.logo ?? ""}
+                                    alt={workspace.college.name ?? "College"}
+                                  />
+                                  <AvatarFallback className="rounded-md bg-primary/10 text-[10px] font-semibold text-primary">
+                                    {workspaceInitials(workspace.college.name)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex min-w-0 flex-col">
+                                  <span className="truncate font-medium">
+                                    {workspace.college.name ?? "College workspace"}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {membershipLabel}
+                                  </span>
+                                </div>
+                              </div>
+                              {isActiveWorkspace ? (
+                                <Check className="h-4 w-4 text-primary" />
+                              ) : null}
+                            </Link>
+                          </DropdownMenuItem>
+                        );
+                      })}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              ) : (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="mx-auto h-9 w-9 rounded-lg"
+                    >
+                      <ChevronsUpDown className="h-4 w-4" />
+                      <span className="sr-only">Switch college workspace</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" sideOffset={8}>
+                    Switch college workspace
                   </TooltipContent>
                 </Tooltip>
               )}
@@ -704,7 +848,11 @@ export function AppSidebar({
                 variant="secondary"
                 className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
               >
-                {isRecruiter ? "Recruiter" : "Free"}
+                {isRecruiter
+                  ? "Recruiter"
+                  : isCollegeUser
+                    ? "College"
+                    : "Candidate"}
               </Badge>
               <Popover open={profileOpen} onOpenChange={setProfileOpen}>
                 <PopoverTrigger asChild>
@@ -852,189 +1000,191 @@ export function AppSidebar({
         )}
       </SidebarFooter>
 
-      <Dialog
-        open={createWorkspaceOpen}
-        onOpenChange={handleCreateWorkspaceModalChange}
-      >
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Create or Join Workspace</DialogTitle>
-            <DialogDescription>
-              Create a new company workspace or join an existing one via invite code.
-            </DialogDescription>
-          </DialogHeader>
+      {isRecruiter ? (
+        <Dialog
+          open={createWorkspaceOpen}
+          onOpenChange={handleCreateWorkspaceModalChange}
+        >
+          <DialogContent className="sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Create or Join Workspace</DialogTitle>
+              <DialogDescription>
+                Create a new company workspace or join an existing one via invite code.
+              </DialogDescription>
+            </DialogHeader>
 
-          <Tabs defaultValue="create" className="pt-2">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="create">Create Workspace</TabsTrigger>
-              <TabsTrigger value="join">Join By Code</TabsTrigger>
-            </TabsList>
+            <Tabs defaultValue="create" className="pt-2">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="create">Create Workspace</TabsTrigger>
+                <TabsTrigger value="join">Join By Code</TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="create">
-              <form
-                onSubmit={createWorkspaceForm.handleSubmit(onCreateWorkspace)}
-                className="pt-2"
-              >
-                <FieldGroup>
-                  <Controller
-                    name="name"
-                    control={createWorkspaceForm.control}
-                    render={({ field, fieldState }) => (
-                      <Field>
-                        <FieldLabel htmlFor="newWorkspaceName">Company Name</FieldLabel>
-                        <Input
-                          {...field}
-                          id="newWorkspaceName"
-                          placeholder="Kaarya AI"
-                          aria-invalid={fieldState.invalid}
-                        />
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
-
-                  <Controller
-                    name="industry"
-                    control={createWorkspaceForm.control}
-                    render={({ field, fieldState }) => (
-                      <Field>
-                        <FieldLabel htmlFor="newWorkspaceIndustry">Industry</FieldLabel>
-                        <Select
-                          value={field.value || ""}
-                          onValueChange={(nextValue) => field.onChange(nextValue)}
-                        >
-                          <SelectTrigger
-                            id="newWorkspaceIndustry"
-                            className="w-full"
+              <TabsContent value="create">
+                <form
+                  onSubmit={createWorkspaceForm.handleSubmit(onCreateWorkspace)}
+                  className="pt-2"
+                >
+                  <FieldGroup>
+                    <Controller
+                      name="name"
+                      control={createWorkspaceForm.control}
+                      render={({ field, fieldState }) => (
+                        <Field>
+                          <FieldLabel htmlFor="newWorkspaceName">Company Name</FieldLabel>
+                          <Input
+                            {...field}
+                            id="newWorkspaceName"
+                            placeholder="Kaarya AI"
                             aria-invalid={fieldState.invalid}
+                          />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+
+                    <Controller
+                      name="industry"
+                      control={createWorkspaceForm.control}
+                      render={({ field, fieldState }) => (
+                        <Field>
+                          <FieldLabel htmlFor="newWorkspaceIndustry">Industry</FieldLabel>
+                          <Select
+                            value={field.value || ""}
+                            onValueChange={(nextValue) => field.onChange(nextValue)}
                           >
-                            <SelectValue placeholder="Select industry" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {industryOptions.map((option) => (
-                              <SelectItem key={option} value={option}>
-                                {option}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
+                            <SelectTrigger
+                              id="newWorkspaceIndustry"
+                              className="w-full"
+                              aria-invalid={fieldState.invalid}
+                            >
+                              <SelectValue placeholder="Select industry" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {industryOptions.map((option) => (
+                                <SelectItem key={option} value={option}>
+                                  {option}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
 
-                  <Controller
-                    name="location"
-                    control={createWorkspaceForm.control}
-                    render={({ field, fieldState }) => (
-                      <Field>
-                        <FieldLabel htmlFor="newWorkspaceLocation">Location</FieldLabel>
-                        <LocationPicker
-                          value={field.value}
-                          onChange={field.onChange}
-                          placeholder="Search city, office, or click on map"
-                        />
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
+                    <Controller
+                      name="location"
+                      control={createWorkspaceForm.control}
+                      render={({ field, fieldState }) => (
+                        <Field>
+                          <FieldLabel htmlFor="newWorkspaceLocation">Location</FieldLabel>
+                          <LocationPicker
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder="Search city, office, or click on map"
+                          />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
 
-                  <Controller
-                    name="designation"
-                    control={createWorkspaceForm.control}
-                    render={({ field, fieldState }) => (
-                      <Field>
-                        <FieldLabel htmlFor="newWorkspaceDesignation">
-                          Your Designation
-                        </FieldLabel>
-                        <Input
-                          {...field}
-                          id="newWorkspaceDesignation"
-                          placeholder="Hiring Manager"
-                          aria-invalid={fieldState.invalid}
-                        />
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
+                    <Controller
+                      name="designation"
+                      control={createWorkspaceForm.control}
+                      render={({ field, fieldState }) => (
+                        <Field>
+                          <FieldLabel htmlFor="newWorkspaceDesignation">
+                            Your Designation
+                          </FieldLabel>
+                          <Input
+                            {...field}
+                            id="newWorkspaceDesignation"
+                            placeholder="Hiring Manager"
+                            aria-invalid={fieldState.invalid}
+                          />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
 
-                  <Button type="submit" disabled={isCreatingWorkspace || isJoiningWorkspace}>
-                    {isCreatingWorkspace ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Creating Workspace...
-                      </>
-                    ) : (
-                      "Create Workspace"
-                    )}
-                  </Button>
-                </FieldGroup>
-              </form>
-            </TabsContent>
+                    <Button type="submit" disabled={isCreatingWorkspace || isJoiningWorkspace}>
+                      {isCreatingWorkspace ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Creating Workspace...
+                        </>
+                      ) : (
+                        "Create Workspace"
+                      )}
+                    </Button>
+                  </FieldGroup>
+                </form>
+              </TabsContent>
 
-            <TabsContent value="join">
-              <form
-                onSubmit={joinWorkspaceForm.handleSubmit(onJoinWorkspace)}
-                className="pt-2"
-              >
-                <FieldGroup>
-                  <Controller
-                    name="inviteCode"
-                    control={joinWorkspaceForm.control}
-                    render={({ field, fieldState }) => (
-                      <Field>
-                        <FieldLabel htmlFor="sidebarJoinInviteCode">Invite Code</FieldLabel>
-                        <Input
-                          {...field}
-                          id="sidebarJoinInviteCode"
-                          placeholder="KR-AB12CD34"
-                          aria-invalid={fieldState.invalid}
-                        />
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
+              <TabsContent value="join">
+                <form
+                  onSubmit={joinWorkspaceForm.handleSubmit(onJoinWorkspace)}
+                  className="pt-2"
+                >
+                  <FieldGroup>
+                    <Controller
+                      name="inviteCode"
+                      control={joinWorkspaceForm.control}
+                      render={({ field, fieldState }) => (
+                        <Field>
+                          <FieldLabel htmlFor="sidebarJoinInviteCode">Invite Code</FieldLabel>
+                          <Input
+                            {...field}
+                            id="sidebarJoinInviteCode"
+                            placeholder="KR-AB12CD34"
+                            aria-invalid={fieldState.invalid}
+                          />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
 
-                  <Controller
-                    name="designation"
-                    control={joinWorkspaceForm.control}
-                    render={({ field, fieldState }) => (
-                      <Field>
-                        <FieldLabel htmlFor="sidebarJoinDesignation">Designation</FieldLabel>
-                        <Input
-                          {...field}
-                          id="sidebarJoinDesignation"
-                          placeholder="Talent Partner"
-                          aria-invalid={fieldState.invalid}
-                        />
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
+                    <Controller
+                      name="designation"
+                      control={joinWorkspaceForm.control}
+                      render={({ field, fieldState }) => (
+                        <Field>
+                          <FieldLabel htmlFor="sidebarJoinDesignation">Designation</FieldLabel>
+                          <Input
+                            {...field}
+                            id="sidebarJoinDesignation"
+                            placeholder="Talent Partner"
+                            aria-invalid={fieldState.invalid}
+                          />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
 
-                  <Button
-                    type="submit"
-                    variant="outline"
-                    disabled={isCreatingWorkspace || isJoiningWorkspace}
-                  >
-                    {isJoiningWorkspace ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Joining Workspace...
-                      </>
-                    ) : (
-                      <>
-                        <Workflow className="h-4 w-4" />
-                        Join Workspace
-                      </>
-                    )}
-                  </Button>
-                </FieldGroup>
-              </form>
-            </TabsContent>
-          </Tabs>
-        </DialogContent>
-      </Dialog>
+                    <Button
+                      type="submit"
+                      variant="outline"
+                      disabled={isCreatingWorkspace || isJoiningWorkspace}
+                    >
+                      {isJoiningWorkspace ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Joining Workspace...
+                        </>
+                      ) : (
+                        <>
+                          <Workflow className="h-4 w-4" />
+                          Join Workspace
+                        </>
+                      )}
+                    </Button>
+                  </FieldGroup>
+                </form>
+              </TabsContent>
+            </Tabs>
+          </DialogContent>
+        </Dialog>
+      ) : null}
 
       <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
         <AlertDialogContent>

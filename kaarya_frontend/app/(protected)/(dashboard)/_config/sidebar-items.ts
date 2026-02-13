@@ -14,6 +14,7 @@ import {
   Building2,
   BriefcaseBusiness,
   PlusSquare,
+  GraduationCap,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { Role } from "@/lib/definitions";
@@ -82,9 +83,37 @@ const recruiterGroups: SidebarNavGroup[] = [
   },
 ];
 
+const collegeGroups: SidebarNavGroup[] = [
+  {
+    label: "Workspace",
+    items: [
+      { label: "Overview", href: "/overview", icon: LayoutDashboard },
+      { label: "College Jobs", href: "/jobs", icon: BriefcaseBusiness },
+      { label: "Post New Job", href: "/jobs/new", icon: PlusSquare },
+      { label: "Leaderboard", href: "/leaderboard", icon: Trophy },
+      {
+        label: "College Settings",
+        href: "/college-settings",
+        icon: GraduationCap,
+      },
+    ],
+  },
+  {
+    label: "Others",
+    items: [
+      { label: "Inbox", href: "/inbox", icon: Inbox },
+      { label: "Blogs & Articles", href: "/blogs", icon: Newspaper },
+      { label: "Settings", href: "/settings", icon: Settings },
+    ],
+  },
+];
+
 export const getSidebarNavGroups = (role?: Role | null): SidebarNavGroup[] => {
   if (role === Role.RECRUITER) {
     return recruiterGroups;
+  }
+  if (role === Role.COLLEGE) {
+    return collegeGroups;
   }
   return candidateGroups;
 };
