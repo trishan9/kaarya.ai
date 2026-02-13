@@ -136,6 +136,28 @@ export class CompanyController {
     });
   }
 
+  @Get(ROUTES.COMPANY.BY_ID)
+  @ApiOperation({
+    summary: 'Get company by id',
+    description:
+      'Returns company profile details by id for candidate and recruiter company profile views.',
+  })
+  @HttpCode(HttpStatus.OK)
+  async getCompanyById(@Param('id') id: string) {
+    return asyncHandler(async () => {
+      const parsedId = ObjectIdDTO.safeParse(id);
+      if (!parsedId.success) {
+        throw new ApiError({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: z.prettifyError(parsedId.error),
+        });
+      }
+
+      const data = await this.companyService.getCompanyById(parsedId.data);
+      return buildSuccessResponse(data, COMPANY_MESSAGES.FETCH_SUCCESS);
+    });
+  }
+
   @Roles(UserRole.RECRUITER)
   @UseGuards(RolesGuard)
   @Post(ROUTES.COMPANY.JOIN_BY_CODE)

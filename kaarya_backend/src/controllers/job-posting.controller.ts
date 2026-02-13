@@ -24,10 +24,8 @@ import { Roles } from 'src/decorators/roles.decorator';
 import { ObjectIdDTO } from 'src/dtos/companies/company.dto';
 import {
   CreateJobPostingDTO,
-  JobApplicationsQueryDTO,
   JobMetricsQueryDTO,
   JobPostingQueryDTO,
-  TJobApplicationsQueryDTO,
   TCreateJobPostingDTO,
   TJobMetricsQueryDTO,
   TJobPostingQueryDTO,
@@ -84,36 +82,9 @@ export class JobPostingController {
       'Returns one job posting with normalized company details and metadata needed by the job details page.',
   })
   @HttpCode(HttpStatus.OK)
-  async getJobById(@Param('id') id: string) {
-    return asyncHandler(async () => {
-      const parsedId = ObjectIdDTO.safeParse(id);
-      if (!parsedId.success) {
-        throw new ApiError({
-          statusCode: HttpStatus.BAD_REQUEST,
-          message: z.prettifyError(parsedId.error),
-        });
-      }
-
-      const data = await this.jobPostingService.getJobPostingById(
-        parsedId.data,
-      );
-      return buildSuccessResponse(data, JOB_MESSAGES.FETCH_SUCCESS);
-    });
-  }
-
-  @Roles(UserRole.ADMIN, UserRole.RECRUITER)
-  @UseGuards(RolesGuard)
-  @Get(ROUTES.JOB.APPLICATIONS)
-  @ApiOperation({
-    summary: 'List applications for a job',
-    description:
-      'Returns paginated applications for a specific job. Recruiters can access only jobs from their workspace; admins can access any job.',
-  })
-  @HttpCode(HttpStatus.OK)
-  async getJobApplications(
+  async getJobById(
     @Request() request: { user: TAuthenticatedUser },
     @Param('id') id: string,
-    @Query() query: TJobApplicationsQueryDTO,
   ) {
     return asyncHandler(async () => {
       const parsedId = ObjectIdDTO.safeParse(id);
@@ -124,21 +95,11 @@ export class JobPostingController {
         });
       }
 
-      const parsedQuery = JobApplicationsQueryDTO.safeParse(query ?? {});
-      if (!parsedQuery.success) {
-        throw new ApiError({
-          statusCode: HttpStatus.BAD_REQUEST,
-          message: z.prettifyError(parsedQuery.error),
-        });
-      }
-
-      const data = await this.jobPostingService.getJobApplications(
+      const data = await this.jobPostingService.getJobPostingById(
         request.user,
         parsedId.data,
-        parsedQuery.data,
       );
-
-      return buildSuccessResponse(data, JOB_MESSAGES.APPLICATIONS_FETCH_SUCCESS);
+      return buildSuccessResponse(data, JOB_MESSAGES.FETCH_SUCCESS);
     });
   }
 
