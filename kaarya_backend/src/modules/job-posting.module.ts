@@ -7,10 +7,18 @@ import {
   ApplicationSchemaClass,
 } from 'src/entities/application.schema';
 import {
+  BookmarkSchema,
+  BookmarkSchemaClass,
+} from 'src/entities/bookmark.schema';
+import {
   JobPostingSchema,
   JobPostingSchemaClass,
 } from 'src/entities/job-posting.schema';
 import { ResumeSchema, ResumeSchemaClass } from 'src/entities/resume.schema';
+import {
+  ACBookmarkRepository,
+  BookmarkRepository,
+} from 'src/repositories/bookmark.repository';
 import {
   ACApplicationRepository,
   ApplicationRepository,
@@ -39,6 +47,7 @@ import { EmailModule } from './email.module';
       { name: JobPostingSchemaClass.name, schema: JobPostingSchema },
       { name: ApplicationSchemaClass.name, schema: ApplicationSchema },
       { name: ResumeSchemaClass.name, schema: ResumeSchema },
+      { name: BookmarkSchemaClass.name, schema: BookmarkSchema },
     ]),
   ],
   controllers: [JobPostingController, JobApplicationController],
@@ -47,11 +56,14 @@ import { EmailModule } from './email.module';
     JobApplicationService,
     CloudinaryService,
     JobPostingRepository,
+    BookmarkRepository,
     ApplicationRepository,
     ResumeRepository,
     { provide: ACJobPostingRepository, useClass: JobPostingRepository },
+    { provide: ACBookmarkRepository, useClass: BookmarkRepository },
     { provide: ACApplicationRepository, useClass: ApplicationRepository },
     { provide: ACResumeRepository, useClass: ResumeRepository },
   ],
+  exports: [JobPostingService, ACJobPostingRepository],
 })
 export class JobPostingModule {}
