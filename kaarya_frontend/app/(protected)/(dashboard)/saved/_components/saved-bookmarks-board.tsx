@@ -95,6 +95,28 @@ function filterInterviewsByQuery(section: SavedInterviewsSection, query: string)
   );
 }
 
+function removeItemFromTabMap<T extends { id: string }>(
+  recordsByTab: Record<string, T[]>,
+  recordId: string,
+) {
+  return Object.fromEntries(
+    Object.entries(recordsByTab).map(([tab, records]) => [
+      tab,
+      records.filter((record) => record.id !== recordId),
+    ]),
+  ) as Record<string, T[]>;
+}
+
+function countUniqueRecords<T extends { id: string }>(
+  recordsByTab: Record<string, T[]>,
+) {
+  return new Set(
+    Object.values(recordsByTab)
+      .flat()
+      .map((record) => record.id),
+  ).size;
+}
+
 export function SavedBookmarksBoard({
   title,
   description,
@@ -106,18 +128,67 @@ export function SavedBookmarksBoard({
 }: SavedBookmarksBoardProps) {
   const [currentType, setCurrentType] = React.useState<SavedContentType>(defaultType);
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [jobsByTab, setJobsByTab] = React.useState(jobsSection.jobsByTab);
+  const [interviewsByTab, setInterviewsByTab] = React.useState(
+    interviewsSection.interviewsByTab,
+  );
+
+  React.useEffect(() => {
+    setJobsByTab(jobsSection.jobsByTab);
+  }, [jobsSection.jobsByTab]);
+
+  React.useEffect(() => {
+    setInterviewsByTab(interviewsSection.interviewsByTab);
+  }, [interviewsSection.interviewsByTab]);
+
+  const dynamicTypeOptions = React.useMemo(
+    () =>
+      typeOptions.map((option) => ({
+        ...option,
+        count:
+          option.value === "jobs"
+            ? countUniqueRecords(jobsByTab)
+            : countUniqueRecords(interviewsByTab),
+      })),
+    [interviewsByTab, jobsByTab, typeOptions],
+  );
+
+  const jobsSectionState = React.useMemo(
+    () => ({ ...jobsSection, jobsByTab }),
+    [jobsByTab, jobsSection],
+  );
+  const interviewsSectionState = React.useMemo(
+    () => ({ ...interviewsSection, interviewsByTab }),
+    [interviewsByTab, interviewsSection],
+  );
 
   const filteredJobsByTab = React.useMemo(
-    () => filterJobsByQuery(jobsSection, searchQuery),
-    [jobsSection, searchQuery],
+    () => filterJobsByQuery(jobsSectionState, searchQuery),
+    [jobsSectionState, searchQuery],
   );
   const filteredInterviewsByTab = React.useMemo(
-    () => filterInterviewsByQuery(interviewsSection, searchQuery),
-    [interviewsSection, searchQuery],
+    () => filterInterviewsByQuery(interviewsSectionState, searchQuery),
+    [interviewsSectionState, searchQuery],
+  );
+
+  const handleJobBookmarkChange = React.useCallback(
+    (jobId: string, saved: boolean) => {
+      if (saved) return;
+      setJobsByTab((prev) => removeItemFromTabMap(prev, jobId));
+    },
+    [],
+  );
+
+  const handleInterviewBookmarkChange = React.useCallback(
+    (interviewId: string, saved: boolean) => {
+      if (saved) return;
+      setInterviewsByTab((prev) => removeItemFromTabMap(prev, interviewId));
+    },
+    [],
   );
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-4 rounded-2xl border border-[#ececf0] bg-[#fcfdff] p-4 sm:p-5">
       <div className="space-y-1">
         <h3 className="text-base font-semibold leading-tight text-foreground">
           {title}
@@ -131,17 +202,14 @@ export function SavedBookmarksBoard({
         className="space-y-4"
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <TabsList className="h-auto w-fit gap-2 bg-transparent p-0">
-            {typeOptions.map((option) => (
+          <TabsList className="grid h-9 w-full grid-cols-2 rounded-lg bg-muted/70 p-1 sm:w-[280px]">
+            {dynamicTypeOptions.map((option) => (
               <TabsTrigger
                 key={option.value}
                 value={option.value}
-                className="h-9 rounded-lg border border-[#d8dde4] bg-white px-3 text-sm text-[#8f949e] data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-white"
+                className="h-7 rounded-md px-3 text-xs"
               >
-                {option.label}
-                <span className="rounded-md bg-black/10 px-1.5 py-0.5 text-[10px] data-[state=active]:bg-white/20">
-                  {option.count}
-                </span>
+                {option.label} ({option.count})
               </TabsTrigger>
             ))}
           </TabsList>
@@ -169,6 +237,7 @@ export function SavedBookmarksBoard({
             emptyMessage={jobsSection.emptyMessage}
             surface={jobsSection.surface}
             gridClassName={jobsSection.gridClassName}
+            onJobBookmarkChange={handleJobBookmarkChange}
           />
         </TabsContent>
 
@@ -183,6 +252,7 @@ export function SavedBookmarksBoard({
             filterLabel={interviewsSection.filterLabel}
             emptyMessage={interviewsSection.emptyMessage}
             gridClassName={interviewsSection.gridClassName}
+            onInterviewBookmarkChange={handleInterviewBookmarkChange}
           />
         </TabsContent>
       </Tabs>
