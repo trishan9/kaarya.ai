@@ -125,6 +125,49 @@ export const JOB_MESSAGES = {
   METRICS_FETCH_SUCCESS: 'Job metrics fetched successfully.',
 } as const;
 
+export const INTERVIEW_MESSAGES = {
+  NOT_FOUND: 'Interview not found.',
+  INVALID_ID: 'Invalid interview id.',
+  CREATE_SUCCESS: 'Interview created successfully.',
+  UPDATE_SUCCESS: 'Interview updated successfully.',
+  DELETE_SUCCESS: 'Interview deleted successfully.',
+  FETCH_SUCCESS: 'Interview fetched successfully.',
+  FETCH_ALL_SUCCESS: 'Interviews fetched successfully.',
+  FORBIDDEN_ACCESS: 'You are not allowed to access this interview.',
+  FORBIDDEN_MANAGE: 'You are not allowed to manage this interview.',
+  FORBIDDEN_CREATE:
+    'You are not allowed to create workspace interviews for this role.',
+  COMPANY_CONTEXT_REQUIRED:
+    'companyId is required (or select a single recruiter workspace).',
+  QUESTIONS_REQUIRED:
+    'Interview questions are required. Enable AI generation or provide custom questions.',
+  SESSION_START_SUCCESS: 'Interview session started successfully.',
+  SESSION_COMPLETE_SUCCESS: 'Interview session completed successfully.',
+  SESSION_FETCH_SUCCESS: 'Interview sessions fetched successfully.',
+  INVALID_SESSION_ID: 'Invalid interview session id.',
+  SESSION_NOT_FOUND: 'Interview session not found.',
+  SESSION_MISMATCH: 'Session does not belong to this interview.',
+  SESSION_FORBIDDEN: 'You are not allowed to access this interview session.',
+  SESSION_ROLE_FORBIDDEN:
+    'Only candidate users can take interview sessions. Recruiters, colleges, and admins can create/manage interviews and review participant feedback.',
+  EVALUATION_FETCH_SUCCESS: 'Interview feedback fetched successfully.',
+  EVALUATION_NOT_FOUND: 'Interview feedback not found.',
+  ANALYTICS_FETCH_SUCCESS: 'Interview analytics fetched successfully.',
+  VAPI_CREATION_CONFIG_SUCCESS:
+    'VAPI voice interview creation config fetched successfully.',
+  VAPI_GENERATE_SUCCESS:
+    'Interview generated successfully from VAPI voice workflow.',
+  VAPI_WEB_TOKEN_MISSING:
+    'VAPI_WEB_TOKEN is missing. Configure VAPI web token for voice interview workflows.',
+  VAPI_WORKFLOW_MISSING:
+    'VAPI workflow id is missing. Configure workflow for voice interview creation.',
+  VAPI_WEBHOOK_SECRET_MISSING:
+    'VAPI webhook secret is not configured. Set VAPI_WEBHOOK_SECRET or VAPI_PRIVATE_KEY.',
+  VAPI_WEBHOOK_UNAUTHORIZED: 'Unauthorized VAPI webhook request.',
+  VAPI_USER_REQUIRED: 'Voice interview creation payload requires user id.',
+  VAPI_ROLE_REQUIRED: 'Voice interview creation payload requires role.',
+} as const;
+
 export const LEADERBOARD_MESSAGES = {
   FETCH_SUCCESS: 'Leaderboard fetched successfully.',
   FORBIDDEN: 'You are not allowed to view this leaderboard.',

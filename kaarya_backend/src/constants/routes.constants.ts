@@ -65,4 +65,15 @@ export const ROUTES = {
   LEADERBOARD: {
     BASE: 'leaderboard',
   },
+  INTERVIEW: {
+    BASE: 'interviews',
+    BY_ID: ':id',
+    VAPI_VOICE_CREATE_CONFIG: 'vapi/creation-config',
+    VAPI_GENERATE: 'vapi/generate',
+    SESSIONS: ':id/sessions',
+    SESSION_COMPLETE: ':id/sessions/:sessionId/complete',
+    MY_SESSIONS: ':id/sessions/me',
+    SESSION_FEEDBACK: 'sessions/:sessionId/feedback',
+    ANALYTICS: ':id/analytics',
+  },
 } as const;
