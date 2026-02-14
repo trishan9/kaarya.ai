@@ -7,12 +7,14 @@ export type MyInterviewsHeroStat = {
 export type MyInterviewsHeroProps = {
   title: string;
   description: string;
+  lastUpdatedLabel: string;
   stats: MyInterviewsHeroStat[];
 };
 
 export function MyInterviewsHero({
   title,
   description,
+  lastUpdatedLabel,
   stats,
 }: MyInterviewsHeroProps) {
   return (
@@ -25,6 +27,7 @@ export function MyInterviewsHero({
         <div className="max-w-3xl space-y-2">
           <h2 className="text-2xl font-semibold leading-tight">{title}</h2>
           <p className="max-w-2xl text-sm text-white/90">{description}</p>
+          <p className="text-xs text-white/80">{lastUpdatedLabel}</p>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
