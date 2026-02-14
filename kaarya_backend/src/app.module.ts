@@ -15,6 +15,7 @@ import { LoggerModule } from './logger/logger.module';
 import { CompanyModule } from './modules/company.module';
 import { CollegeModule } from './modules/college.module';
 import { JobPostingModule } from './modules/job-posting.module';
+import { InterviewModule } from './modules/interview.module';
 
 export const InfrastructureDatabaseModule = MongoDatabaseModule;
 
@@ -40,6 +41,7 @@ export const InfrastructureDatabaseModule = MongoDatabaseModule;
     CompanyModule,
     CollegeModule,
     JobPostingModule,
+    InterviewModule,
   ],
   controllers: [AppController],
   providers: [AppService],
