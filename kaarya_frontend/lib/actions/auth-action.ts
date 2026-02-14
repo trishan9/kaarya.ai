@@ -12,6 +12,8 @@ import { api, MULTIPART_FORM_DATA_CONFIG } from "../api/axios-instance";
 import { API_URLS } from "../api/endpoints";
 import { clearSession } from "../session";
 import { AuthProvider } from "../definitions";
+import { createCompany } from "./company-actions";
+import { createCollege } from "./college-actions";
 
 const pickHeaderValue = (...values: Array<string | null>) => {
   for (const value of values) {
@@ -66,11 +68,167 @@ export async function signup(data: TSignupSchema) {
       email: data.email,
       password: data.password,
       confirmPassword: data.confirmPassword,
+      role: data.role,
     });
     return response.data;
   } catch (error: Error | any) {
     const errorMessage =
       error?.response?.data?.message || error.message || "Signup failed";
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+}
+
+export async function signupRecruiterWithCompany(data: TSignupSchema) {
+  if (data.role !== "recruiter") {
+    return {
+      success: false,
+      message: "Recruiter role is required for this flow.",
+    };
+  }
+
+  if (!data.companyName?.trim()) {
+    return {
+      success: false,
+      message: "Company name is required for recruiter signup.",
+    };
+  }
+
+  try {
+    const signupResponse = await signup(data);
+    if (!signupResponse?.success) {
+      return signupResponse;
+    }
+
+    const loginResponse = await signin({
+      email: data.email,
+      password: data.password,
+    });
+
+    const accessToken = loginResponse?.data?.accessToken;
+    if (!loginResponse?.success || !accessToken) {
+      return {
+        success: false,
+        message:
+          loginResponse?.message ||
+          "Recruiter account created but sign-in failed. Please sign in manually.",
+      };
+    }
+
+    const companyResponse = await createCompany(
+      {
+        name: data.companyName.trim(),
+        industry: data.companyIndustry,
+        location: data.companyLocation,
+        designation: data.designation,
+      },
+      {
+        accessToken,
+      },
+    );
+
+    if (!companyResponse?.success) {
+      return {
+        success: false,
+        message:
+          companyResponse?.message ||
+          "Recruiter account created but company setup failed.",
+      };
+    }
+
+    return {
+      success: true,
+      message: "Recruiter account and company workspace created.",
+      data: {
+        accessToken,
+        user: signupResponse.data,
+        company: companyResponse.data,
+      },
+    };
+  } catch (error: Error | any) {
+    const errorMessage =
+      error?.response?.data?.message ||
+      error.message ||
+      "Failed to complete recruiter signup";
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+}
+
+export async function signupCollegeWithWorkspace(data: TSignupSchema) {
+  if (data.role !== "college") {
+    return {
+      success: false,
+      message: "College role is required for this flow.",
+    };
+  }
+
+  if (!data.collegeName?.trim()) {
+    return {
+      success: false,
+      message: "College name is required for college signup.",
+    };
+  }
+
+  try {
+    const signupResponse = await signup(data);
+    if (!signupResponse?.success) {
+      return signupResponse;
+    }
+
+    const loginResponse = await signin({
+      email: data.email,
+      password: data.password,
+    });
+
+    const accessToken = loginResponse?.data?.accessToken;
+    if (!loginResponse?.success || !accessToken) {
+      return {
+        success: false,
+        message:
+          loginResponse?.message ||
+          "College account created but sign-in failed. Please sign in manually.",
+      };
+    }
+
+    const collegeResponse = await createCollege(
+      {
+        name: data.collegeName.trim(),
+        institutionType: data.collegeInstitutionType,
+        location: data.collegeLocation,
+      },
+      {
+        accessToken,
+      },
+    );
+
+    if (!collegeResponse?.success) {
+      return {
+        success: false,
+        message:
+          collegeResponse?.message ||
+          "College account created but workspace setup failed.",
+      };
+    }
+
+    return {
+      success: true,
+      message: "College account and workspace created.",
+      data: {
+        accessToken,
+        user: signupResponse.data,
+        college: collegeResponse.data,
+      },
+    };
+  } catch (error: Error | any) {
+    const errorMessage =
+      error?.response?.data?.message ||
+      error.message ||
+      "Failed to complete college signup";
     return {
       success: false,
       message: errorMessage,

@@ -14,10 +14,10 @@ import {
 } from '../helpers/mongo';
 
 describe('UserRepository (integration)', () => {
-  let module: TestingModule;
+  let module: TestingModule | undefined;
   let repository: UserRepository;
   let userModel: Model<UserSchemaClass>;
-  let mongo: TestMongo;
+  let mongo: TestMongo | undefined;
 
   beforeAll(async () => {
     mongo = await startInMemoryMongo();
@@ -36,8 +36,12 @@ describe('UserRepository (integration)', () => {
   });
 
   afterAll(async () => {
-    await module.close();
-    await stopInMemoryMongo(mongo);
+    if (module) {
+      await module.close();
+    }
+    if (mongo) {
+      await stopInMemoryMongo(mongo);
+    }
   });
 
   it('should create users and find by email', async () => {

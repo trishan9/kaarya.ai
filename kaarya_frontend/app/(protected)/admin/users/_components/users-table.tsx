@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { Eye, Pencil, Search, ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { PaginationMeta } from "@/lib/pagination";
 import { Input } from "@/components/ui/input";
@@ -51,34 +51,37 @@ export function UsersTable({ users, meta, errorMessage }: UsersTableProps) {
 
   const showing = useMemo(() => getShowingRange(meta), [meta]);
 
-  const setQueryParams = (next: {
-    page?: number | null;
-    size?: number | null;
-    search?: string | null;
-  }) => {
-    const params = new URLSearchParams(searchParams?.toString());
+  const setQueryParams = useCallback(
+    (next: {
+      page?: number | null;
+      size?: number | null;
+      search?: string | null;
+    }) => {
+      const params = new URLSearchParams(searchParams?.toString());
 
-    if (typeof next.search === "string" && next.search.trim().length > 0) {
-      params.set("search", next.search);
-    } else if (next.search === null) {
-      params.delete("search");
-    }
+      if (typeof next.search === "string" && next.search.trim().length > 0) {
+        params.set("search", next.search);
+      } else if (next.search === null) {
+        params.delete("search");
+      }
 
-    if (typeof next.page === "number" && Number.isFinite(next.page)) {
-      params.set("page", String(next.page));
-    } else if (next.page === null) {
-      params.delete("page");
-    }
+      if (typeof next.page === "number" && Number.isFinite(next.page)) {
+        params.set("page", String(next.page));
+      } else if (next.page === null) {
+        params.delete("page");
+      }
 
-    if (typeof next.size === "number" && Number.isFinite(next.size)) {
-      params.set("size", String(next.size));
-    } else if (next.size === null) {
-      params.delete("size");
-    }
+      if (typeof next.size === "number" && Number.isFinite(next.size)) {
+        params.set("size", String(next.size));
+      } else if (next.size === null) {
+        params.delete("size");
+      }
 
-    const qs = params.toString();
-    router.push(qs ? `${pathname}?${qs}` : pathname);
-  };
+      const qs = params.toString();
+      router.push(qs ? `${pathname}?${qs}` : pathname);
+    },
+    [pathname, router, searchParams],
+  );
 
   const currentPage = meta?.page ?? 1;
   const totalPages = meta?.totalPages ?? 0;
@@ -99,7 +102,7 @@ export function UsersTable({ users, meta, errorMessage }: UsersTableProps) {
     }, 400);
 
     return () => clearTimeout(handle);
-  }, [searchValue]);
+  }, [searchValue, setQueryParams]);
 
   return (
     <Card className="overflow-hidden py-0">

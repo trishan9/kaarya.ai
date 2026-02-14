@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
+import { fn, Mock } from 'jest-mock';
 import { CloudinaryService } from 'src/services/cloudinary.service';
 import { EmailService } from 'src/services/email.service';
 import { RedisService } from 'src/services/redis.service';
@@ -16,11 +17,14 @@ export type E2EApp = {
   app: INestApplication;
   module: TestingModule;
   mongo: TestMongo;
-  cloudinary: { uploadImage: jest.Mock };
+  cloudinary: {
+    uploadImage: Mock<(...args: unknown[]) => Promise<string>>;
+  };
   email: {
-    sendPasswordResetOtp: jest.Mock;
-    sendPasswordResetSuccess: jest.Mock;
-    sendOnboardingEmail: jest.Mock;
+    sendPasswordResetOtp: Mock<(...args: unknown[]) => Promise<void>>;
+    sendPasswordResetSuccess: Mock<(...args: unknown[]) => Promise<void>>;
+    sendOnboardingEmail: Mock<(...args: unknown[]) => Promise<void>>;
+    sendCompanyInvite: Mock<(...args: unknown[]) => Promise<void>>;
   };
   redis: InMemoryRedis;
 };
@@ -30,16 +34,29 @@ export const createE2EApp = async (): Promise<E2EApp> => {
   const { AppModule } = await import('src/app.module');
 
   const cloudinary = {
-    uploadImage: jest.fn().mockResolvedValue('https://img.test/photo'),
+    uploadImage: fn<(...args: unknown[]) => Promise<string>>().mockResolvedValue(
+      'https://img.test/photo',
+    ),
   };
   const email = {
-    sendPasswordResetOtp: jest.fn().mockResolvedValue(undefined),
-    sendPasswordResetSuccess: jest.fn().mockResolvedValue(undefined),
-    sendOnboardingEmail: jest.fn().mockResolvedValue(undefined),
+    sendPasswordResetOtp: fn<
+      (...args: unknown[]) => Promise<void>
+    >().mockResolvedValue(undefined),
+    sendPasswordResetSuccess: fn<
+      (...args: unknown[]) => Promise<void>
+    >().mockResolvedValue(undefined),
+    sendOnboardingEmail: fn<
+      (...args: unknown[]) => Promise<void>
+    >().mockResolvedValue(undefined),
+    sendCompanyInvite: fn<
+      (...args: unknown[]) => Promise<void>
+    >().mockResolvedValue(undefined),
   };
   const redis = new InMemoryRedis();
   const redisService = {
-    getClient: jest.fn().mockResolvedValue(redis),
+    getClient: fn<(...args: unknown[]) => Promise<InMemoryRedis>>().mockResolvedValue(
+      redis,
+    ),
   };
 
   const module = await Test.createTestingModule({
@@ -65,8 +82,10 @@ export const resetE2EDatabase = async (context?: E2EApp) => {
   context?.redis.reset();
 };
 
-export const closeE2EApp = async ({ app, module, mongo }: E2EApp) => {
-  await app.close();
-  await module.close();
-  await stopInMemoryMongo(mongo);
+export const closeE2EApp = async (context?: E2EApp) => {
+  if (!context) return;
+
+  await context.app.close();
+  await context.module.close();
+  await stopInMemoryMongo(context.mongo);
 };

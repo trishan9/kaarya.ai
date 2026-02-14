@@ -257,7 +257,7 @@ const SidebarTrigger = React.forwardRef<
       ref={ref}
       variant="ghost"
       size="icon"
-      className={cn("h-9 w-9 rounded-lg", className)}
+      className={cn("h-9 w-9 rounded-lg cursor-pointer", className)}
       onClick={toggleSidebar}
       {...props}
     >

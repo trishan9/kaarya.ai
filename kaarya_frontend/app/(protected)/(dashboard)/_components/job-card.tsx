@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { Bookmark, Briefcase, Clock3, MapPin, Wallet } from "lucide-react";
+import Image from "next/image";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -20,13 +21,16 @@ export type JobCardProps = {
   engagementType: string;
   salaryRange: string;
   logoText: string;
+  logoUrl?: string;
   logoClassName?: string;
   extraTags?: string[];
   applyLabel?: string;
   applyHref?: string;
+  showBookmark?: boolean;
 };
 
 export function JobCard({
+  id,
   title,
   company,
   statusLabel,
@@ -37,12 +41,16 @@ export function JobCard({
   engagementType,
   salaryRange,
   logoText,
+  logoUrl,
   logoClassName,
   extraTags = [],
   applyLabel = "Apply",
-  applyHref = "/jobs",
+  applyHref,
+  showBookmark = true,
 }: JobCardProps) {
   const [bookmarked, setBookmarked] = React.useState(false);
+  const resolvedApplyHref =
+    applyHref && applyHref !== "/jobs" ? applyHref : `/jobs/${id}`;
 
   const badgeToneClassName = {
     success: "bg-emerald-100 text-emerald-600",
@@ -68,11 +76,21 @@ export function JobCard({
         <div
           className={cn(
             "flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-sm font-bold text-white",
-            "bg-primary",
+            logoUrl ? "bg-white p-1" : "bg-primary",
             logoClassName,
           )}
         >
-          {logoText}
+          {logoUrl ? (
+            <Image
+              src={logoUrl}
+              alt={`${company} logo`}
+              width={36}
+              height={36}
+              className="h-9 w-9 rounded-md object-contain"
+            />
+          ) : (
+            logoText
+          )}
         </div>
         <div className="min-w-0 flex-1">
           <div className="wrap-break-word font-semibold leading-tight text-foreground">
@@ -85,9 +103,12 @@ export function JobCard({
       </div>
 
       <div className="flex flex-wrap items-center gap-2 text-xs">
-        <span className="flex items-center gap-1 rounded-md bg-neutral-100 px-2 py-1">
-          <MapPin className="h-3 w-3" />
-          {location}
+        <span
+          className="flex max-w-full items-center gap-1 rounded-md bg-neutral-100 px-2 py-1 sm:max-w-[260px]"
+          title={location}
+        >
+          <MapPin className="h-3 w-3 shrink-0" />
+          <span className="truncate">{location}</span>
         </span>
         <span className="flex items-center gap-1 rounded-md bg-neutral-100 px-2 py-1">
           <Briefcase className="h-3 w-3" />
@@ -119,33 +140,35 @@ export function JobCard({
             "hover:bg-primary/90",
           )}
         >
-          <Link href={applyHref}>{applyLabel}</Link>
+          <Link href={resolvedApplyHref}>{applyLabel}</Link>
         </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          className={cn(
-            "h-9 w-9 rounded-[10px] border-muted-foreground bg-white cursor-pointer",
-            bookmarked
-              ? "bg-primary/10 text-primary border-primary"
-              : "text-muted-foreground",
-          )}
-          aria-pressed={bookmarked}
-          type="button"
-          onClick={() => setBookmarked((prev) => !prev)}
-        >
-          <Bookmark
+        {showBookmark ? (
+          <Button
+            variant="outline"
+            size="icon"
             className={cn(
-              "h-4 w-4",
+              "h-9 w-9 rounded-[10px] border-muted-foreground bg-white cursor-pointer",
               bookmarked
-                ? "fill-primary text-primary"
+                ? "bg-primary/10 text-primary border-primary"
                 : "text-muted-foreground",
             )}
-          />
-          <span className="sr-only">
-            {bookmarked ? "Remove bookmark" : "Save job"}
-          </span>
-        </Button>
+            aria-pressed={bookmarked}
+            type="button"
+            onClick={() => setBookmarked((prev) => !prev)}
+          >
+            <Bookmark
+              className={cn(
+                "h-4 w-4",
+                bookmarked
+                  ? "fill-primary text-primary"
+                  : "text-muted-foreground",
+              )}
+            />
+            <span className="sr-only">
+              {bookmarked ? "Remove bookmark" : "Save job"}
+            </span>
+          </Button>
+        ) : null}
       </div>
     </Card>
   );

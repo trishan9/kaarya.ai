@@ -14,9 +14,9 @@ import {
 } from '../helpers/mongo';
 
 describe('AdminUserService (integration)', () => {
-  let module: TestingModule;
+  let module: TestingModule | undefined;
   let adminService: AdminUserService;
-  let mongo: TestMongo;
+  let mongo: TestMongo | undefined;
 
   beforeAll(async () => {
     mongo = await startInMemoryMongo();
@@ -34,8 +34,12 @@ describe('AdminUserService (integration)', () => {
   });
 
   afterAll(async () => {
-    await module.close();
-    await stopInMemoryMongo(mongo);
+    if (module) {
+      await module.close();
+    }
+    if (mongo) {
+      await stopInMemoryMongo(mongo);
+    }
   });
 
   it('should create and retrieve users', async () => {

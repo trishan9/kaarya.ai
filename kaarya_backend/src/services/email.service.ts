@@ -4,10 +4,13 @@ import nodemailer, { type Transporter } from 'nodemailer';
 import { ApiError } from 'src/common/errors/api-error';
 import { CONFIG_KEYS } from 'src/constants/config.constants';
 import { PinoLoggerService } from 'src/logger/pino-logger.service';
+import { buildApplicationStatusUpdateEmail } from 'src/templates/email/application-status-update.template';
+import { buildCompanyInviteEmail } from 'src/templates/email/company-invite.template';
 import { buildOnboardingWelcomeEmail } from 'src/templates/email/onboarding-welcome.template';
 import { buildPasswordResetEmail } from 'src/templates/email/password-reset.template';
 import { buildPasswordResetSuccessEmail } from 'src/templates/email/password-reset-success.template';
 import { AllConfigType } from 'src/types/config.type';
+import { ApplicationStatus } from 'src/types/application-status.enum';
 import { EmailProvider } from 'src/types/email-provider.type';
 
 type SendEmailPayload = {
@@ -158,6 +161,58 @@ export class EmailService {
     const { subject, html, text } = buildOnboardingWelcomeEmail({
       brandName: this.brandName,
       userName: options.userName,
+      supportUrl: this.supportUrl,
+      logoUrl: this.logoUrl,
+      primaryColor: this.primaryColor,
+    });
+
+    await this.sendEmail({ to, subject, html, text });
+  }
+
+  async sendCompanyInvite(
+    to: string,
+    options: {
+      companyName: string;
+      inviteCode: string;
+      inviteLink: string;
+      inviteeEmail: string;
+      invitedByName?: string | null;
+      designation?: string | null;
+    },
+  ) {
+    const { subject, html, text } = buildCompanyInviteEmail({
+      brandName: this.brandName,
+      companyName: options.companyName,
+      inviteCode: options.inviteCode,
+      inviteLink: options.inviteLink,
+      inviteeEmail: options.inviteeEmail,
+      invitedByName: options.invitedByName,
+      designation: options.designation,
+      supportUrl: this.supportUrl,
+      logoUrl: this.logoUrl,
+      primaryColor: this.primaryColor,
+    });
+
+    await this.sendEmail({ to, subject, html, text });
+  }
+
+  async sendApplicationStatusUpdate(
+    to: string,
+    options: {
+      companyName: string;
+      jobTitle: string;
+      status: ApplicationStatus;
+      candidateName?: string | null;
+      interviewScheduledAt?: string;
+    },
+  ) {
+    const { subject, html, text } = buildApplicationStatusUpdateEmail({
+      brandName: this.brandName,
+      companyName: options.companyName,
+      jobTitle: options.jobTitle,
+      status: options.status,
+      candidateName: options.candidateName,
+      interviewScheduledAt: options.interviewScheduledAt,
       supportUrl: this.supportUrl,
       logoUrl: this.logoUrl,
       primaryColor: this.primaryColor,

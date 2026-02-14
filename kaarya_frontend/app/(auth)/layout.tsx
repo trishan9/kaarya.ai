@@ -16,26 +16,28 @@ export default async function AuthLayout({
   }
 
   return (
-    <main className="grid min-h-svh lg:grid-cols-12 gap-3 p-3 bg-accent">
-      <div className="flex flex-col gap-6 p-4 md:p-10 bg-white col-span-5">
-        <Link href="/" className="flex items-center gap-4 font-medium">
-          <Image
-            src={kaaryaLogo}
-            width={100}
-            height={100}
-            alt="Image"
-            className="h-10 w-10 object-cover dark:brightness-[0.2] dark:grayscale"
-          />
+    <main className="grid h-svh gap-3 overflow-hidden bg-accent p-3 lg:grid-cols-12">
+      <div className="no-scrollbar col-span-5 min-h-0 overflow-y-auto bg-white">
+        <div className="flex min-h-full flex-col gap-6 p-4 md:p-10">
+          <Link href="/" className="flex items-center gap-4 font-medium">
+            <Image
+              src={kaaryaLogo}
+              width={100}
+              height={100}
+              alt="Image"
+              className="h-10 w-10 object-cover dark:brightness-[0.2] dark:grayscale"
+            />
 
-          <span className="text-3xl font-bold">Kaarya</span>
-        </Link>
+            <span className="text-3xl font-bold">Kaarya</span>
+          </Link>
 
-        <div className="flex flex-1 items-center justify-center">
-          <div className="w-full max-w-lg">{children}</div>
+          <div className="flex flex-1 items-center justify-center py-2">
+            <div className="w-full max-w-lg">{children}</div>
+          </div>
         </div>
       </div>
 
-      <div className="relative hidden lg:block p-4 bg-secondary col-span-7">
+      <div className="relative col-span-7 hidden h-full overflow-hidden bg-secondary p-4 lg:block">
         <div className="h-full w-full">
           <FeatureCarousel />
         </div>

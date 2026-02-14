@@ -15,10 +15,10 @@ import {
 } from '../helpers/mongo';
 
 describe('AuthService (integration)', () => {
-  let module: TestingModule;
+  let module: TestingModule | undefined;
   let authService: AuthService;
   let userModel: Model<UserSchemaClass>;
-  let mongo: TestMongo;
+  let mongo: TestMongo | undefined;
 
   beforeAll(async () => {
     mongo = await startInMemoryMongo();
@@ -37,8 +37,12 @@ describe('AuthService (integration)', () => {
   });
 
   afterAll(async () => {
-    await module.close();
-    await stopInMemoryMongo(mongo);
+    if (module) {
+      await module.close();
+    }
+    if (mongo) {
+      await stopInMemoryMongo(mongo);
+    }
   });
 
   it('should create users and store hashed passwords', async () => {

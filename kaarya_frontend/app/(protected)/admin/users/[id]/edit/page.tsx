@@ -1,5 +1,5 @@
 import { getAdminUserById } from "@/lib/actions/admin/admin-user-actions";
-import { TUser } from "@/lib/definitions";
+import { Role, TUser } from "@/lib/definitions";
 import { EditUserForm } from "../../_components/edit-user-form";
 import { EditUserHeader } from "./_components/edit-user-header";
 import { UserNotFound } from "./_components/user-not-found";
@@ -27,7 +27,7 @@ export default async function AdminUserEditPage({
         initialValues={{
           name: user.name,
           email: user.email ?? "",
-          role: user.role,
+          role: user.role === Role.ADMIN ? "admin" : "user",
           provider: user.provider ?? "email",
         }}
         imageUrl={user.photo}
