@@ -25,9 +25,11 @@ import { ACApplicationRepository } from 'src/repositories/application.repository
 import { ACCollegeRepository } from 'src/repositories/college.repository';
 import { ACCompanyRepository } from 'src/repositories/company.repository';
 import { ACJobPostingRepository } from 'src/repositories/job-posting.repository';
+import { ACBookmarkRepository } from 'src/repositories/bookmark.repository';
 import { ACResumeRepository } from 'src/repositories/resume.repository';
 import { ApplicationStatus } from 'src/types/application-status.enum';
 import { TAuthenticatedUser } from 'src/types/authenticated-user.type';
+import { BookmarkEntityType } from 'src/types/bookmark-entity-type.enum';
 import { JobFeedFilter } from 'src/types/job-feed-filter.enum';
 import { JobPostingStatus } from 'src/types/job-posting-status.enum';
 import { JobVisibility } from 'src/types/job-visibility.enum';
@@ -43,6 +45,7 @@ import { StudentService } from './student.service';
 export class JobPostingService {
   constructor(
     private readonly jobPostingRepository: ACJobPostingRepository,
+    private readonly bookmarkRepository: ACBookmarkRepository,
     private readonly applicationRepository: ACApplicationRepository,
     private readonly resumeRepository: ACResumeRepository,
     private readonly collegeRepository: ACCollegeRepository,
@@ -128,9 +131,11 @@ export class JobPostingService {
       currentUser,
       [job.id],
     );
+    const savedJobIds = await this.buildSavedJobIdSet(currentUser, [job.id]);
     return this.buildJobResponse(job, companyMap, {
       collegeMap,
       myApplicationByJobId,
+      savedJobIds,
     });
   }
 
@@ -204,6 +209,10 @@ export class JobPostingService {
       currentUser,
       jobs.map((job) => job.id),
     );
+    const savedJobIds = await this.buildSavedJobIdSet(
+      currentUser,
+      jobs.map((job) => job.id),
+    );
 
     return {
       jobs: jobs
@@ -211,6 +220,7 @@ export class JobPostingService {
           this.buildJobResponse(job, companyMap, {
             collegeMap,
             myApplicationByJobId,
+            savedJobIds,
           }),
         )
         .filter(Boolean) as Array<Record<string, unknown>>,
@@ -1132,6 +1142,7 @@ export class JobPostingService {
         string,
         { applicationId: string; status: ApplicationStatus }
       >;
+      savedJobIds?: Set<string>;
     },
   ) {
     const jobData = sanitizeDocument(job);
@@ -1157,6 +1168,8 @@ export class JobPostingService {
       jobId && options?.myApplicationByJobId
         ? (options.myApplicationByJobId.get(jobId) ?? null)
         : null;
+    const isSaved =
+      jobId && options?.savedJobIds ? options.savedJobIds.has(jobId) : false;
 
     return {
       ...jobData,
@@ -1164,6 +1177,7 @@ export class JobPostingService {
       company: company ?? college,
       college,
       workspaceType: college ? 'college' : 'company',
+      isSaved,
       hasApplied: Boolean(myApplication),
       myApplicationId: myApplication?.applicationId ?? null,
       myApplicationStatus: myApplication?.status ?? null,
@@ -1577,6 +1591,24 @@ export class JobPostingService {
       });
     });
     return map;
+  }
+
+  private async buildSavedJobIdSet(
+    currentUser: TAuthenticatedUser,
+    jobIds: string[],
+  ): Promise<Set<string>> {
+    if (
+      (currentUser.role !== UserRole.STUDENT && currentUser.role !== UserRole.USER) ||
+      !jobIds.length
+    ) {
+      return new Set<string>();
+    }
+
+    return await this.bookmarkRepository.findSavedEntityIds({
+      userId: currentUser.id,
+      entityType: BookmarkEntityType.JOB,
+      entityIds: jobIds,
+    });
   }
 
   private daysAgo(days: number) {

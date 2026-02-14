@@ -14,11 +14,13 @@ import {
   TVapiGenerateInterviewDTO,
 } from 'src/dtos/interviews/interview.dto';
 import { ACAIEvaluationRepository } from 'src/repositories/ai-evaluation.repository';
+import { ACBookmarkRepository } from 'src/repositories/bookmark.repository';
 import { ACCollegeRepository } from 'src/repositories/college.repository';
 import { ACCompanyRepository } from 'src/repositories/company.repository';
 import { ACInterviewRepository } from 'src/repositories/interview.repository';
 import { ACInterviewSessionRepository } from 'src/repositories/interview-session.repository';
 import { TAuthenticatedUser } from 'src/types/authenticated-user.type';
+import { BookmarkEntityType } from 'src/types/bookmark-entity-type.enum';
 import { InterviewMode } from 'src/types/interview-mode.enum';
 import { InterviewSessionStatus } from 'src/types/interview-session-status.enum';
 import { InterviewSource } from 'src/types/interview-source.enum';
@@ -36,6 +38,7 @@ import { UserService } from './user.service';
 export class InterviewService {
   constructor(
     private readonly interviewRepository: ACInterviewRepository,
+    private readonly bookmarkRepository: ACBookmarkRepository,
     private readonly interviewSessionRepository: ACInterviewSessionRepository,
     private readonly aiEvaluationRepository: ACAIEvaluationRepository,
     private readonly companyRepository: ACCompanyRepository,
@@ -339,7 +342,11 @@ export class InterviewService {
     });
 
     const interviewIds = interviews.map((interview) => interview.id);
-    const [latestSessionsByInterviewId, latestEvaluationsByInterviewId] =
+    const [
+      latestSessionsByInterviewId,
+      latestEvaluationsByInterviewId,
+      savedInterviewIds,
+    ] =
       await Promise.all([
         this.interviewSessionRepository.findLatestByUserAndInterviewIds({
           userId: currentUser.id,
@@ -349,6 +356,7 @@ export class InterviewService {
           userId: currentUser.id,
           interviewIds,
         }),
+        this.buildSavedInterviewIdSet(currentUser, interviewIds),
       ]);
     const companyMap = await this.buildCompanyMap(
       interviews
@@ -374,6 +382,7 @@ export class InterviewService {
               collegeMap,
               latestSessionsByInterviewId,
               latestEvaluationsByInterviewId,
+              savedInterviewIds,
             }),
           ),
         )
@@ -391,16 +400,18 @@ export class InterviewService {
     const interview = await this.getInterviewByIdRaw(interviewId);
     await this.assertCanAccessInterview(currentUser, interview);
 
-    const [latestSession, latestEvaluation] = await Promise.all([
-      this.interviewSessionRepository.findLatestByUserAndInterviewIds({
-        userId: currentUser.id,
-        interviewIds: [interview.id],
-      }),
-      this.aiEvaluationRepository.findLatestByUserAndInterviewIds({
-        userId: currentUser.id,
-        interviewIds: [interview.id],
-      }),
-    ]);
+    const [latestSession, latestEvaluation, savedInterviewIds] =
+      await Promise.all([
+        this.interviewSessionRepository.findLatestByUserAndInterviewIds({
+          userId: currentUser.id,
+          interviewIds: [interview.id],
+        }),
+        this.aiEvaluationRepository.findLatestByUserAndInterviewIds({
+          userId: currentUser.id,
+          interviewIds: [interview.id],
+        }),
+        this.buildSavedInterviewIdSet(currentUser, [interview.id]),
+      ]);
 
     const companyMap = await this.buildCompanyMap(
       interview.companyId ? [interview.companyId.toString()] : [],
@@ -414,6 +425,7 @@ export class InterviewService {
       collegeMap,
       latestSessionsByInterviewId: latestSession,
       latestEvaluationsByInterviewId: latestEvaluation,
+      savedInterviewIds,
       includeQuestions: true,
       includeCreator: true,
     });
@@ -1206,6 +1218,7 @@ export class InterviewService {
       collegeMap?: Map<string, { id: string; name: string; logo: string | null }>;
       latestSessionsByInterviewId?: Map<string, unknown>;
       latestEvaluationsByInterviewId?: Map<string, unknown>;
+      savedInterviewIds?: Set<string>;
     },
   ) {
     const interviewData = sanitizeDocument(interview);
@@ -1229,6 +1242,7 @@ export class InterviewService {
     const latestSession = options?.latestSessionsByInterviewId?.get(interviewId);
     const latestEvaluation =
       options?.latestEvaluationsByInterviewId?.get(interviewId);
+    const isSaved = options?.savedInterviewIds?.has(interviewId) ?? false;
 
     const response: Record<string, unknown> = {
       ...interviewData,
@@ -1251,6 +1265,7 @@ export class InterviewService {
       myLatestScore: latestEvaluation
         ? (sanitizeDocument(latestEvaluation)?.totalScore ?? null)
         : null,
+      isSaved,
     };
 
     if (!options?.includeQuestions) {
@@ -1319,6 +1334,24 @@ export class InterviewService {
       });
     });
     return map;
+  }
+
+  private async buildSavedInterviewIdSet(
+    currentUser: TAuthenticatedUser,
+    interviewIds: string[],
+  ): Promise<Set<string>> {
+    if (
+      (currentUser.role !== UserRole.STUDENT && currentUser.role !== UserRole.USER) ||
+      !interviewIds.length
+    ) {
+      return new Set<string>();
+    }
+
+    return await this.bookmarkRepository.findSavedEntityIds({
+      userId: currentUser.id,
+      entityType: BookmarkEntityType.INTERVIEW,
+      entityIds: interviewIds,
+    });
   }
 
   private async resolveSessionQuestions(interview: {
