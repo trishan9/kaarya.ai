@@ -76,4 +76,10 @@ export const ROUTES = {
     SESSION_FEEDBACK: 'sessions/:sessionId/feedback',
     ANALYTICS: ':id/analytics',
   },
+  BOOKMARK: {
+    BASE: 'bookmarks',
+    ME: 'me',
+    JOB: 'jobs/:jobId',
+    INTERVIEW: 'interviews/:interviewId',
+  },
 } as const;

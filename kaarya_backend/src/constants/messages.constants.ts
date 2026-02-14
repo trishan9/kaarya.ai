@@ -173,6 +173,15 @@ export const LEADERBOARD_MESSAGES = {
   FORBIDDEN: 'You are not allowed to view this leaderboard.',
 } as const;
 
+export const BOOKMARK_MESSAGES = {
+  FETCH_SUCCESS: 'Saved bookmarks fetched successfully.',
+  SAVE_JOB_SUCCESS: 'Job saved successfully.',
+  UNSAVE_JOB_SUCCESS: 'Job removed from saved successfully.',
+  SAVE_INTERVIEW_SUCCESS: 'Interview saved successfully.',
+  UNSAVE_INTERVIEW_SUCCESS: 'Interview removed from saved successfully.',
+  FORBIDDEN: 'Only candidate users can manage saved bookmarks.',
+} as const;
+
 export const RESPONSE_MESSAGES = {
   INTERNAL_SERVER_ERROR: 'Something went wrong.',
   VALIDATION_FAILED: 'Validation failed.',
