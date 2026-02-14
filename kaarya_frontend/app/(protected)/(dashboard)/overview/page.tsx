@@ -36,6 +36,63 @@ type OverviewPageProps = {
   }>;
 };
 
+const getInterviewRatingMeta = (rating: number) => {
+  if (rating >= 80) {
+    return {
+      badgeLabel: "Excellent",
+      ratingClassName: "text-emerald-600",
+      badgeClassName: "bg-emerald-50 text-emerald-600",
+      description:
+        "Your interview readiness is consistently strong across attempts.",
+      suggestionBody:
+        "Keep practicing targeted advanced interviews to maintain your momentum.",
+    };
+  }
+
+  if (rating >= 65) {
+    return {
+      badgeLabel: "Good",
+      ratingClassName: "text-sky-600",
+      badgeClassName: "bg-sky-50 text-sky-600",
+      description: "You have a solid interview baseline with room to sharpen.",
+      suggestionBody:
+        "Focus on weak categories from recent feedback and retake similar interviews.",
+    };
+  }
+
+  if (rating >= 50) {
+    return {
+      badgeLabel: "Average",
+      ratingClassName: "text-amber-600",
+      badgeClassName: "bg-amber-50 text-amber-600",
+      description: "Your fundamentals are visible, but consistency needs work.",
+      suggestionBody:
+        "Give more mock interviews and improve low-scoring categories first.",
+    };
+  }
+
+  if (rating > 0) {
+    return {
+      badgeLabel: "Below Average",
+      ratingClassName: "text-rose-500",
+      badgeClassName: "bg-rose-50 text-rose-500",
+      description:
+        "Your current performance is below target and needs focused practice.",
+      suggestionBody:
+        "Take structured mock interviews and review feedback before each retake.",
+    };
+  }
+
+  return {
+    badgeLabel: "Not Started",
+    ratingClassName: "text-muted-foreground",
+    badgeClassName: "bg-slate-100 text-slate-600",
+    description:
+      "No interview attempts yet. Complete one mock to start your rating.",
+    suggestionBody: "Give your first interview in AI Interview Hub.",
+  };
+};
+
 export default async function OverviewPage({
   searchParams,
 }: OverviewPageProps) {
@@ -268,7 +325,12 @@ export default async function OverviewPage({
     );
   }
 
-  const overviewData = await getOverviewDashboardData();
+  const canTakeInterview =
+    user?.role === Role.USER || user?.role === Role.STUDENT;
+  const overviewData = await getOverviewDashboardData({
+    enableInterviewMetrics: canTakeInterview,
+  });
+  const interviewRatingMeta = getInterviewRatingMeta(overviewData.ratings.interview);
 
   return (
     <div className="min-h-svh bg-neutral-100 p-2 sm:p-4 lg:pl-0 lg:p-5">
@@ -303,19 +365,21 @@ export default async function OverviewPage({
                 showAction
               />
 
-              <RatingCard
-                title="Interview Overall Rating"
-                rating={overviewData.ratings.interview}
-                badgeLabel="Below Average"
-                ratingClassName="text-rose-500"
-                badgeClassName="bg-rose-50 text-rose-500"
-                description="It shows some potential, but it's still below average and needs more refinement before you're ready for real interviews."
-                suggestionTitle="Our Suggestion"
-                suggestionBody="Give more interviews with AI Interview Hub."
-                actionLabel="Take an Interview"
-                actionHref="/interview-hub"
-                showAction
-              />
+              {canTakeInterview ? (
+                <RatingCard
+                  title="Interview Overall Rating"
+                  rating={overviewData.ratings.interview}
+                  badgeLabel={interviewRatingMeta.badgeLabel}
+                  ratingClassName={interviewRatingMeta.ratingClassName}
+                  badgeClassName={interviewRatingMeta.badgeClassName}
+                  description={interviewRatingMeta.description}
+                  suggestionTitle="Our Suggestion"
+                  suggestionBody={interviewRatingMeta.suggestionBody}
+                  actionLabel="Take an Interview"
+                  actionHref="/interview-hub"
+                  showAction
+                />
+              ) : null}
 
               <TipsCard
                 title="We've got some tips only for you!"

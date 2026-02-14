@@ -2,6 +2,7 @@ import type { ApplicationsSummaryCardProps } from "./_components/applications-su
 import type { DeadlineCardProps } from "./_components/deadline-card";
 import type { InvitationCardProps } from "./_components/invitation-card";
 import { getJobs, getMyApplications } from "@/lib/actions/job-actions";
+import { listInterviews } from "@/lib/actions/interview-actions";
 import type { TJob } from "@/lib/definitions";
 import { formatRelativeTime } from "@/lib/date/relative-time";
 import type {
@@ -224,6 +225,10 @@ const OVERVIEW_DEFAULT_DATA: OverviewDashboardData = {
   },
 };
 
+type OverviewDashboardOptions = {
+  enableInterviewMetrics?: boolean;
+};
+
 const companyInitials = (companyName?: string | null) => {
   if (!companyName) return "K";
   const parts = companyName
@@ -336,7 +341,24 @@ const toCandidateDeadlineLabel = (value?: string) => {
   });
 };
 
-export async function getOverviewDashboardData(): Promise<OverviewDashboardData> {
+const extractInterviewScores = (response: any) => {
+  const interviews = Array.isArray(response?.data?.interviews)
+    ? response.data.interviews
+    : [];
+  return interviews
+    .map((interview: any) => interview?.myLatestScore)
+    .filter((score: unknown): score is number => typeof score === "number");
+};
+
+const toAverageInterviewScore = (scores: number[]) => {
+  if (!scores.length) return 0;
+  return Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
+};
+
+export async function getOverviewDashboardData(
+  options?: OverviewDashboardOptions,
+): Promise<OverviewDashboardData> {
+  const enableInterviewMetrics = options?.enableInterviewMetrics !== false;
   try {
     const [
       forYouResponse,
@@ -344,6 +366,7 @@ export async function getOverviewDashboardData(): Promise<OverviewDashboardData>
       lastWeekResponse,
       remoteResponse,
       myApplicationsResponse,
+      takenInterviewsResponse,
     ] =
       await Promise.all([
         getJobs({ page: 1, size: 10, feed: "for_you" }),
@@ -351,6 +374,14 @@ export async function getOverviewDashboardData(): Promise<OverviewDashboardData>
         getJobs({ page: 1, size: 10, feed: "last_week" }),
         getJobs({ page: 1, size: 10, feed: "for_you", remoteOnly: true }),
         getMyApplications({ page: 1, size: 100 }),
+        enableInterviewMetrics
+          ? listInterviews({
+              page: 1,
+              size: 100,
+              ownership: "taken_by_me",
+              sortBy: "updated",
+            })
+          : Promise.resolve({ success: true, data: { interviews: [] } }),
       ]);
 
     const forYouRawJobs = extractJobs(forYouResponse);
@@ -368,9 +399,17 @@ export async function getOverviewDashboardData(): Promise<OverviewDashboardData>
       trendingJobs.length > 0 ||
       lastWeekJobs.length > 0 ||
       remoteJobs.length > 0;
+    const interviewScores = extractInterviewScores(takenInterviewsResponse);
+    const interviewRating = toAverageInterviewScore(interviewScores);
 
     if (!hasLiveJobs) {
-      return OVERVIEW_DEFAULT_DATA;
+      return {
+        ...OVERVIEW_DEFAULT_DATA,
+        ratings: {
+          ...OVERVIEW_DEFAULT_DATA.ratings,
+          interview: interviewRating,
+        },
+      };
     }
 
     const nearestDeadline = findNearestDeadlineJob(forYouRawJobs);
@@ -389,6 +428,10 @@ export async function getOverviewDashboardData(): Promise<OverviewDashboardData>
 
     return {
       ...OVERVIEW_DEFAULT_DATA,
+      ratings: {
+        ...OVERVIEW_DEFAULT_DATA.ratings,
+        interview: interviewRating,
+      },
       deadlineCard: nearestDeadline
         ? {
             title: nearestDeadline.title,
@@ -436,7 +479,13 @@ export async function getOverviewDashboardData(): Promise<OverviewDashboardData>
       },
     };
   } catch {
-    return OVERVIEW_DEFAULT_DATA;
+    return {
+      ...OVERVIEW_DEFAULT_DATA,
+      ratings: {
+        ...OVERVIEW_DEFAULT_DATA.ratings,
+        interview: 0,
+      },
+    };
   }
 }
 
