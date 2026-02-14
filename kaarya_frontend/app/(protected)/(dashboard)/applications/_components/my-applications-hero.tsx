@@ -19,7 +19,7 @@ export function MyApplicationsHero({
 }: MyApplicationsHeroProps) {
   return (
     <section className="relative overflow-hidden rounded-2xl bg-linear-to-r from-[#00629F]/80 to-[#00629F] px-4 py-8 text-white sm:px-8">
-      <div className="pointer-events-none absolute left-0 bottom-0 h-8 w-72 rounded-tr-2xl bg-white/10" />
+      <div className="pointer-events-none absolute left-0 bottom-0 h-10 w-72 rounded-tr-2xl bg-white/10" />
       <div className="pointer-events-none absolute right-0 top-0 h-12 w-48 rounded-bl-2xl rounded-tr-2xl bg-white/10" />
       <div className="pointer-events-none absolute right-0 top-0 h-22 w-32 rounded-tr-2xl rounded-bl-2xl bg-white/10" />
 
@@ -37,7 +37,9 @@ export function MyApplicationsHero({
               className="rounded-xl border border-white/20 bg-white/10 px-3 py-2.5 backdrop-blur-sm"
             >
               <div className="text-xs text-white/80">{stat.label}</div>
-              <div className="text-xl font-semibold leading-tight">{stat.value}</div>
+              <div className="text-xl font-semibold leading-tight">
+                {stat.value}
+              </div>
             </div>
           ))}
         </div>

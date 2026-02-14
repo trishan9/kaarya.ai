@@ -19,6 +19,7 @@ export function JobDetailView({ data }: JobDetailViewProps) {
   return (
     <div className="space-y-4">
       <JobDetailHero
+        id={data.id}
         title={data.title}
         company={data.company}
         locationLabel={data.locationLabel}
@@ -30,6 +31,8 @@ export function JobDetailView({ data }: JobDetailViewProps) {
         logoText={data.logoText}
         logoUrl={data.logoUrl}
         logoClassName={data.logoClassName}
+        showBookmark={!isRecruiter}
+        isBookmarked={data.isSaved}
         applyAction={
           isRecruiter ? (
             <Button asChild className="h-10 min-w-[180px] rounded-xl">

@@ -203,6 +203,7 @@ const toCard = (
       canTakeInterview && attempted
         ? withReturnTo(`/interviews/${interview.id}/take`, returnTo)
         : undefined,
+    isBookmarked: Boolean(interview.isSaved),
   };
 };
 

@@ -25,7 +25,14 @@ export type OverviewDashboardData = {
   >;
   deadlineCard: Pick<
     DeadlineCardProps,
-    "title" | "company" | "logoUrl" | "logoAlt" | "deadlineLabel" | "ctaHref"
+    | "jobId"
+    | "title"
+    | "company"
+    | "isBookmarked"
+    | "logoUrl"
+    | "logoAlt"
+    | "deadlineLabel"
+    | "ctaHref"
   >;
   invitationCard: Pick<
     InvitationCardProps,
@@ -280,6 +287,7 @@ const mapLiveJobsToCards = (
       ? `/jobs/${job.id}${options.workspaceId ? `?workspace=${options.workspaceId}` : ""}`
       : `/jobs/${job.id}`,
     showBookmark: !options?.isRecruiter,
+    isBookmarked: Boolean(job.isSaved),
   }));
 
 const extractJobs = (response: any): TJob[] => {
@@ -434,8 +442,10 @@ export async function getOverviewDashboardData(
       },
       deadlineCard: nearestDeadline
         ? {
+            jobId: nearestDeadline.id,
             title: nearestDeadline.title,
             company: nearestDeadline.company?.name ?? "Company",
+            isBookmarked: Boolean(nearestDeadline.isSaved),
             logoUrl: nearestDeadline.company?.logo ?? undefined,
             logoAlt: nearestDeadline.company?.name ?? "Company logo",
             deadlineLabel: toCandidateDeadlineLabel(nearestDeadline.deadline),

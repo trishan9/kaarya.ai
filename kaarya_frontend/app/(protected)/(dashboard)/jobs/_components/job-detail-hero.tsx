@@ -1,11 +1,13 @@
 import type { ReactNode } from "react";
-import { Bookmark, MoreHorizontal, Share2 } from "lucide-react";
+import { MoreHorizontal, Share2 } from "lucide-react";
 import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
+import { BookmarkToggleButton } from "@/components/bookmark/bookmark-toggle-button";
 import { cn } from "@/lib/utils";
 
 export type JobDetailHeroProps = {
+  id: string;
   title: string;
   company: string;
   locationLabel: string;
@@ -18,6 +20,8 @@ export type JobDetailHeroProps = {
   logoUrl?: string;
   logoClassName?: string;
   applyAction: ReactNode;
+  showBookmark?: boolean;
+  isBookmarked?: boolean;
 };
 
 function hiringStatusClassName(
@@ -35,6 +39,7 @@ function hiringStatusClassName(
 }
 
 export function JobDetailHero({
+  id,
   title,
   company,
   locationLabel,
@@ -47,6 +52,8 @@ export function JobDetailHero({
   logoUrl,
   logoClassName,
   applyAction,
+  showBookmark = true,
+  isBookmarked = false,
 }: JobDetailHeroProps) {
   return (
     <section className="relative overflow-hidden rounded-2xl bg-linear-to-r from-[#00629F]/80 to-[#00629F] p-4 text-white sm:p-5">
@@ -100,13 +107,16 @@ export function JobDetailHero({
           </div>
 
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-9 w-9 rounded-md border-white/20 bg-white/15 text-white hover:bg-white/20 hover:text-white"
-            >
-              <Bookmark className="h-4 w-4" />
-            </Button>
+            {showBookmark ? (
+              <BookmarkToggleButton
+                entityType="job"
+                entityId={id}
+                initialSaved={isBookmarked}
+                className="rounded-md border-white/20 bg-white/15 text-white hover:bg-white/20 hover:text-white"
+                savedClassName="border-white/20 bg-white/25 text-white"
+                unsavedClassName="border-white/20 bg-white/15 text-white"
+              />
+            ) : null}
             <Button
               variant="outline"
               size="icon"

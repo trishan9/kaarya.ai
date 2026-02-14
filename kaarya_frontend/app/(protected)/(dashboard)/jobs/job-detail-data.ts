@@ -50,6 +50,7 @@ export type JobDetailPageData = {
   workspaceId?: string | null;
   applicants: JobApplicantRecord[];
   myApplicationId?: string | null;
+  isSaved?: boolean;
 };
 
 export type JobApplicantStatus =
@@ -157,6 +158,7 @@ const buildFallbackJobData = (
     workspaceId: options?.workspaceId ?? null,
     applicants: [],
     myApplicationId: null,
+    isSaved: false,
   };
 };
 
@@ -394,6 +396,7 @@ const mapSimilarJobs = (
             : "/applications"
           : `/jobs/${job.id}`,
       showBookmark: !options?.isRecruiter,
+      isBookmarked: Boolean(job.isSaved),
     }));
 
 export async function getJobDetailPageData(
@@ -533,5 +536,6 @@ export async function getJobDetailPageData(
     workspaceId: options?.workspaceId ?? null,
     applicants: isRecruiter ? parseApplications(applicationsResponse) : [],
     myApplicationId,
+    isSaved: Boolean(job.isSaved),
   };
 }

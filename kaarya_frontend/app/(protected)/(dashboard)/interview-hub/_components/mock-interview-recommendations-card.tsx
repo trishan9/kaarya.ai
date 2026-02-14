@@ -62,6 +62,7 @@ export type MockInterviewRecommendationsCardProps = {
   sidePanelData?: InterviewOverallRatingPanelProps;
   seeAllLabel?: string;
   seeAllHref?: string;
+  onInterviewBookmarkChange?: (interviewId: string, saved: boolean) => void;
 };
 
 export function MockInterviewRecommendationsCard({
@@ -76,6 +77,7 @@ export function MockInterviewRecommendationsCard({
   gridClassName,
   className,
   sidePanelData,
+  onInterviewBookmarkChange,
 }: MockInterviewRecommendationsCardProps) {
   const availableTabs = React.useMemo(
     () => (tabs.length > 0 ? tabs : Object.keys(interviewsByTab)),
@@ -341,7 +343,13 @@ export function MockInterviewRecommendationsCard({
         <div className={cn("grid gap-4 md:grid-cols-2", gridClassName)}>
           {visibleInterviews.length > 0 ? (
             visibleInterviews.map((interview) => (
-              <MockInterviewCard key={interview.id} {...interview} />
+              <MockInterviewCard
+                key={interview.id}
+                {...interview}
+                onBookmarkChange={(interviewId, saved) =>
+                  onInterviewBookmarkChange?.(interviewId, saved)
+                }
+              />
             ))
           ) : (
             <div className="rounded-xl border border-dashed border-[#d8dde4] p-6 text-sm text-muted-foreground md:col-span-2">
