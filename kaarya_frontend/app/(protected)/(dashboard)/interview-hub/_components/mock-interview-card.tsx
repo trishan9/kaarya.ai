@@ -29,6 +29,7 @@ export type MockInterviewCardProps = {
   description: string;
   attemptStatus: "attempted" | "not_attempted";
   logoText: string;
+  logoUrl?: string;
   logoClassName?: string;
   stackTechnologies?: InterviewStackTechnology[];
   primaryActionLabel: string;
@@ -47,6 +48,7 @@ export function MockInterviewCard({
   scoreLabel,
   description,
   logoText,
+  logoUrl,
   logoClassName,
   stackTechnologies = [],
   primaryActionLabel,
@@ -55,7 +57,13 @@ export function MockInterviewCard({
   secondaryActionHref = "/interview-hub",
 }: MockInterviewCardProps) {
   const [bookmarked, setBookmarked] = React.useState(false);
+  const [logoFailed, setLogoFailed] = React.useState(false);
   const participationText = takenCountLabel ?? `${takenCount} people took this!`;
+  const showLogoImage = Boolean(logoUrl) && !logoFailed;
+
+  React.useEffect(() => {
+    setLogoFailed(false);
+  }, [logoUrl]);
 
   return (
     <Card className="min-w-0 gap-3 rounded-2xl border border-[#ececf0] bg-white p-3 shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
@@ -71,12 +79,24 @@ export function MockInterviewCard({
           <div className="flex min-w-0 items-center gap-3">
             <div
               className={cn(
-                "flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-sm font-bold text-white",
+                "flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg text-sm font-bold text-white",
                 "bg-primary",
                 logoClassName,
               )}
             >
-              {logoText}
+              {showLogoImage ? (
+                <Image
+                  src={logoUrl as string}
+                  alt={`${company} logo`}
+                  width={44}
+                  height={44}
+                  className="h-full w-full object-cover"
+                  unoptimized
+                  onError={() => setLogoFailed(true)}
+                />
+              ) : (
+                logoText
+              )}
             </div>
 
             <div className="min-w-0">

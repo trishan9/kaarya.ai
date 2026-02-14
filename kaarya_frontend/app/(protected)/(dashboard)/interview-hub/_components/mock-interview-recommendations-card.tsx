@@ -332,7 +332,12 @@ export function MockInterviewRecommendationsCard({
         ) : null}
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div
+        className={cn(
+          "grid gap-4",
+          sidePanelData ? "xl:grid-cols-[minmax(0,1fr)_320px]" : "xl:grid-cols-1",
+        )}
+      >
         <div className={cn("grid gap-4 md:grid-cols-2", gridClassName)}>
           {visibleInterviews.length > 0 ? (
             visibleInterviews.map((interview) => (

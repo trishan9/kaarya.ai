@@ -1,3 +1,6 @@
+import { listInterviews } from "@/lib/actions/interview-actions";
+import { getCurrentUser } from "@/lib/dal";
+import { Role, type TInterview } from "@/lib/definitions";
 import type { AIInterviewHubHeroProps } from "./_components/ai-interview-hub-hero";
 import type { MockInterviewCardProps } from "./_components/mock-interview-card";
 import type {
@@ -14,7 +17,6 @@ type InterviewHubSectionData = Pick<
   | "sortLabel"
   | "filterLabel"
   | "gridClassName"
-  | "sidePanelData"
 >;
 
 export type InterviewHubPageData = {
@@ -22,184 +24,7 @@ export type InterviewHubPageData = {
   interviewsSection: InterviewHubSectionData;
 };
 
-const interviewTabs = [
-  "For You",
-  "Trending Interviews",
-  "New This Week",
-  "All Time Popular",
-  "By You",
-];
-
-const interviewCardsForYou: MockInterviewCardProps[] = [
-  {
-    id: "interview-flutter-technical-kaarya",
-    title: "Flutter Developer Interview",
-    company: "Kaarya Co. Inc.",
-    categoryLabel: "Technical",
-    takenCount: 90,
-    createdAtLabel: "Created on: November 22, 2025",
-    createdAtTimestamp: Date.UTC(2025, 10, 22),
-    scoreLabel: "Your Score: 80/100",
-    scoreValue: 80,
-    description:
-      "You've already taken this interview. Revisit your results anytime to track your progress and strengthen your skills.",
-    attemptStatus: "attempted",
-    logoText: "K",
-    logoClassName: "bg-primary",
-    stackTechnologies: [
-      {
-        id: "flutter",
-        name: "Flutter",
-        iconUrl:
-          "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flutter/flutter-original.svg",
-      },
-      {
-        id: "dart",
-        name: "Dart",
-        iconUrl:
-          "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/dart/dart-original.svg",
-      },
-      {
-        id: "firebase",
-        name: "Firebase",
-        iconUrl:
-          "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg",
-      },
-    ],
-    primaryActionLabel: "Review Results",
-    secondaryActionLabel: "Re-take",
-  },
-  {
-    id: "interview-frontend-mixed-softwarica",
-    title: "Front-end Developer Interview",
-    company: "Softwarica College of IT & E-commerce",
-    categoryLabel: "Mixed",
-    takenCount: 60,
-    createdAtLabel: "Created on: November 20, 2025",
-    createdAtTimestamp: Date.UTC(2025, 10, 20),
-    scoreLabel: "Your Score: -/100",
-    scoreValue: null,
-    description:
-      "You haven't attempted this interview so far. Begin now to measure your performance and grow further.",
-    attemptStatus: "not_attempted",
-    logoText: "S",
-    logoClassName: "bg-[#0b67c2]",
-    stackTechnologies: [
-      {
-        id: "react",
-        name: "React",
-        iconUrl:
-          "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg",
-      },
-      {
-        id: "node",
-        name: "Node.js",
-        iconUrl:
-          "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg",
-      },
-      {
-        id: "javascript",
-        name: "JavaScript",
-        iconUrl:
-          "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg",
-      },
-    ],
-    primaryActionLabel: "Take Interview",
-  },
-  {
-    id: "interview-backend-technical-kaarya",
-    title: "Backend Developer Interview",
-    company: "Kaarya Co. Inc.",
-    categoryLabel: "Technical",
-    takenCount: 84,
-    createdAtLabel: "Created on: November 21, 2025",
-    createdAtTimestamp: Date.UTC(2025, 10, 21),
-    scoreLabel: "Your Score: 76/100",
-    scoreValue: 76,
-    description:
-      "You've already taken this interview. Revisit your results anytime to track your progress and strengthen your skills.",
-    attemptStatus: "attempted",
-    logoText: "K",
-    logoClassName: "bg-primary",
-    stackTechnologies: [
-      {
-        id: "nestjs",
-        name: "NestJS",
-        iconUrl:
-          "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nestjs/nestjs-plain.svg",
-      },
-      {
-        id: "postgresql",
-        name: "PostgreSQL",
-        iconUrl:
-          "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg",
-      },
-      {
-        id: "docker",
-        name: "Docker",
-        iconUrl:
-          "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg",
-      },
-    ],
-    primaryActionLabel: "Review Results",
-    secondaryActionLabel: "Re-take",
-  },
-  {
-    id: "interview-product-mixed-softwarica",
-    title: "Product-focused Interview",
-    company: "Softwarica College of IT & E-commerce",
-    categoryLabel: "Mixed",
-    takenCount: 58,
-    createdAtLabel: "Created on: November 19, 2025",
-    createdAtTimestamp: Date.UTC(2025, 10, 19),
-    scoreLabel: "Your Score: -/100",
-    scoreValue: null,
-    description:
-      "You haven't attempted this interview so far. Begin now to measure your performance and grow further.",
-    attemptStatus: "not_attempted",
-    logoText: "S",
-    logoClassName: "bg-[#0b67c2]",
-    stackTechnologies: [
-      {
-        id: "figma",
-        name: "Figma",
-        iconUrl:
-          "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg",
-      },
-      {
-        id: "jira",
-        name: "Jira",
-        iconUrl:
-          "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/jira/jira-original.svg",
-      },
-      {
-        id: "notion",
-        name: "Notion",
-        iconUrl:
-          "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/notion/notion-original.svg",
-      },
-    ],
-    primaryActionLabel: "Take Interview",
-  },
-];
-
-const interviewsByTab: Record<string, MockInterviewCardProps[]> = {
-  "For You": interviewCardsForYou,
-  "Trending Interviews": [...interviewCardsForYou].sort(
-    (a, b) => b.takenCount - a.takenCount,
-  ),
-  "New This Week": [...interviewCardsForYou].sort(
-    (a, b) => b.createdAtTimestamp - a.createdAtTimestamp,
-  ),
-  "All Time Popular": [...interviewCardsForYou].sort(
-    (a, b) => b.takenCount - a.takenCount,
-  ),
-  "By You": interviewCardsForYou.filter(
-    (interview) => interview.attemptStatus === "attempted",
-  ),
-};
-
-const INTERVIEW_HUB_DEFAULT_DATA: InterviewHubPageData = {
+const DEFAULT_DATA: InterviewHubPageData = {
   hero: {
     title: "Simulate industry-level interviews with AI.",
     description:
@@ -207,26 +32,255 @@ const INTERVIEW_HUB_DEFAULT_DATA: InterviewHubPageData = {
   },
   interviewsSection: {
     title: "Mock Interviews",
-    tabs: interviewTabs,
+    tabs: [
+      "For You",
+      "Trending Interviews",
+      "New This Week",
+      "All Time Popular",
+      "By You",
+    ],
     activeTab: "For You",
-    interviewsByTab,
+    interviewsByTab: {
+      "For You": [],
+      "Trending Interviews": [],
+      "New This Week": [],
+      "All Time Popular": [],
+      "By You": [],
+    },
     showToolbar: true,
     sortLabel: "Sort By",
     filterLabel: "Filter",
     gridClassName: "md:grid-cols-2",
-    sidePanelData: {
-      title: "Interview Overall Rating",
-      rating: 23,
-      badgeLabel: "Below Average",
-      description:
-        "It shows some potential, but it's still below average and needs more refinement before you're ready for real interviews.",
-      suggestionTitle: "Our Suggestion",
-      suggestionBody:
-        "Give more interviews with AI Interview Hub. Choose from expertly curated interviews inspired by real companies and colleges, or create your own mock interview tailored to your experience and goals. Practice repeatedly, gain valuable exposure, and sharpen your performance. Plus, our AI can generate customized learning materials to help you prepare and crush your next interview.",
-    },
   },
 };
 
+const INTERVIEW_TYPE_LABELS: Record<string, string> = {
+  technical: "Technical",
+  behavioral: "Behavioral",
+  mixed: "Mixed",
+  system_design: "System Design",
+  custom: "Custom",
+};
+
+const TECH_ICON_MAP: Record<string, string> = {
+  react: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg",
+  typescript:
+    "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg",
+  javascript:
+    "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg",
+  node: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg",
+  nest: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nestjs/nestjs-plain.svg",
+  flutter:
+    "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flutter/flutter-original.svg",
+  dart: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/dart/dart-original.svg",
+  firebase:
+    "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg",
+  next: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg",
+  mongodb:
+    "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg",
+  postgresql:
+    "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg",
+  mysql: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg",
+  docker:
+    "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg",
+};
+
+const toDateLabel = (value?: string | null) => {
+  if (!value) return "Created on: -";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Created on: -";
+  return `Created on: ${new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(date)}`;
+};
+
+const toInterviewTypeLabel = (type: string) =>
+  INTERVIEW_TYPE_LABELS[type] ?? "Mixed";
+
+const toCompanyLabel = (interview: TInterview) =>
+  interview.company?.name ??
+  interview.college?.name ??
+  (interview.source === "candidate" ? "By Candidate" : "Kaarya");
+
+const resolveInterviewLogoUrl = (interview: TInterview) => {
+  if (interview.source === "company") {
+    return interview.company?.logo || "/kaarya.svg";
+  }
+  if (interview.source === "college") {
+    return interview.college?.logo || "/kaarya.svg";
+  }
+  return "/kaarya.svg";
+};
+
+const toLogoText = (label: string) =>
+  label
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase())
+    .join("") || "K";
+
+const toStackIcons = (techStack: string[]) =>
+  techStack
+    .slice(0, 3)
+    .map((technology) => {
+      const key = technology.trim().toLowerCase();
+      const mappedKey = Object.keys(TECH_ICON_MAP).find((candidate) =>
+        key.includes(candidate),
+      );
+      if (!mappedKey) return null;
+      return {
+        id: `${key}-${mappedKey}`,
+        name: technology,
+        iconUrl: TECH_ICON_MAP[mappedKey],
+      };
+    })
+    .filter(Boolean) as NonNullable<MockInterviewCardProps["stackTechnologies"]>;
+
+const withReturnTo = (path: string, returnTo: string) =>
+  `${path}${path.includes("?") ? "&" : "?"}returnTo=${encodeURIComponent(returnTo)}`;
+
+const toCard = (
+  interview: TInterview,
+  options?: {
+    canTakeInterview?: boolean;
+    viewerId?: string | null;
+    returnTo?: string;
+  },
+): MockInterviewCardProps => {
+  const canTakeInterview = options?.canTakeInterview === true;
+  const isViewerCreator =
+    options?.viewerId && interview.createdBy === options.viewerId;
+  const returnTo = options?.returnTo ?? "/interview-hub";
+  const company = toCompanyLabel(interview);
+  const attempted = canTakeInterview && Boolean(interview.myLatestSessionId);
+  const scoreValue =
+    canTakeInterview && typeof interview.myLatestScore === "number"
+      ? interview.myLatestScore
+      : null;
+  const scoreLabel =
+    typeof scoreValue === "number"
+      ? `Your Score: ${scoreValue}/100`
+      : canTakeInterview
+        ? "Your Score: -/100"
+        : "Participant Score: -/100";
+
+  return {
+    id: interview.id,
+    title: interview.title,
+    company,
+    categoryLabel: toInterviewTypeLabel(interview.interviewType),
+    takenCount: interview.attemptsCount ?? 0,
+    createdAtLabel: toDateLabel(interview.createdAt),
+    createdAtTimestamp: new Date(interview.createdAt).getTime() || Date.now(),
+    scoreLabel,
+    scoreValue,
+    description: canTakeInterview
+      ? attempted
+        ? "You've already taken this interview. Revisit your results anytime and keep improving."
+        : "You haven't attempted this interview yet. Start now and get AI-driven feedback."
+      : "Manage this interview and review participant feedback from the details page.",
+    attemptStatus: attempted ? "attempted" : "not_attempted",
+    logoText: toLogoText(company),
+    logoUrl: resolveInterviewLogoUrl(interview),
+    stackTechnologies: toStackIcons(interview.techStack ?? []),
+    primaryActionLabel: canTakeInterview
+      ? attempted
+        ? "Review Results"
+        : "Take Interview"
+      : isViewerCreator
+        ? "Manage Interview"
+        : "View Interview",
+    primaryActionHref: canTakeInterview
+      ? attempted && interview.myLatestSessionId
+        ? withReturnTo(`/interviews/sessions/${interview.myLatestSessionId}/feedback`, returnTo)
+        : withReturnTo(`/interviews/${interview.id}/take`, returnTo)
+      : `/interviews/${interview.id}`,
+    secondaryActionLabel: canTakeInterview && attempted ? "Re-take" : undefined,
+    secondaryActionHref:
+      canTakeInterview && attempted
+        ? withReturnTo(`/interviews/${interview.id}/take`, returnTo)
+        : undefined,
+  };
+};
+
+const extractInterviews = (response: any): TInterview[] =>
+  Array.isArray(response?.data?.interviews) ? (response.data.interviews as TInterview[]) : [];
+
 export async function getInterviewHubPageData(): Promise<InterviewHubPageData> {
-  return INTERVIEW_HUB_DEFAULT_DATA;
+  const currentUser = await getCurrentUser();
+  const canTakeInterview =
+    currentUser?.role === Role.USER || currentUser?.role === Role.STUDENT;
+  const [forYouResponse, trendingResponse, byYouResponse] =
+    await Promise.all([
+    listInterviews({ page: 1, size: 20, ownership: "all", sortBy: "newest" }),
+    listInterviews({ page: 1, size: 20, ownership: "all", sortBy: "popular" }),
+    listInterviews({ page: 1, size: 20, ownership: "created_by_me", sortBy: "updated" }),
+    ]);
+
+  if (
+    !forYouResponse?.success &&
+    !trendingResponse?.success &&
+    !byYouResponse?.success
+  ) {
+    return DEFAULT_DATA;
+  }
+
+  const forYou = extractInterviews(forYouResponse);
+  const trending = extractInterviews(trendingResponse);
+  const byYou = extractInterviews(byYouResponse);
+  const newThisWeek = [...forYou]
+    .sort((left, right) => {
+      const leftTime = new Date(left.createdAt).getTime() || 0;
+      const rightTime = new Date(right.createdAt).getTime() || 0;
+      return rightTime - leftTime;
+    })
+    .slice(0, 20);
+  const popularAllTime = [...trending];
+
+  return {
+    hero: DEFAULT_DATA.hero,
+    interviewsSection: {
+      ...DEFAULT_DATA.interviewsSection,
+      interviewsByTab: {
+        "For You": forYou.map((interview) =>
+          toCard(interview, {
+            canTakeInterview,
+            viewerId: currentUser?.id ?? null,
+            returnTo: "/interview-hub",
+          }),
+        ),
+        "Trending Interviews": trending.map((interview) =>
+          toCard(interview, {
+            canTakeInterview,
+            viewerId: currentUser?.id ?? null,
+            returnTo: "/interview-hub",
+          }),
+        ),
+        "New This Week": newThisWeek.map((interview) =>
+          toCard(interview, {
+            canTakeInterview,
+            viewerId: currentUser?.id ?? null,
+            returnTo: "/interview-hub",
+          }),
+        ),
+        "All Time Popular": popularAllTime.map((interview) =>
+          toCard(interview, {
+            canTakeInterview,
+            viewerId: currentUser?.id ?? null,
+            returnTo: "/interview-hub",
+          }),
+        ),
+        "By You": byYou.map((interview) =>
+          toCard(interview, {
+            canTakeInterview,
+            viewerId: currentUser?.id ?? null,
+            returnTo: "/interview-hub",
+          }),
+        ),
+      },
+    },
+  };
 }
