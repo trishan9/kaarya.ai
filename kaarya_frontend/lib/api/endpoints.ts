@@ -84,4 +84,15 @@ export const API_URLS = {
       `/interviews/sessions/${sessionId}/feedback`,
     ANALYTICS: (id: string) => `/interviews/${id}/analytics`,
   },
+  RESUME_BUILDER: {
+    BASE: "/resume-builder",
+    LIST: "/resume-builder/list",
+    BY_ID: (id: string) => `/resume-builder/${id}`,
+    GENERATE_PDF: (id: string) => `/resume-builder/${id}/generate-pdf`,
+    SAVE: (id: string) => `/resume-builder/${id}/save`,
+    AI_SUMMARY: "/resume-builder/ai/summary",
+    AI_EXPERIENCE_BULLETS: "/resume-builder/ai/experience-bullets",
+    AI_SUGGESTIONS: "/resume-builder/ai/suggestions",
+    ATS_SCAN: "/resume-builder/ats-scan",
+  },
 };
