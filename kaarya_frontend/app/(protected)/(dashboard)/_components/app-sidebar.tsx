@@ -119,6 +119,7 @@ type AppSidebarProps = {
 const workspaceScopedPrefixes = [
   "/overview",
   "/jobs",
+  "/interviews",
   "/company-settings",
   "/college-settings",
   "/leaderboard",

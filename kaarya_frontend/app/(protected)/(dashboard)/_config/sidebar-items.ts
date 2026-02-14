@@ -66,6 +66,8 @@ const recruiterGroups: SidebarNavGroup[] = [
       { label: "Overview", href: "/overview", icon: LayoutDashboard },
       { label: "Company Jobs", href: "/jobs", icon: BriefcaseBusiness },
       { label: "Post New Job", href: "/jobs/new", icon: PlusSquare },
+      { label: "Interview Management", href: "/interviews", icon: Mic },
+      { label: "Create Interview", href: "/interviews/create", icon: PlusSquare },
       {
         label: "Company Settings",
         href: "/company-settings",
@@ -90,6 +92,8 @@ const collegeGroups: SidebarNavGroup[] = [
       { label: "Overview", href: "/overview", icon: LayoutDashboard },
       { label: "College Jobs", href: "/jobs", icon: BriefcaseBusiness },
       { label: "Post New Job", href: "/jobs/new", icon: PlusSquare },
+      { label: "Interview Management", href: "/interviews", icon: Mic },
+      { label: "Create Interview", href: "/interviews/create", icon: PlusSquare },
       { label: "Leaderboard", href: "/leaderboard", icon: Trophy },
       {
         label: "College Settings",
