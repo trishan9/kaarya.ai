@@ -67,6 +67,11 @@ export const API_URLS = {
   LEADERBOARD: {
     LIST: "/leaderboard",
   },
+  BOOKMARK: {
+    ME: "/bookmarks/me",
+    JOB: (jobId: string) => `/bookmarks/jobs/${jobId}`,
+    INTERVIEW: (interviewId: string) => `/bookmarks/interviews/${interviewId}`,
+  },
   INTERVIEW: {
     LIST: "/interviews",
     BY_ID: (id: string) => `/interviews/${id}`,

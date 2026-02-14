@@ -172,6 +172,7 @@ export type TJob = {
   hasApplied?: boolean;
   myApplicationId?: string | null;
   myApplicationStatus?: string | null;
+  isSaved?: boolean;
 };
 
 export type TJobFeed =
@@ -313,4 +314,5 @@ export type TInterview = {
   myLatestEvaluation?: TInterviewEvaluation | null;
   myLatestSessionId?: string | null;
   myLatestScore?: number | null;
+  isSaved?: boolean;
 };
