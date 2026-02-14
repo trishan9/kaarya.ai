@@ -40,7 +40,7 @@ const candidateGroups: SidebarNavGroup[] = [
         href: "/jobs",
         icon: Compass,
       },
-      { label: "Resume Builder AI", href: "/resume", icon: Sparkles },
+      { label: "Resume AI", href: "/resume", icon: Sparkles },
       { label: "AI Interview Hub", href: "/interview-hub", icon: Bot },
       { label: "My Interviews", href: "/interviews", icon: Mic },
       { label: "Leaderboard", href: "/leaderboard", icon: Trophy },

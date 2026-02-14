@@ -564,10 +564,9 @@ export function AtsScannerTab() {
           {activeReport ? (
             <>
               <Card className="overflow-hidden rounded-xl border-slate-200 shadow-sm">
-                <CardHeader className="border-b bg-linear-to-r from-slate-50 via-white to-cyan-50">
+                <CardHeader className="border-b">
                   <CardTitle className="flex flex-wrap items-center justify-between gap-3 text-lg">
                     <span className="flex items-center gap-2 text-slate-900">
-                      <Sparkles className="h-5 w-5 text-cyan-600" />
                       ATS Report
                     </span>
                     <span
