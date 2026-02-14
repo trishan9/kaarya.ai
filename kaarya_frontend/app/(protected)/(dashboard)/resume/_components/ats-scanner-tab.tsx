@@ -39,13 +39,27 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ResumeUploadDropzone } from "./resume-upload-dropzone";
-import { atsScanResume, type AtsScanCategory, type AtsScanResult } from "@/lib/actions/resume-builder-actions";
+import {
+  atsScanResume,
+  type AtsScanCategory,
+  type AtsScanResult,
+} from "@/lib/actions/resume-builder-actions";
 import { deleteMyResume, getMyResumes } from "@/lib/actions/job-actions";
 import { cn } from "@/lib/utils";
 
@@ -138,7 +152,11 @@ function parseAtsReport(value: unknown): AtsScanResult | null {
 
 function listCategoryModels(result: AtsScanResult | null) {
   if (!result) return [];
-  const categories: Array<{ key: string; title: string; data?: AtsScanCategory }> = [
+  const categories: Array<{
+    key: string;
+    title: string;
+    data?: AtsScanCategory;
+  }> = [
     { key: "ATS", title: "ATS suitability", data: result.ATS },
     { key: "toneAndStyle", title: "Tone & style", data: result.toneAndStyle },
     { key: "content", title: "Content quality", data: result.content },
@@ -154,7 +172,9 @@ export function AtsScannerTab() {
   const [experienceLevel, setExperienceLevel] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [result, setResult] = useState<AtsScanResult | null>(null);
-  const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
+  const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(
+    null,
+  );
   const [scanHistory, setScanHistory] = useState<AtsHistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [deletingReportId, setDeletingReportId] = useState<string | null>(null);
@@ -180,9 +200,11 @@ export function AtsScannerTab() {
           if (!id) return null;
 
           const report =
-            parseAtsReport(resume?.atsReport) ?? parseAtsReport(resume?.aiEvaluation);
+            parseAtsReport(resume?.atsReport) ??
+            parseAtsReport(resume?.aiEvaluation);
           const scoreFromApi =
-            typeof resume?.atsScore === "number" && Number.isFinite(resume.atsScore)
+            typeof resume?.atsScore === "number" &&
+            Number.isFinite(resume.atsScore)
               ? clampScore(resume.atsScore)
               : null;
           const atsScore =
@@ -198,17 +220,22 @@ export function AtsScannerTab() {
           return {
             id,
             fileName:
-              typeof resume?.fileName === "string" && resume.fileName.trim().length > 0
+              typeof resume?.fileName === "string" &&
+              resume.fileName.trim().length > 0
                 ? resume.fileName.trim()
                 : "resume.pdf",
             createdAt:
-              typeof resume?.createdAt === "string" ? resume.createdAt : undefined,
+              typeof resume?.createdAt === "string"
+                ? resume.createdAt
+                : undefined,
             atsScore,
             report,
             previewUrl:
               typeof resume?.previewUrl === "string" ? resume.previewUrl : null,
             downloadUrl:
-              typeof resume?.downloadUrl === "string" ? resume.downloadUrl : null,
+              typeof resume?.downloadUrl === "string"
+                ? resume.downloadUrl
+                : null,
           } satisfies AtsHistoryItem;
         })
         .filter(Boolean) as AtsHistoryItem[];
@@ -233,7 +260,10 @@ export function AtsScannerTab() {
   const activeReport = selectedHistoryId
     ? (selectedHistoryItem?.report ?? null)
     : result;
-  const categories = useMemo(() => listCategoryModels(activeReport), [activeReport]);
+  const categories = useMemo(
+    () => listCategoryModels(activeReport),
+    [activeReport],
+  );
   const categoryChartData = useMemo(
     () =>
       categories.map((category) => {
@@ -308,7 +338,9 @@ export function AtsScannerTab() {
         return;
       }
 
-      setScanHistory((prev) => prev.filter((item) => item.id !== deleteTarget.id));
+      setScanHistory((prev) =>
+        prev.filter((item) => item.id !== deleteTarget.id),
+      );
       if (selectedHistoryId === deleteTarget.id) {
         setSelectedHistoryId(null);
         setResult(null);
@@ -322,15 +354,20 @@ export function AtsScannerTab() {
 
   const overallScore = clampScore(activeReport?.overallScore ?? 0);
   const overallTone = scoreTone(overallScore);
-  const strengthsCount = tipsMix.find((entry) => entry.name === "Strengths")?.value ?? 0;
+  const isNotResumeReport = activeReport?.documentType === "not_resume";
+  const notResumeReason =
+    activeReport?.classificationReason ??
+    "This uploaded document is not a resume. Upload a professional resume to get an ATS report.";
+  const strengthsCount =
+    tipsMix.find((entry) => entry.name === "Strengths")?.value ?? 0;
   const improvementsCount =
     tipsMix.find((entry) => entry.name === "Improvements")?.value ?? 0;
 
   return (
     <div className="space-y-5">
       <p className="text-sm text-muted-foreground">
-        Scan a resume, save a persistent ATS report, and reuse the scanned file directly
-        while applying for jobs.
+        Scan a resume, save a persistent ATS report, and reuse the scanned file
+        directly while applying for jobs.
       </p>
 
       <div className="space-y-5">
@@ -363,7 +400,9 @@ export function AtsScannerTab() {
                     {scanHistory.map((item) => {
                       const score =
                         item.atsScore ??
-                        (item.report ? clampScore(item.report.overallScore) : null);
+                        (item.report
+                          ? clampScore(item.report.overallScore)
+                          : null);
                       const label = `${item.fileName} | ${formatResumeDate(item.createdAt)}${
                         typeof score === "number" ? ` | ATS ${score}` : ""
                       }`;
@@ -403,8 +442,12 @@ export function AtsScannerTab() {
             </div>
             {selectedHistoryItem ? (
               <div className="flex flex-wrap items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs">
-                <span className="font-medium text-slate-700">{selectedHistoryItem.fileName}</span>
-                <span className="text-muted-foreground">{formatResumeDate(selectedHistoryItem.createdAt)}</span>
+                <span className="font-medium text-slate-700">
+                  {selectedHistoryItem.fileName}
+                </span>
+                <span className="text-muted-foreground">
+                  {formatResumeDate(selectedHistoryItem.createdAt)}
+                </span>
                 {typeof selectedHistoryItem.atsScore === "number" ? (
                   <Badge className="rounded-full bg-emerald-100 text-emerald-800 hover:bg-emerald-100">
                     ATS {selectedHistoryItem.atsScore}
@@ -435,7 +478,8 @@ export function AtsScannerTab() {
             ) : null}
             {!historyLoading && scanHistory.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                No ATS scans yet. Run your first scan to save and view reports here.
+                No ATS scans yet. Run your first scan to save and view reports
+                here.
               </p>
             ) : null}
           </CardContent>
@@ -460,7 +504,9 @@ export function AtsScannerTab() {
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <Label htmlFor="ats-target-role">Target role (optional)</Label>
+                  <Label htmlFor="ats-target-role">
+                    Target role (optional)
+                  </Label>
                   <Input
                     id="ats-target-role"
                     value={targetRole}
@@ -524,31 +570,50 @@ export function AtsScannerTab() {
                       <Sparkles className="h-5 w-5 text-cyan-600" />
                       ATS Report
                     </span>
-                    <span className={cn("rounded-full px-3 py-1 text-sm font-semibold", overallTone.badge)}>
+                    <span
+                      className={cn(
+                        "rounded-full px-3 py-1 text-sm font-semibold",
+                        overallTone.badge,
+                      )}
+                    >
                       Overall {overallScore}/100
                     </span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 pt-4">
                   <p className={cn("text-sm", overallTone.text)}>
-                    {overallScore >= 75
-                      ? "Strong ATS readiness. This resume is aligned for parsing, relevance, and recruiter readability."
-                      : overallScore >= 55
-                        ? "Solid baseline. Improve keyword precision and impact statements to increase ranking consistency."
-                        : "ATS risk is high. Focus on structure, keyword match, and quantified achievements before applying."}
+                    {isNotResumeReport
+                      ? notResumeReason
+                      : overallScore >= 75
+                        ? "Strong ATS readiness. This resume is aligned for parsing, relevance, and recruiter readability."
+                        : overallScore >= 55
+                          ? "Solid baseline. Improve keyword precision and impact statements to increase ranking consistency."
+                          : "ATS risk is high. Focus on structure, keyword match, and quantified achievements before applying."}
                   </p>
                   <div className="grid gap-2 sm:grid-cols-3">
                     <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
-                      <p className="text-[11px] text-muted-foreground">Overall score</p>
-                      <p className="text-lg font-semibold text-slate-900">{overallScore}/100</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        Overall score
+                      </p>
+                      <p className="text-lg font-semibold text-slate-900">
+                        {overallScore}/100
+                      </p>
                     </div>
                     <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
-                      <p className="text-[11px] text-muted-foreground">Strengths</p>
-                      <p className="text-lg font-semibold text-emerald-700">{strengthsCount}</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        Strengths
+                      </p>
+                      <p className="text-lg font-semibold text-emerald-700">
+                        {strengthsCount}
+                      </p>
                     </div>
                     <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
-                      <p className="text-[11px] text-muted-foreground">Improvements</p>
-                      <p className="text-lg font-semibold text-amber-700">{improvementsCount}</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        Improvements
+                      </p>
+                      <p className="text-lg font-semibold text-amber-700">
+                        {improvementsCount}
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -577,7 +642,11 @@ export function AtsScannerTab() {
                           innerRadius="72%"
                           outerRadius="100%"
                         >
-                          <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
+                          <PolarAngleAxis
+                            type="number"
+                            domain={[0, 100]}
+                            tick={false}
+                          />
                           <RadialBar
                             dataKey="value"
                             cornerRadius={20}
@@ -587,8 +656,12 @@ export function AtsScannerTab() {
                         </RadialBarChart>
                       </ChartContainer>
                       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                        <p className="text-3xl font-semibold text-slate-900">{overallScore}</p>
-                        <p className="text-xs text-muted-foreground">out of 100</p>
+                        <p className="text-3xl font-semibold text-slate-900">
+                          {overallScore}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          out of 100
+                        </p>
                       </div>
                     </div>
 
@@ -598,12 +671,20 @@ export function AtsScannerTab() {
                       </p>
                       <div className="grid gap-2 sm:grid-cols-2">
                         <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2">
-                          <p className="text-[11px] text-emerald-700">Strengths</p>
-                          <p className="text-xl font-semibold text-emerald-800">{strengthsCount}</p>
+                          <p className="text-[11px] text-emerald-700">
+                            Strengths
+                          </p>
+                          <p className="text-xl font-semibold text-emerald-800">
+                            {strengthsCount}
+                          </p>
                         </div>
                         <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2">
-                          <p className="text-[11px] text-amber-700">Improvements</p>
-                          <p className="text-xl font-semibold text-amber-800">{improvementsCount}</p>
+                          <p className="text-[11px] text-amber-700">
+                            Improvements
+                          </p>
+                          <p className="text-xl font-semibold text-amber-800">
+                            {improvementsCount}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -612,7 +693,9 @@ export function AtsScannerTab() {
 
                 <Card className="rounded-xl border-slate-200 shadow-sm">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm">Category Breakdown</CardTitle>
+                    <CardTitle className="text-sm">
+                      Category Breakdown
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <ChartContainer
@@ -629,7 +712,11 @@ export function AtsScannerTab() {
                         data={categoryChartData}
                         margin={{ top: 4, right: 18, left: 8, bottom: 4 }}
                       >
-                        <CartesianGrid horizontal={false} strokeDasharray="3 3" opacity={0.18} />
+                        <CartesianGrid
+                          horizontal={false}
+                          strokeDasharray="3 3"
+                          opacity={0.18}
+                        />
                         <XAxis
                           type="number"
                           domain={[0, 100]}
@@ -644,9 +731,19 @@ export function AtsScannerTab() {
                           axisLine={false}
                           width={86}
                         />
-                        <ReferenceLine x={75} stroke="#94a3b8" strokeDasharray="4 4" />
-                        <ChartTooltip content={<ChartTooltipContent indicator="dashed" />} />
-                        <Bar dataKey="score" radius={[0, 8, 8, 0]} maxBarSize={26}>
+                        <ReferenceLine
+                          x={75}
+                          stroke="#94a3b8"
+                          strokeDasharray="4 4"
+                        />
+                        <ChartTooltip
+                          content={<ChartTooltipContent indicator="dashed" />}
+                        />
+                        <Bar
+                          dataKey="score"
+                          radius={[0, 8, 8, 0]}
+                          maxBarSize={26}
+                        >
                           <LabelList
                             dataKey="score"
                             position="right"
@@ -678,18 +775,26 @@ export function AtsScannerTab() {
                   return (
                     <Card
                       key={category.key}
-                      className={cn("rounded-xl border border-slate-200 bg-white shadow-sm", accentClass)}
+                      className={cn(
+                        "rounded-xl border border-slate-200 bg-white shadow-sm",
+                        accentClass,
+                      )}
                     >
                       <CardHeader className="pb-3">
                         <CardTitle className="flex items-center justify-between text-base">
                           <span>{category.title}</span>
-                          <Badge className={cn("rounded-full", tone.badge)}>{score}/100</Badge>
+                          <Badge className={cn("rounded-full", tone.badge)}>
+                            {score}/100
+                          </Badge>
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <ul className="space-y-2">
                           {(category.data?.tips ?? []).map((tip, index) => (
-                            <li key={`${category.key}-${index}`} className="flex items-start gap-2 text-sm">
+                            <li
+                              key={`${category.key}-${index}`}
+                              className="flex items-start gap-2 text-sm"
+                            >
                               {tip.type === "good" ? (
                                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
                               ) : (
@@ -716,9 +821,13 @@ export function AtsScannerTab() {
             <Card className="rounded-xl border-dashed shadow-sm">
               <CardContent className="flex min-h-[260px] flex-col items-center justify-center gap-3 py-10 text-center">
                 <FileText className="h-8 w-8 text-slate-400" />
-                <p className="font-medium text-slate-700">No ATS report selected</p>
+                <p className="font-medium text-slate-700">
+                  No ATS report selected
+                </p>
                 <p className="max-w-md text-sm text-muted-foreground">
-                  Run a new scan or pick a resume from your saved scan history to view a full ATS report with charts and actionable recommendations.
+                  Run a new scan or pick a resume from your saved scan history
+                  to view a full ATS report with charts and actionable
+                  recommendations.
                 </p>
               </CardContent>
             </Card>
@@ -742,7 +851,8 @@ export function AtsScannerTab() {
               <span className="font-medium text-foreground">
                 {deleteTarget?.fileName || "selected scanned resume"}
               </span>{" "}
-              from your ATS scan history. If already used in a submitted application, deletion may be blocked.
+              from your ATS scan history. If already used in a submitted
+              application, deletion may be blocked.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

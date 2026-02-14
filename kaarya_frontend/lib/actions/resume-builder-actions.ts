@@ -73,6 +73,8 @@ export type ResumeBuilderDetail = ResumeBuilderListItem & {
 export type AtsScanSuggestion = { type: "good" | "improve"; tip: string; explanation?: string };
 export type AtsScanCategory = { score: number; tips: AtsScanSuggestion[] };
 export type AtsScanResult = {
+  documentType?: "resume" | "not_resume";
+  classificationReason?: string;
   overallScore: number;
   ATS: AtsScanCategory;
   toneAndStyle?: AtsScanCategory;

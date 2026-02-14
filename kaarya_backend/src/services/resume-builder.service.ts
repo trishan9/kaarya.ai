@@ -297,12 +297,15 @@ export class ResumeBuilderService {
       });
     }
 
-    const atsReport = await this.geminiService.atsScanResume({
-      resumeText,
-      targetRole: targetRole ?? null,
-      experienceLevel: experienceLevel ?? null,
-      jobDescription: jobDescription ?? null,
-    });
+    const classification = this.classifyDocumentForAts(resumeText);
+    const atsReport = classification.isResume
+      ? await this.geminiService.atsScanResume({
+          resumeText,
+          targetRole: targetRole ?? null,
+          experienceLevel: experienceLevel ?? null,
+          jobDescription: jobDescription ?? null,
+        })
+      : this.buildNotResumeAtsResult(classification.reason);
 
     const uploaded = await this.cloudinaryService.uploadDocument(file);
     const normalizedFileName = this.ensurePdfFileName(
@@ -365,5 +368,156 @@ export class ResumeBuilderService {
     if (!fileName || !fileName.trim()) return fallback;
     const trimmed = fileName.trim();
     return /\.pdf$/i.test(trimmed) ? trimmed : `${trimmed}.pdf`;
+  }
+
+  private classifyDocumentForAts(text: string): {
+    isResume: boolean;
+    reason: string;
+  } {
+    const normalized = text.toLowerCase();
+    const lines = text
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const wordCount = normalized.split(/\s+/).filter(Boolean).length;
+
+    const hasEmail = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i.test(text);
+    const hasPhone =
+      /(?:\+?\d{1,3}[\s-]?)?(?:\(?\d{3}\)?[\s-]?)\d{3}[\s-]?\d{4}/.test(text);
+    const hasProfessionalLink =
+      /(linkedin\.com|github\.com|behance\.net|dribbble\.com|portfolio)/i.test(
+        normalized,
+      );
+    const hasDateRange =
+      /\b(19|20)\d{2}\s*(?:-|–|—|to)\s*(present|current|(19|20)\d{2})\b/i.test(
+        normalized,
+      );
+    const bulletCount = lines.filter((line) => /^[-*•]\s+/.test(line)).length;
+
+    const resumeSectionKeywords = [
+      'experience',
+      'work experience',
+      'employment',
+      'education',
+      'skills',
+      'projects',
+      'professional summary',
+      'summary',
+      'objective',
+      'certifications',
+      'achievements',
+      'internship',
+    ];
+
+    const matchedResumeSections = resumeSectionKeywords.filter((keyword) =>
+      normalized.includes(keyword),
+    ).length;
+
+    const nonResumeKeywords = [
+      'chapter',
+      'lecture',
+      'syllabus',
+      'semester',
+      'assignment',
+      'class notes',
+      'unit ',
+      'experiment',
+      'theorem',
+      'formula',
+      'bibliography',
+      'table of contents',
+      'question bank',
+      'midterm',
+      'final exam',
+      'credits',
+      'lab manual',
+    ];
+
+    const matchedNonResumeKeywords = nonResumeKeywords.filter((keyword) =>
+      normalized.includes(keyword),
+    ).length;
+    const numberedQuestionMatches =
+      normalized.match(/\b(question|q)\s*\d+\b/g)?.length ?? 0;
+
+    let positiveScore = 0;
+    if (hasEmail) positiveScore += 2;
+    if (hasPhone) positiveScore += 2;
+    if (hasProfessionalLink) positiveScore += 1;
+    if (matchedResumeSections >= 3) positiveScore += 3;
+    else if (matchedResumeSections >= 1) positiveScore += 1;
+    if (hasDateRange) positiveScore += 2;
+    if (bulletCount >= 3) positiveScore += 1;
+    if (wordCount >= 120) positiveScore += 1;
+
+    let negativeScore = 0;
+    if (matchedNonResumeKeywords >= 4) negativeScore += 4;
+    else if (matchedNonResumeKeywords >= 2) negativeScore += 2;
+    if (numberedQuestionMatches >= 2) negativeScore += 2;
+    if (wordCount < 80) negativeScore += 2;
+
+    const signalScore = positiveScore - negativeScore;
+    const hasCoreResumeSignals = hasEmail || hasPhone || matchedResumeSections >= 2;
+    const isResume =
+      (hasCoreResumeSignals && positiveScore >= 4 && signalScore >= 1) ||
+      positiveScore >= 6;
+
+    if (isResume) {
+      return {
+        isResume: true,
+        reason: 'Document matches resume structure and can be ATS-evaluated.',
+      };
+    }
+
+    if (matchedNonResumeKeywords >= 3 || numberedQuestionMatches >= 2) {
+      return {
+        isResume: false,
+        reason:
+          'The uploaded file appears to be notes or academic/course material, not a professional resume.',
+      };
+    }
+
+    return {
+      isResume: false,
+      reason:
+        'The uploaded file is missing key resume signals like contact details, role history, and structured resume sections.',
+    };
+  }
+
+  private buildNotResumeAtsResult(reason: string): AtsScanResult {
+    const classificationReason =
+      reason.trim() ||
+      'This uploaded file is not a resume. Upload a professional resume PDF for ATS analysis.';
+
+    const tip = {
+      type: 'improve' as const,
+      tip: 'This uploaded file is not a resume.',
+      explanation: classificationReason,
+    };
+
+    return {
+      documentType: 'not_resume',
+      classificationReason,
+      overallScore: 0,
+      ATS: {
+        score: 0,
+        tips: [tip],
+      },
+      toneAndStyle: {
+        score: 0,
+        tips: [tip],
+      },
+      content: {
+        score: 0,
+        tips: [tip],
+      },
+      structure: {
+        score: 0,
+        tips: [tip],
+      },
+      skills: {
+        score: 0,
+        tips: [tip],
+      },
+    };
   }
 }

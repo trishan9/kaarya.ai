@@ -9,10 +9,13 @@ import type { AllConfigType } from 'src/types/config.type';
 import type {
   ResumeBuilderContent,
   ResumeBuilderExperienceItem,
+  AtsScanCategory,
   AtsScanResult,
 } from 'src/types/resume-builder.types';
 
 const ATS_RESPONSE_JSON_SCHEMA = `{
+  "documentType": "resume" | "not_resume",
+  "classificationReason": string,
   "overallScore": number (0-100),
   "ATS": { "score": number (0-100), "tips": [{ "type": "good" | "improve", "tip": string, "explanation": string }] },
   "toneAndStyle": { "score": number, "tips": [{ "type": "good" | "improve", "tip": string, "explanation": string }] },
@@ -46,6 +49,17 @@ type SuggestionsResponse = {
   targetRole?: unknown;
   jobTitle?: unknown;
   professionalSummary?: unknown;
+  skills?: unknown;
+};
+
+type AtsScanResponse = {
+  documentType?: unknown;
+  classificationReason?: unknown;
+  overallScore?: unknown;
+  ATS?: unknown;
+  toneAndStyle?: unknown;
+  content?: unknown;
+  structure?: unknown;
   skills?: unknown;
 };
 
@@ -175,6 +189,178 @@ export class GeminiService {
     if (typeof value !== 'string') return undefined;
     const normalized = value.replace(/\s+/g, ' ').trim();
     return normalized || undefined;
+  }
+
+  private clampScore(value: unknown): number {
+    const score = typeof value === 'number' && Number.isFinite(value) ? value : 0;
+    return Math.max(0, Math.min(100, Math.round(score)));
+  }
+
+  private normalizeAtsTips(value: unknown): AtsScanCategory['tips'] {
+    if (!Array.isArray(value)) return [];
+    const normalized: AtsScanCategory['tips'] = [];
+
+    for (const tip of value) {
+      if (!tip || typeof tip !== 'object') continue;
+      const raw = tip as Record<string, unknown>;
+      const tipText = this.sanitizeSuggestionText(raw.tip);
+      if (!tipText) continue;
+
+      const normalizedType = `${raw.type ?? ''}`.trim().toLowerCase();
+      const type: 'good' | 'improve' =
+        normalizedType === 'good' ? 'good' : 'improve';
+      const explanation = this.sanitizeSuggestionText(raw.explanation);
+
+      if (explanation) {
+        normalized.push({
+          type,
+          tip: tipText,
+          explanation,
+        });
+      } else {
+        normalized.push({
+          type,
+          tip: tipText,
+        });
+      }
+    }
+
+    return normalized;
+  }
+
+  private normalizeAtsCategory(
+    value: unknown,
+    fallbackTip: string,
+    fallbackType: 'good' | 'improve' = 'improve',
+  ): AtsScanCategory {
+    const source = value && typeof value === 'object'
+      ? (value as Record<string, unknown>)
+      : {};
+
+    const score = this.clampScore(source.score);
+    const tips = this.normalizeAtsTips(source.tips);
+
+    if (tips.length > 0) {
+      return {
+        score,
+        tips,
+      };
+    }
+
+    return {
+      score,
+      tips: [
+        {
+          type: fallbackType,
+          tip: fallbackTip,
+          explanation:
+            fallbackType === 'good'
+              ? 'This section is acceptable but can still be strengthened for better ATS performance.'
+              : 'No detailed feedback returned for this section. Improve clarity and role-specific relevance.',
+        },
+      ],
+    };
+  }
+
+  private buildNotResumeAtsResult(reason: string): AtsScanResult {
+    const normalizedReason =
+      reason.trim() ||
+      'This file does not appear to be a resume. Upload a professional resume to run ATS analysis.';
+
+    const notResumeTip = {
+      type: 'improve' as const,
+      tip: 'This uploaded file is not a resume.',
+      explanation: normalizedReason,
+    };
+
+    return {
+      documentType: 'not_resume',
+      classificationReason: normalizedReason,
+      overallScore: 0,
+      ATS: {
+        score: 0,
+        tips: [notResumeTip],
+      },
+      toneAndStyle: {
+        score: 0,
+        tips: [notResumeTip],
+      },
+      content: {
+        score: 0,
+        tips: [notResumeTip],
+      },
+      structure: {
+        score: 0,
+        tips: [notResumeTip],
+      },
+      skills: {
+        score: 0,
+        tips: [notResumeTip],
+      },
+    };
+  }
+
+  private normalizeAtsScanResult(raw: AtsScanResponse): AtsScanResult {
+    const normalizedType = `${raw.documentType ?? ''}`.trim().toLowerCase();
+    const classificationReason =
+      this.sanitizeSuggestionText(raw.classificationReason) ??
+      'This file does not appear to be a resume. Upload a professional resume to run ATS analysis.';
+
+    const isNotResume =
+      normalizedType === 'not_resume' ||
+      normalizedType === 'not-resume' ||
+      normalizedType === 'not resume';
+
+    if (isNotResume) {
+      return this.buildNotResumeAtsResult(classificationReason);
+    }
+
+    const ATS = this.normalizeAtsCategory(
+      raw.ATS,
+      'Improve ATS keyword coverage and role alignment for better matching.',
+    );
+    const toneAndStyle = this.normalizeAtsCategory(
+      raw.toneAndStyle,
+      'Use concise, professional language and avoid vague statements.',
+      'good',
+    );
+    const content = this.normalizeAtsCategory(
+      raw.content,
+      'Add measurable impact and role-relevant achievements.',
+    );
+    const structure = this.normalizeAtsCategory(
+      raw.structure,
+      'Use clear section headers and consistent formatting for readability.',
+      'good',
+    );
+    const skills = this.normalizeAtsCategory(
+      raw.skills,
+      'Include skills that directly map to target job requirements.',
+    );
+
+    const calculatedOverall = this.clampScore(
+      (ATS.score +
+        toneAndStyle.score +
+        content.score +
+        structure.score +
+        skills.score) /
+        5,
+    );
+    const explicitOverall = this.clampScore(raw.overallScore);
+    const hasExplicitOverall =
+      typeof raw.overallScore === 'number' && Number.isFinite(raw.overallScore);
+
+    return {
+      documentType: 'resume',
+      classificationReason:
+        this.sanitizeSuggestionText(raw.classificationReason) ?? undefined,
+      overallScore: hasExplicitOverall ? explicitOverall : calculatedOverall,
+      ATS,
+      toneAndStyle,
+      content,
+      structure,
+      skills,
+    };
   }
 
   private extractQuotedListItems(raw: string): string[] {
@@ -644,7 +830,15 @@ Rules:
     jobDescription?: string | null;
   }): Promise<AtsScanResult> {
     const prompt = `You are an expert in ATS (Applicant Tracking System) and resume analysis.
-Analyze the following resume text and rate it. Provide actionable feedback.
+First determine whether the document is a real professional resume.
+If the document is not a resume, you MUST set:
+- "documentType": "not_resume"
+- "overallScore": 0
+- all category scores to 0
+- "classificationReason" with a clear explanation
+- tips that explicitly say this is not a resume.
+
+If the document is a resume, set "documentType": "resume" and provide strict ATS scoring with actionable feedback.
 ${input.targetRole ? `Target role: ${input.targetRole}` : ''}
 ${input.experienceLevel ? `Experience level: ${input.experienceLevel}` : ''}
 ${input.jobDescription ? `Job description (use for relevance):\n${input.jobDescription.slice(0, 3000)}` : ''}
@@ -672,18 +866,9 @@ Return only the JSON object, no markdown or extra text.`;
         });
       }
       const cleaned = this.cleanJsonText(text);
-      const parsed = JSON.parse(cleaned) as AtsScanResult;
-      if (
-        typeof parsed?.overallScore !== 'number' ||
-        !parsed?.ATS ||
-        typeof parsed.ATS.score !== 'number'
-      ) {
-        throw new ApiError({
-          statusCode: HttpStatus.BAD_GATEWAY,
-          message: 'ATS scan returned an invalid format. Please try again.',
-        });
-      }
-      return parsed;
+      const jsonCandidate = this.extractFirstJsonObject(cleaned) ?? cleaned;
+      const parsed = JSON.parse(jsonCandidate) as AtsScanResponse;
+      return this.normalizeAtsScanResult(parsed);
     } catch (err) {
       if (err instanceof ApiError) throw err;
       if (err instanceof SyntaxError) {

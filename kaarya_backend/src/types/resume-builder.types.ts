@@ -79,6 +79,8 @@ export type AtsScanCategory = {
 };
 
 export type AtsScanResult = {
+  documentType?: 'resume' | 'not_resume';
+  classificationReason?: string;
   overallScore: number;
   ATS: AtsScanCategory;
   toneAndStyle?: AtsScanCategory;
