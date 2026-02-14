@@ -82,4 +82,15 @@ export const ROUTES = {
     JOB: 'jobs/:jobId',
     INTERVIEW: 'interviews/:interviewId',
   },
+  RESUME_BUILDER: {
+    BASE: 'resume-builder',
+    BY_ID: ':id',
+    LIST: 'list',
+    GENERATE_PDF: ':id/generate-pdf',
+    SAVE: ':id/save',
+    AI_SUMMARY: 'ai/summary',
+    AI_EXPERIENCE_BULLETS: 'ai/experience-bullets',
+    AI_SUGGESTIONS: 'ai/suggestions',
+    ATS_SCAN: 'ats-scan',
+  },
 } as const;

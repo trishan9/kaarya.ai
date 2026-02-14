@@ -5,6 +5,7 @@ export const CONFIG_NAMESPACE = {
   CLOUDINARY: 'cloudinary',
   EMAIL: 'email',
   REDIS: 'redis',
+  GEMINI: 'gemini',
 } as const;
 
 export const CONFIG_KEYS = {
@@ -71,5 +72,10 @@ export const CONFIG_KEYS = {
   REDIS: {
     URL: `${CONFIG_NAMESPACE.REDIS}.url`,
     KEY_PREFIX: `${CONFIG_NAMESPACE.REDIS}.keyPrefix`,
+  },
+  GEMINI: {
+    API_KEY: `${CONFIG_NAMESPACE.GEMINI}.apiKey`,
+    MODEL: `${CONFIG_NAMESPACE.GEMINI}.model`,
+    FALLBACK_MODELS: `${CONFIG_NAMESPACE.GEMINI}.fallbackModels`,
   },
 } as const;
