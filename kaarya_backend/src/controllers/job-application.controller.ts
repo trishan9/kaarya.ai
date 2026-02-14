@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -164,6 +165,37 @@ export class JobApplicationController {
       );
 
       return buildSuccessResponse(data, 'Resumes fetched successfully.');
+    });
+  }
+
+  @Roles(UserRole.USER, UserRole.STUDENT)
+  @UseGuards(RolesGuard)
+  @Delete(ROUTES.APPLICATION.RESUME_BY_ID)
+  @ApiOperation({
+    summary: 'Delete current user resume',
+    description:
+      'Deletes a resume from the current user resume library if it is not already linked to an application.',
+  })
+  @HttpCode(HttpStatus.OK)
+  async deleteMyResume(
+    @Request() request: { user: TAuthenticatedUser },
+    @Param('resumeId') resumeId: string,
+  ) {
+    return asyncHandler(async () => {
+      const parsedResumeId = ObjectIdDTO.safeParse(resumeId);
+      if (!parsedResumeId.success) {
+        throw new ApiError({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: z.prettifyError(parsedResumeId.error),
+        });
+      }
+
+      const data = await this.jobApplicationService.deleteMyResume(
+        request.user,
+        parsedResumeId.data,
+      );
+
+      return buildSuccessResponse(data, 'Resume deleted successfully.');
     });
   }
 

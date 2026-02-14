@@ -300,6 +300,22 @@ export async function getMyResumes(params?: MyResumesQuery) {
   }
 }
 
+export async function deleteMyResume(resumeId: string) {
+  try {
+    const response = await api.delete(API_URLS.APPLICATION.RESUME_BY_ID(resumeId));
+    return response.data;
+  } catch (error: Error | any) {
+    const errorMessage =
+      error?.response?.data?.message ||
+      error.message ||
+      "Failed to delete resume";
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+}
+
 export async function createJobApplication(
   jobId: string,
   payload: JobApplicationPayload,

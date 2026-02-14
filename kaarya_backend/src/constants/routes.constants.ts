@@ -58,6 +58,7 @@ export const ROUTES = {
     MY_APPLICATIONS: 'me',
     MY_APPLICATION_BY_JOB: 'job/:jobId/me',
     RESUMES_ME: 'resumes/me',
+    RESUME_BY_ID: 'resumes/:resumeId',
     APPLICATION_BY_JOB: 'jobs/:jobId/:applicationId',
     APPLICATION_RESUME_ACTIVITY:
       'jobs/:jobId/:applicationId/resume-activity',

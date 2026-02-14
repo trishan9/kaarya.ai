@@ -2,13 +2,24 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { CirclePlus, Link2, Trash2, UploadCloud } from "lucide-react";
+import { CirclePlus, Link2, Loader2, Trash2, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
@@ -28,11 +39,18 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
+  SelectGroup,
+  SelectLabel,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createJobApplication, getMyResumes } from "@/lib/actions/job-actions";
+import {
+  createJobApplication,
+  deleteMyResume,
+  getMyResumes,
+} from "@/lib/actions/job-actions";
 
 type JobSheetSummary = {
   id: string;
@@ -49,6 +67,8 @@ type ResumeLibraryItem = {
   id: string;
   fileName: string;
   createdAt?: string;
+  atsScore?: number | null;
+  type?: string | null;
 };
 
 export type JobApplicationSheetProps = {
@@ -139,8 +159,11 @@ export function JobApplicationSheet({
   const [open, setOpen] = React.useState(false);
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [selectedResumeId, setSelectedResumeId] = React.useState<string>("");
+  const [resumeSelectOpen, setResumeSelectOpen] = React.useState(false);
   const [resumeLibrary, setResumeLibrary] = React.useState<ResumeLibraryItem[]>([]);
   const [isLoadingResumes, setIsLoadingResumes] = React.useState(false);
+  const [deletingResumeId, setDeletingResumeId] = React.useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = React.useState<ResumeLibraryItem | null>(null);
   const [coverLetter, setCoverLetter] = React.useState("");
   const [portfolioLinks, setPortfolioLinks] = React.useState<string[]>([""]);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
@@ -150,51 +173,79 @@ export function JobApplicationSheet({
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
   const router = useRouter();
 
+  const loadResumes = React.useCallback(async () => {
+    setIsLoadingResumes(true);
+    try {
+      const response = await getMyResumes({ page: 1, size: 100 });
+      const rawResumes = Array.isArray(response?.data?.resumes)
+        ? response.data.resumes
+        : [];
+      const mapped = rawResumes
+        .map((resume: any) => {
+          const id =
+            typeof resume?.id === "string"
+              ? resume.id
+              : typeof resume?._id === "string"
+                ? resume._id
+                : null;
+          const fileName =
+            typeof resume?.fileName === "string" && resume.fileName.trim()
+              ? resume.fileName.trim()
+              : "resume.pdf";
+          if (!id) return null;
+          return {
+            id,
+            fileName,
+            createdAt:
+              typeof resume?.createdAt === "string" ? resume.createdAt : undefined,
+            atsScore:
+              typeof resume?.atsScore === "number" && Number.isFinite(resume.atsScore)
+                ? Math.max(0, Math.min(100, Math.round(resume.atsScore)))
+                : null,
+            type: typeof resume?.type === "string" ? resume.type : null,
+          } satisfies ResumeLibraryItem;
+        })
+        .filter(Boolean) as ResumeLibraryItem[];
+      setResumeLibrary(mapped);
+    } finally {
+      setIsLoadingResumes(false);
+    }
+  }, []);
+
   React.useEffect(() => {
     if (!open) return;
 
     let isMounted = true;
-    setIsLoadingResumes(true);
-    getMyResumes({ page: 1, size: 100 })
-      .then((response) => {
-        if (!isMounted) return;
-
-        const rawResumes = Array.isArray(response?.data?.resumes)
-          ? response.data.resumes
-          : [];
-        const mapped = rawResumes
-          .map((resume: any) => {
-            const id =
-              typeof resume?.id === "string"
-                ? resume.id
-                : typeof resume?._id === "string"
-                  ? resume._id
-                  : null;
-            const fileName =
-              typeof resume?.fileName === "string" && resume.fileName.trim()
-                ? resume.fileName.trim()
-                : "resume.pdf";
-            if (!id) return null;
-            return {
-              id,
-              fileName,
-              createdAt:
-                typeof resume?.createdAt === "string" ? resume.createdAt : undefined,
-            } satisfies ResumeLibraryItem;
-          })
-          .filter(Boolean) as ResumeLibraryItem[];
-        setResumeLibrary(mapped);
-      })
-      .finally(() => {
-        if (isMounted) {
-          setIsLoadingResumes(false);
-        }
-      });
+    void (async () => {
+      await loadResumes();
+      if (!isMounted) return;
+    })();
 
     return () => {
       isMounted = false;
     };
-  }, [open]);
+  }, [loadResumes, open]);
+
+  const handleDeleteResume = React.useCallback(async () => {
+    if (!deleteTarget) return;
+    setDeletingResumeId(deleteTarget.id);
+    try {
+      const response = await deleteMyResume(deleteTarget.id);
+      if (!response?.success) {
+        setErrorMessage(response?.message || "Failed to delete resume.");
+        return;
+      }
+      setResumeLibrary((prev) => prev.filter((item) => item.id !== deleteTarget.id));
+      if (selectedResumeId === deleteTarget.id) {
+        setSelectedResumeId("");
+      }
+      toast.success(response?.message || "Resume deleted.");
+      setDeleteTarget(null);
+      setResumeSelectOpen(false);
+    } finally {
+      setDeletingResumeId(null);
+    }
+  }, [deleteTarget, selectedResumeId]);
 
   const applyFile = React.useCallback((file: File | null) => {
     if (!file) return;
@@ -346,6 +397,8 @@ export function JobApplicationSheet({
                     Choose Existing Resume
                   </label>
                   <Select
+                    open={resumeSelectOpen}
+                    onOpenChange={setResumeSelectOpen}
                     value={selectedResumeId}
                     onValueChange={(value) => {
                       setSelectedResumeId(value);
@@ -356,7 +409,7 @@ export function JobApplicationSheet({
                     <SelectTrigger>
                       <SelectValue placeholder="Select one from your uploaded resumes" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-80">
                       {isLoadingResumes ? (
                         <SelectItem value="loading" disabled>
                           Loading resumes...
@@ -366,11 +419,49 @@ export function JobApplicationSheet({
                           No resumes uploaded yet
                         </SelectItem>
                       ) : (
-                        resumeLibrary.map((resume) => (
-                          <SelectItem key={resume.id} value={resume.id}>
-                            {resume.fileName} - {formatResumeDate(resume.createdAt)}
-                          </SelectItem>
-                        ))
+                        <>
+                          <SelectGroup>
+                            <SelectLabel>My resumes</SelectLabel>
+                            {resumeLibrary.map((resume) => (
+                              <SelectItem key={resume.id} value={resume.id}>
+                                <span className="inline-flex w-full items-center justify-between gap-2">
+                                  <span className="truncate">
+                                    {resume.fileName} - {formatResumeDate(resume.createdAt)}
+                                  </span>
+                                  {typeof resume.atsScore === "number" ? (
+                                    <Badge className="rounded-full bg-emerald-100 text-[10px] font-semibold text-emerald-800 hover:bg-emerald-100">
+                                      ATS {resume.atsScore}
+                                    </Badge>
+                                  ) : null}
+                                </span>
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                          <SelectSeparator />
+                          <SelectGroup>
+                            <SelectLabel>Delete resumes</SelectLabel>
+                            {resumeLibrary.map((resume) => (
+                              <button
+                                key={`${resume.id}-delete`}
+                                type="button"
+                                className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-sm text-rose-700 hover:bg-rose-50"
+                                onClick={(event) => {
+                                  event.preventDefault();
+                                  event.stopPropagation();
+                                  setDeleteTarget(resume);
+                                }}
+                              >
+                                <span className="flex min-w-0 items-center gap-2">
+                                  <span className="truncate">{resume.fileName}</span>
+                                  <span className="shrink-0 rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-600">
+                                    {resume.type === "ats_scan" ? "ATS Scan" : "Uploaded"}
+                                  </span>
+                                </span>
+                                <Trash2 className="h-3.5 w-3.5 shrink-0" />
+                              </button>
+                            ))}
+                          </SelectGroup>
+                        </>
                       )}
                     </SelectContent>
                   </Select>
@@ -548,6 +639,47 @@ export function JobApplicationSheet({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(value) => {
+          if (!value && !deletingResumeId) {
+            setDeleteTarget(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this resume?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes{" "}
+              <span className="font-medium text-foreground">
+                {deleteTarget?.fileName || "selected resume"}
+              </span>{" "}
+              from your resume library. This works for ATS-scanned and regular uploaded resumes. Resumes already used in submitted applications cannot be deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={Boolean(deletingResumeId)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteResume}
+              disabled={Boolean(deletingResumeId)}
+              className="bg-rose-600 text-white hover:bg-rose-700"
+            >
+              {deletingResumeId ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete resume"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

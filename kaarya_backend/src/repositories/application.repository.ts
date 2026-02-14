@@ -62,6 +62,10 @@ export abstract class ACApplicationRepository {
     applications: ApplicationSchemaDocument[];
     total: number;
   }>;
+  abstract countByStudentAndResumeId(input: {
+    studentId: string;
+    resumeId: string;
+  }): Promise<number>;
   abstract getStatusCountsByStudentIds(studentIds: string[]): Promise<{
     applied: number;
     reviewing: number;
@@ -359,6 +363,21 @@ export class ApplicationRepository implements ACApplicationRepository {
     ]);
 
     return { applications, total };
+  }
+
+  async countByStudentAndResumeId(input: {
+    studentId: string;
+    resumeId: string;
+  }): Promise<number> {
+    const { studentId, resumeId } = input;
+    if (!studentId || !resumeId) return 0;
+
+    return await this.applicationModel
+      .countDocuments({
+        studentId: this.toObjectId(studentId),
+        resumeId: this.toObjectId(resumeId),
+      })
+      .exec();
   }
 
   async getStatusCountsByStudentIds(studentIds: string[]): Promise<{

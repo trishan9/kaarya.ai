@@ -10,6 +10,7 @@ import {
   Loader2,
   RotateCcw,
   Sparkles,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -27,6 +28,16 @@ import {
 } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Input } from "@/components/ui/input";
@@ -35,7 +46,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { ResumeUploadDropzone } from "./resume-upload-dropzone";
 import { atsScanResume, type AtsScanCategory, type AtsScanResult } from "@/lib/actions/resume-builder-actions";
-import { getMyResumes } from "@/lib/actions/job-actions";
+import { deleteMyResume, getMyResumes } from "@/lib/actions/job-actions";
 import { cn } from "@/lib/utils";
 
 type AtsHistoryItem = {
@@ -146,6 +157,8 @@ export function AtsScannerTab() {
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
   const [scanHistory, setScanHistory] = useState<AtsHistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [deletingReportId, setDeletingReportId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AtsHistoryItem | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -285,6 +298,28 @@ export function AtsScannerTab() {
     }
   }
 
+  const handleDeleteScanReport = useCallback(async () => {
+    if (!deleteTarget) return;
+    setDeletingReportId(deleteTarget.id);
+    try {
+      const response = await deleteMyResume(deleteTarget.id);
+      if (!response?.success) {
+        toast.error(response?.message || "Failed to delete scanned report.");
+        return;
+      }
+
+      setScanHistory((prev) => prev.filter((item) => item.id !== deleteTarget.id));
+      if (selectedHistoryId === deleteTarget.id) {
+        setSelectedHistoryId(null);
+        setResult(null);
+      }
+      toast.success(response?.message || "Scanned report deleted.");
+      setDeleteTarget(null);
+    } finally {
+      setDeletingReportId(null);
+    }
+  }, [deleteTarget, selectedHistoryId]);
+
   const overallScore = clampScore(activeReport?.overallScore ?? 0);
   const overallTone = scoreTone(overallScore);
   const strengthsCount = tipsMix.find((entry) => entry.name === "Strengths")?.value ?? 0;
@@ -386,6 +421,16 @@ export function AtsScannerTab() {
                     PDF
                   </a>
                 ) : null}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 gap-1 border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 hover:text-rose-800"
+                  onClick={() => setDeleteTarget(selectedHistoryItem)}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Delete
+                </Button>
               </div>
             ) : null}
             {!historyLoading && scanHistory.length === 0 ? (
@@ -680,6 +725,47 @@ export function AtsScannerTab() {
           )}
         </div>
       </div>
+
+      <AlertDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(value) => {
+          if (!value && !deletingReportId) {
+            setDeleteTarget(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this scanned report?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes{" "}
+              <span className="font-medium text-foreground">
+                {deleteTarget?.fileName || "selected scanned resume"}
+              </span>{" "}
+              from your ATS scan history. If already used in a submitted application, deletion may be blocked.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={Boolean(deletingReportId)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => void handleDeleteScanReport()}
+              disabled={Boolean(deletingReportId)}
+              className="bg-rose-600 text-white hover:bg-rose-700"
+            >
+              {deletingReportId ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete report"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -10,6 +10,16 @@ import {
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -54,6 +64,7 @@ export function ResumeBuilderTab() {
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ResumeBuilderListItem | null>(null);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [templateFilter, setTemplateFilter] = useState<TemplateFilter>("all");
@@ -112,15 +123,15 @@ export function ResumeBuilderTab() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    const confirmed = window.confirm("Delete this resume draft?");
-    if (!confirmed) return;
-
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    const id = deleteTarget.id;
     setDeletingId(id);
     try {
       await deleteResumeBuilder(id);
       setItems((prev) => prev.filter((item) => item.id !== id));
       toast.success("Resume draft deleted.");
+      setDeleteTarget(null);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to delete resume.";
       toast.error(message);
@@ -263,7 +274,7 @@ export function ResumeBuilderTab() {
                   variant="outline"
                   size="sm"
                   className="gap-2 text-rose-600 hover:text-rose-700"
-                  onClick={() => handleDelete(item.id)}
+                  onClick={() => setDeleteTarget(item)}
                   disabled={deletingId === item.id}
                 >
                   {deletingId === item.id ? (
@@ -278,6 +289,45 @@ export function ResumeBuilderTab() {
           ))}
         </div>
       )}
+
+      <AlertDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => {
+          if (!open && !deletingId) {
+            setDeleteTarget(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this resume draft?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove{" "}
+              <span className="font-medium text-foreground">
+                {deleteTarget?.title || "this resume"}
+              </span>
+              . This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={Boolean(deletingId)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={Boolean(deletingId)}
+              className="bg-rose-600 text-white hover:bg-rose-700"
+            >
+              {deletingId ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

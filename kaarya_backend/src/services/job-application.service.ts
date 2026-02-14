@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
+import { ApiError } from 'src/common/errors/api-error';
 import { buildPaginationMeta } from 'src/common/utils/pagination';
 import { sanitizeDocument } from 'src/common/utils/sanitize-document';
 import {
@@ -10,6 +11,7 @@ import {
   TUpdateResumeActivityDTO,
 } from 'src/dtos/jobs/job-application.dto';
 import { ACResumeRepository } from 'src/repositories/resume.repository';
+import { ACApplicationRepository } from 'src/repositories/application.repository';
 import { TAuthenticatedUser } from 'src/types/authenticated-user.type';
 import { JobPostingService } from './job-posting.service';
 
@@ -18,6 +20,7 @@ export class JobApplicationService {
   constructor(
     private readonly jobPostingService: JobPostingService,
     private readonly resumeRepository: ACResumeRepository,
+    private readonly applicationRepository: ACApplicationRepository,
   ) {}
 
   async getJobApplications(
@@ -96,6 +99,46 @@ export class JobApplicationService {
       applicationId,
       payload,
     );
+  }
+
+  async deleteMyResume(currentUser: TAuthenticatedUser, resumeId: string) {
+    const existing = await this.resumeRepository.findByIdAndStudentId(
+      resumeId,
+      currentUser.id,
+    );
+    if (!existing) {
+      throw new ApiError({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Resume not found.',
+      });
+    }
+
+    const linkedApplications =
+      await this.applicationRepository.countByStudentAndResumeId({
+        studentId: currentUser.id,
+        resumeId,
+      });
+
+    if (linkedApplications > 0) {
+      throw new ApiError({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message:
+          'This resume is already used in one or more job applications and cannot be deleted.',
+      });
+    }
+
+    const deleted = await this.resumeRepository.deleteByIdAndStudentId(
+      resumeId,
+      currentUser.id,
+    );
+    if (!deleted) {
+      throw new ApiError({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Resume not found.',
+      });
+    }
+
+    return { deleted: true };
   }
 
   private buildResumeResponse(resume: unknown) {
