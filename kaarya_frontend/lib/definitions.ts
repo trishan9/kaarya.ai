@@ -218,3 +218,99 @@ export type TLeaderboardData = {
     search: string | null;
   };
 };
+
+export type TInterviewVisibility = "public" | "college_only" | "private";
+export type TInterviewStatus = "draft" | "published" | "archived";
+export type TInterviewType =
+  | "technical"
+  | "behavioral"
+  | "mixed"
+  | "system_design"
+  | "custom";
+
+export type TInterviewWorkspace = {
+  id: string;
+  name: string;
+  logo: string | null;
+};
+
+export type TInterviewCreator = {
+  id: string;
+  name?: string;
+  email?: string | null;
+  role?: Role;
+};
+
+export type TInterviewCategoryScore = {
+  name: string;
+  score: number;
+  comment: string;
+};
+
+export type TInterviewEvaluation = {
+  id: string;
+  interviewId: string;
+  sessionId: string;
+  userId: string;
+  totalScore: number;
+  categoryScores: TInterviewCategoryScore[];
+  strengths: string[];
+  areasForImprovement: string[];
+  finalAssessment?: string | null;
+  model?: string | null;
+  createdAt: string;
+};
+
+export type TInterviewSession = {
+  id: string;
+  interviewId: string;
+  userId: string;
+  mode: "web" | "mobile";
+  status: "in_progress" | "completed" | "abandoned";
+  transcript?: Array<{
+    role: "assistant" | "user" | "system";
+    content: string;
+    timestamp?: string | null;
+  }>;
+  vapiCallId?: string | null;
+  recordingUrl?: string | null;
+  durationSeconds?: number | null;
+  startedAt: string;
+  endedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  evaluation?: TInterviewEvaluation | null;
+};
+
+export type TInterview = {
+  id: string;
+  title: string;
+  description?: string | null;
+  interviewType: TInterviewType;
+  role: string;
+  level?: string | null;
+  techStack: string[];
+  questionCount: number;
+  durationMinutes: number;
+  questions?: Array<{ question: string; order: number }>;
+  visibility: TInterviewVisibility;
+  status: TInterviewStatus;
+  source: "candidate" | "company" | "college";
+  companyId?: string | null;
+  collegeId?: string | null;
+  company?: TInterviewWorkspace | null;
+  college?: TInterviewWorkspace | null;
+  creator?: TInterviewCreator | null;
+  tags: string[];
+  instructions?: string | null;
+  attemptsCount: number;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  workspaceType?: "candidate" | "company" | "college";
+  hasAttempted?: boolean;
+  myLatestSession?: TInterviewSession | null;
+  myLatestEvaluation?: TInterviewEvaluation | null;
+  myLatestSessionId?: string | null;
+  myLatestScore?: number | null;
+};

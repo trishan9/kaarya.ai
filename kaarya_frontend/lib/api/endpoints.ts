@@ -67,4 +67,16 @@ export const API_URLS = {
   LEADERBOARD: {
     LIST: "/leaderboard",
   },
+  INTERVIEW: {
+    LIST: "/interviews",
+    BY_ID: (id: string) => `/interviews/${id}`,
+    VOICE_CREATION_CONFIG: "/interviews/vapi/creation-config",
+    SESSIONS: (id: string) => `/interviews/${id}/sessions`,
+    SESSION_COMPLETE: (id: string, sessionId: string) =>
+      `/interviews/${id}/sessions/${sessionId}/complete`,
+    MY_SESSIONS: (id: string) => `/interviews/${id}/sessions/me`,
+    SESSION_FEEDBACK: (sessionId: string) =>
+      `/interviews/sessions/${sessionId}/feedback`,
+    ANALYTICS: (id: string) => `/interviews/${id}/analytics`,
+  },
 };
