@@ -10,6 +10,7 @@ import authConfig from './config/auth-config';
 import cloudinaryConfig from './config/cloudinary-config';
 import databaseConfig from './config/database-config';
 import emailConfig from './config/email-config';
+import geminiConfig from './config/gemini-config';
 import redisConfig from './config/redis-config';
 import { LoggerModule } from './logger/logger.module';
 import { CompanyModule } from './modules/company.module';
@@ -17,6 +18,7 @@ import { CollegeModule } from './modules/college.module';
 import { JobPostingModule } from './modules/job-posting.module';
 import { InterviewModule } from './modules/interview.module';
 import { BookmarkModule } from './modules/bookmark.module';
+import { ResumeBuilderModule } from './modules/resume-builder.module';
 
 export const InfrastructureDatabaseModule = MongoDatabaseModule;
 
@@ -31,6 +33,7 @@ export const InfrastructureDatabaseModule = MongoDatabaseModule;
         cloudinaryConfig,
         emailConfig,
         redisConfig,
+        geminiConfig,
       ],
       envFilePath: process.env.NODE_ENV === 'test' ? [] : ['.env'],
       ignoreEnvFile: process.env.NODE_ENV === 'test',
@@ -44,6 +47,7 @@ export const InfrastructureDatabaseModule = MongoDatabaseModule;
     JobPostingModule,
     InterviewModule,
     BookmarkModule,
+    ResumeBuilderModule,
   ],
   controllers: [AppController],
   providers: [AppService],
