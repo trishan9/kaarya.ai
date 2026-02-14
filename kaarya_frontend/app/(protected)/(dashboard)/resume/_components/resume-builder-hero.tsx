@@ -16,13 +16,17 @@ export function ResumeBuilderHero({
   previews,
 }: ResumeBuilderHeroProps) {
   return (
-    <section className="relative overflow-hidden rounded-xl border border-[#ececf0] bg-neutral-50 px-4 py-6 sm:px-6 sm:py-7">
+    <section className="relative overflow-hidden rounded-2xl bg-linear-to-r from-[#00629F]/80 to-[#00629F] px-4 py-8 text-white sm:px-8">
+      <div className="pointer-events-none absolute left-0 bottom-0 h-8 w-72 rounded-tr-2xl bg-white/10" />
+      <div className="pointer-events-none absolute right-0 top-0 h-12 w-48 rounded-bl-2xl rounded-tr-2xl bg-white/10" />
+      <div className="pointer-events-none absolute right-0 top-0 h-22 w-32 rounded-tr-2xl rounded-bl-2xl bg-white/10" />
+
       <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-2xl space-y-1.5">
-          <h2 className="text-lg font-semibold text-foreground sm:text-xl">
+          <h2 className="text-2xl font-semibold leading-tight text-white">
             {title}
           </h2>
-          <p className="text-sm text-muted-foreground">{description}</p>
+          <p className="max-w-2xl text-sm text-white/90">{description}</p>
         </div>
 
         <div className="hidden shrink-0 lg:flex lg:gap-2">
