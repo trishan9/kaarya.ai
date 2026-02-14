@@ -94,7 +94,9 @@ export function CollegeInviteJoinCard({
 
         const workspaceId = response?.data?.workspace?.id as string | undefined;
         toast.success(response?.message || "Joined college workspace.");
-        router.replace(workspaceId ? `/overview?workspace=${workspaceId}` : "/overview");
+        router.replace(
+          workspaceId ? `/overview?workspace=${workspaceId}` : "/overview",
+        );
       } finally {
         setIsPending(false);
       }
@@ -105,7 +107,9 @@ export function CollegeInviteJoinCard({
   return (
     <div className="space-y-4 p-4 sm:p-6">
       <div className="space-y-1">
-        <h1 className="text-xl font-semibold text-foreground">Join College Workspace</h1>
+        <h1 className="text-xl font-semibold text-foreground">
+          Join College Workspace
+        </h1>
         <p className="text-sm text-muted-foreground">
           Accept this invite to join your college workspace and access internal
           opportunities.
@@ -140,13 +144,19 @@ export function CollegeInviteJoinCard({
             ) : null}
             <div className="flex flex-wrap gap-2">
               {collegeInstitutionType ? (
-                <Badge variant="secondary" className="rounded-md bg-neutral-100">
-                  <GraduationCap className="h-3.5 w-3.5" />
+                <Badge
+                  variant="secondary"
+                  className="rounded-md bg-neutral-100"
+                >
+                  <GraduationCap className="h-3.5 w-3.5 mr-2" />
                   {collegeInstitutionType}
                 </Badge>
               ) : null}
               {typeof openRolesCount === "number" ? (
-                <Badge variant="secondary" className="rounded-md bg-neutral-100">
+                <Badge
+                  variant="secondary"
+                  className="rounded-md bg-neutral-100"
+                >
                   {openRolesCount} open roles
                 </Badge>
               ) : null}
@@ -215,7 +225,9 @@ export function CollegeInviteJoinCard({
                     <FieldDescription>
                       Paste the workspace invite code shared by your college.
                     </FieldDescription>
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
                   </Field>
                 )}
               />
@@ -225,14 +237,18 @@ export function CollegeInviteJoinCard({
                 control={joinForm.control}
                 render={({ field, fieldState }) => (
                   <Field>
-                    <FieldLabel htmlFor="program">Program (Optional)</FieldLabel>
+                    <FieldLabel htmlFor="program">
+                      Program (Optional)
+                    </FieldLabel>
                     <Input
                       {...field}
                       id="program"
                       placeholder="BSc Computer Science"
                       aria-invalid={fieldState.invalid}
                     />
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
                   </Field>
                 )}
               />
@@ -258,12 +274,18 @@ export function CollegeInviteJoinCard({
                       }
                       aria-invalid={fieldState.invalid}
                     />
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
                   </Field>
                 )}
               />
 
-              <Button type="submit" disabled={isPending} className="h-10 rounded-lg">
+              <Button
+                type="submit"
+                disabled={isPending}
+                className="h-10 rounded-lg"
+              >
                 {isPending ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />

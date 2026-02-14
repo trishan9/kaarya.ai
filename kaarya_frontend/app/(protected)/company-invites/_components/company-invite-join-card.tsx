@@ -90,7 +90,9 @@ export function CompanyInviteJoinCard({
 
         const workspaceId = response?.data?.workspace?.id as string | undefined;
         toast.success(response?.message || "Joined company workspace.");
-        router.replace(workspaceId ? `/overview?workspace=${workspaceId}` : "/overview");
+        router.replace(
+          workspaceId ? `/overview?workspace=${workspaceId}` : "/overview",
+        );
       } finally {
         setIsPending(false);
       }
@@ -101,7 +103,9 @@ export function CompanyInviteJoinCard({
   return (
     <div className="space-y-4 p-4 sm:p-6">
       <div className="space-y-1">
-        <h1 className="text-xl font-semibold text-foreground">Join Workspace</h1>
+        <h1 className="text-xl font-semibold text-foreground">
+          Join Workspace
+        </h1>
         <p className="text-sm text-muted-foreground">
           Accept this invite and switch to the company workspace dashboard.
         </p>
@@ -135,13 +139,19 @@ export function CompanyInviteJoinCard({
             ) : null}
             <div className="flex flex-wrap gap-2">
               {companyIndustry ? (
-                <Badge variant="secondary" className="rounded-md bg-neutral-100">
-                  <Building2 className="h-3.5 w-3.5" />
+                <Badge
+                  variant="secondary"
+                  className="rounded-md bg-neutral-100"
+                >
+                  <Building2 className="h-3.5 w-3.5 mr-2" />
                   {companyIndustry}
                 </Badge>
               ) : null}
               {typeof openRolesCount === "number" ? (
-                <Badge variant="secondary" className="rounded-md bg-neutral-100">
+                <Badge
+                  variant="secondary"
+                  className="rounded-md bg-neutral-100"
+                >
                   {openRolesCount} open roles
                 </Badge>
               ) : null}
@@ -157,9 +167,7 @@ export function CompanyInviteJoinCard({
             </span>
             {currentUserEmail ? ` (${currentUserEmail})` : ""}.
           </p>
-          {companyId ? (
-            <p className="mt-1">Workspace ID: {companyId}</p>
-          ) : null}
+          {companyId ? <p className="mt-1">Workspace ID: {companyId}</p> : null}
         </div>
       </Card>
 
@@ -170,7 +178,13 @@ export function CompanyInviteJoinCard({
           </p>
           <div className="flex flex-wrap gap-2">
             <Button asChild className="h-9 rounded-lg">
-              <Link href={existingWorkspaceId ? `/overview?workspace=${existingWorkspaceId}` : "/overview"}>
+              <Link
+                href={
+                  existingWorkspaceId
+                    ? `/overview?workspace=${existingWorkspaceId}`
+                    : "/overview"
+                }
+              >
                 Open Workspace Dashboard
               </Link>
             </Button>
@@ -206,7 +220,9 @@ export function CompanyInviteJoinCard({
                     <FieldDescription>
                       Paste the workspace invite code shared by the company.
                     </FieldDescription>
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
                   </Field>
                 )}
               />
@@ -216,19 +232,27 @@ export function CompanyInviteJoinCard({
                 control={joinForm.control}
                 render={({ field, fieldState }) => (
                   <Field>
-                    <FieldLabel htmlFor="designation">Designation (Optional)</FieldLabel>
+                    <FieldLabel htmlFor="designation">
+                      Designation (Optional)
+                    </FieldLabel>
                     <Input
                       {...field}
                       id="designation"
                       placeholder="Talent Partner"
                       aria-invalid={fieldState.invalid}
                     />
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
                   </Field>
                 )}
               />
 
-              <Button type="submit" disabled={isPending} className="h-10 rounded-lg">
+              <Button
+                type="submit"
+                disabled={isPending}
+                className="h-10 rounded-lg"
+              >
                 {isPending ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
