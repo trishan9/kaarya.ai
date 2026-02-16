@@ -187,10 +187,32 @@ export type TLeaderboardScope = "global" | "college";
 
 export type TLeaderboardRow = {
   rank: number;
+  total: number;
+  xp: number;
   score: number;
+  level: number;
   applications: number;
   interviewScheduled: number;
   accepted: number;
+  shortlisted: number;
+  rejected: number;
+  profileUpdates: number;
+  jobViews: number;
+  jobsSaved: number;
+  interviewsSaved: number;
+  applicationsSubmitted: number;
+  interviewsTaken: number;
+  interviewsCompleted: number;
+  resumesCreated: number;
+  resumesSaved: number;
+  atsScans: number;
+  bestInterviewScore: number;
+  averageInterviewScore: number;
+  reliableInterviewScore: number;
+  interviewScoreEntries: number;
+  bestAtsScore: number;
+  averageAtsScore: number;
+  atsScoreEntries: number;
   student: {
     id: string;
     name?: string | null;
@@ -207,6 +229,15 @@ export type TLeaderboardData = {
     logo?: string | null;
   } | null;
   rows: TLeaderboardRow[];
+  me?: (TLeaderboardRow & {
+    progress?: {
+      level: number;
+      currentXp: number;
+      xpIntoLevel: number;
+      xpForNextLevel: number;
+      nextLevelAtXp: number;
+    };
+  }) | null;
   meta?: {
     page: number;
     size: number;
