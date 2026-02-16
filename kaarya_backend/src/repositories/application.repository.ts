@@ -75,6 +75,18 @@ export abstract class ACApplicationRepository {
     rejected: number;
     withdrawn: number;
   }>;
+  abstract getLeaderboardStatsByStudentIds(studentIds: string[]): Promise<
+    Map<
+      string,
+      {
+        applications: number;
+        interviewScheduled: number;
+        accepted: number;
+        shortlisted: number;
+        rejected: number;
+      }
+    >
+  >;
   abstract getLeaderboardRows(input: {
     page: number;
     size: number;
@@ -431,6 +443,100 @@ export class ApplicationRepository implements ACApplicationRepository {
       rejected: statusMap.get(ApplicationStatus.REJECTED) ?? 0,
       withdrawn: statusMap.get(ApplicationStatus.WITHDRAWN) ?? 0,
     };
+  }
+
+  async getLeaderboardStatsByStudentIds(
+    studentIds: string[],
+  ): Promise<
+    Map<
+      string,
+      {
+        applications: number;
+        interviewScheduled: number;
+        accepted: number;
+        shortlisted: number;
+        rejected: number;
+      }
+    >
+  > {
+    const map = new Map<
+      string,
+      {
+        applications: number;
+        interviewScheduled: number;
+        accepted: number;
+        shortlisted: number;
+        rejected: number;
+      }
+    >();
+    if (!studentIds.length) {
+      return map;
+    }
+
+    const rows = await this.applicationModel
+      .aggregate<{
+        _id: Types.ObjectId;
+        applications: number;
+        interviewScheduled: number;
+        accepted: number;
+        shortlisted: number;
+        rejected: number;
+      }>([
+        {
+          $match: {
+            studentId: {
+              $in: studentIds.map((id) => this.toObjectId(id)),
+            },
+          },
+        },
+        {
+          $group: {
+            _id: '$studentId',
+            applications: { $sum: 1 },
+            interviewScheduled: {
+              $sum: {
+                $cond: [
+                  { $eq: ['$status', ApplicationStatus.INTERVIEW_SCHEDULED] },
+                  1,
+                  0,
+                ],
+              },
+            },
+            accepted: {
+              $sum: {
+                $cond: [{ $eq: ['$status', ApplicationStatus.ACCEPTED] }, 1, 0],
+              },
+            },
+            shortlisted: {
+              $sum: {
+                $cond: [
+                  { $eq: ['$status', ApplicationStatus.SHORTLISTED] },
+                  1,
+                  0,
+                ],
+              },
+            },
+            rejected: {
+              $sum: {
+                $cond: [{ $eq: ['$status', ApplicationStatus.REJECTED] }, 1, 0],
+              },
+            },
+          },
+        },
+      ])
+      .exec();
+
+    rows.forEach((row) => {
+      map.set(row._id.toString(), {
+        applications: row.applications ?? 0,
+        interviewScheduled: row.interviewScheduled ?? 0,
+        accepted: row.accepted ?? 0,
+        shortlisted: row.shortlisted ?? 0,
+        rejected: row.rejected ?? 0,
+      });
+    });
+
+    return map;
   }
 
   async getLeaderboardRows(input: {
