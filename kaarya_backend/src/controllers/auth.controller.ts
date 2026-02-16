@@ -21,6 +21,7 @@ import { AUTH_MESSAGES } from 'src/constants/messages.constants';
 import { ROUTES } from 'src/constants/routes.constants';
 import { AuthService } from 'src/services/auth.service';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { ApiOperation } from '@nestjs/swagger';
 import {
   CreateUserDTO,
   LoginDTO,
@@ -43,6 +44,7 @@ import { memoryStorage } from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from 'src/services/cloudinary.service';
 import { USER_MESSAGES } from 'src/constants/messages.constants';
+import { Roles } from 'src/decorators/roles.decorator';
 import {
   RequestPasswordResetDTO,
   ResetPasswordDTO,
@@ -75,7 +77,17 @@ import {
 } from 'src/dtos/auth/oauth.dto';
 import { AuthProvider } from 'src/types/auth-provider.enum';
 import { OAuthProviderProfile } from 'src/types/oauth-profile.type';
+import { UserRole } from 'src/types/user-role.enum';
 import { Request as ExpressRequest, Response } from 'express';
+import { RolesGuard } from 'src/guards/roles.guard';
+
+const ALLOWED_CERTIFICATION_MIME_TYPES = new Set([
+  'application/pdf',
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+]);
 
 @ApiTags('Auth')
 @Controller({
@@ -419,6 +431,76 @@ export class AuthController {
       );
 
       return buildSuccessResponse(user, USER_MESSAGES.UPDATE_SUCCESS);
+    });
+  }
+
+  @ApiBearerAuth('access-token')
+  @Roles(UserRole.USER, UserRole.STUDENT, UserRole.FACULTY)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Post(ROUTES.AUTH.CERTIFICATION_UPLOAD)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+      limits: {
+        fileSize: 8 * 1024 * 1024,
+      },
+      fileFilter: (_req, file, cb) => {
+        if (!ALLOWED_CERTIFICATION_MIME_TYPES.has(file.mimetype)) {
+          cb(
+            new ApiError({
+              statusCode: HttpStatus.BAD_REQUEST,
+              message: 'Only PDF, JPG, PNG, and WEBP files are allowed.',
+            }),
+            false,
+          );
+          return;
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: { type: 'string', format: 'binary' },
+      },
+      required: ['file'],
+    },
+  })
+  @ApiOperation({
+    summary: 'Upload certification media',
+    description:
+      'Uploads a certification image or PDF and returns a public URL for candidate profile usage.',
+  })
+  @HttpCode(HttpStatus.OK)
+  async uploadCertificationMedia(@UploadedFile() file?: Express.Multer.File) {
+    return asyncHandler(async () => {
+      if (!file) {
+        throw new ApiError({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Certification file is required.',
+        });
+      }
+
+      let url: string;
+      if (file.mimetype.startsWith('image/')) {
+        url = await this.cloudinaryService.uploadImage(file);
+      } else {
+        const uploaded = await this.cloudinaryService.uploadDocument(file);
+        url = uploaded.url;
+      }
+
+      return buildSuccessResponse(
+        {
+          url,
+          mimeType: file.mimetype,
+          fileName: file.originalname,
+          fileSize: file.size,
+        },
+        'Certification media uploaded successfully.',
+      );
     });
   }
 
