@@ -37,12 +37,14 @@ import { JobPostingService } from 'src/services/job-posting.service';
 import { CollegeModule } from './college.module';
 import { CompanyModule } from './company.module';
 import { EmailModule } from './email.module';
+import { GamificationModule } from './gamification.module';
 
 @Module({
   imports: [
     CompanyModule,
     CollegeModule,
     EmailModule,
+    GamificationModule,
     MongooseModule.forFeature([
       { name: JobPostingSchemaClass.name, schema: JobPostingSchema },
       { name: ApplicationSchemaClass.name, schema: ApplicationSchema },

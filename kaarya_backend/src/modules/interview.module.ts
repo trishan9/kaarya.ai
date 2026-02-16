@@ -38,6 +38,7 @@ import { InterviewAIService } from 'src/services/interview-ai.service';
 import { InterviewService } from 'src/services/interview.service';
 import { CollegeModule } from './college.module';
 import { CompanyModule } from './company.module';
+import { GamificationModule } from './gamification.module';
 import { UserModule } from './user.module';
 
 @Module({
@@ -45,6 +46,7 @@ import { UserModule } from './user.module';
     UserModule,
     CompanyModule,
     CollegeModule,
+    GamificationModule,
     MongooseModule.forFeature([
       { name: MockInterviewSchemaClass.name, schema: MockInterviewSchema },
       { name: InterviewSessionSchemaClass.name, schema: InterviewSessionSchema },

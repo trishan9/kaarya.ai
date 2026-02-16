@@ -18,6 +18,7 @@ import { RateLimitService } from 'src/services/rate-limit.service';
 import { OAuthAccountService } from 'src/services/oauth-account.service';
 import { GithubOAuthStrategy } from 'src/strategies/github-oauth.strategy';
 import { GoogleOAuthStrategy } from 'src/strategies/google-oauth.strategy';
+import { GamificationModule } from './gamification.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { GoogleOAuthStrategy } from 'src/strategies/google-oauth.strategy';
     LoggerModule,
     EmailModule,
     RedisModule,
+    GamificationModule,
     PassportModule,
     JwtModule.registerAsync({
       inject: [ConfigService],

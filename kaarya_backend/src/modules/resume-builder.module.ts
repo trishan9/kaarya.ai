@@ -18,9 +18,11 @@ import { CloudinaryService } from 'src/services/cloudinary.service';
 import { GeminiService } from 'src/services/gemini.service';
 import { ResumeBuilderService } from 'src/services/resume-builder.service';
 import { ResumePdfService } from 'src/services/resume-pdf.service';
+import { GamificationModule } from './gamification.module';
 
 @Module({
   imports: [
+    GamificationModule,
     MongooseModule.forFeature([
       { name: ResumeBuilderSchemaClass.name, schema: ResumeBuilderSchema },
       { name: ResumeSchemaClass.name, schema: ResumeSchema },

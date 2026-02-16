@@ -5,6 +5,10 @@ import {
   AuthIdentitySchema,
   AuthIdentitySchemaModel,
 } from 'src/entities/auth-identity.schema';
+import {
+  GamificationProfileSchema,
+  GamificationProfileSchemaClass,
+} from 'src/entities/gamification-profile.schema';
 import { UserSchemaClass, UserSchema } from 'src/entities/user.schema';
 import {
   ACAuthIdentityRepository,
@@ -22,6 +26,10 @@ import { UserService } from 'src/services/user.service';
   imports: [
     MongooseModule.forFeature([
       { name: UserSchemaClass.name, schema: UserSchema },
+      {
+        name: GamificationProfileSchemaClass.name,
+        schema: GamificationProfileSchema,
+      },
       { name: AuthIdentitySchema.name, schema: AuthIdentitySchemaModel },
     ]),
   ],

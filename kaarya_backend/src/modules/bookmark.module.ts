@@ -4,6 +4,7 @@ import { BookmarkController } from 'src/controllers/bookmark.controller';
 import { BookmarkSchema, BookmarkSchemaClass } from 'src/entities/bookmark.schema';
 import { ACBookmarkRepository, BookmarkRepository } from 'src/repositories/bookmark.repository';
 import { BookmarkService } from 'src/services/bookmark.service';
+import { GamificationModule } from './gamification.module';
 import { InterviewModule } from './interview.module';
 import { JobPostingModule } from './job-posting.module';
 
@@ -11,6 +12,7 @@ import { JobPostingModule } from './job-posting.module';
   imports: [
     JobPostingModule,
     InterviewModule,
+    GamificationModule,
     MongooseModule.forFeature([
       { name: BookmarkSchemaClass.name, schema: BookmarkSchema },
     ]),

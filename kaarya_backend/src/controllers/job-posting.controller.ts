@@ -110,7 +110,10 @@ export class JobPostingController {
       'Increments or records job view events for analytics signals such as trending jobs and conversion tracking.',
   })
   @HttpCode(HttpStatus.OK)
-  async recordJobView(@Param('id') id: string) {
+  async recordJobView(
+    @Request() request: { user: TAuthenticatedUser },
+    @Param('id') id: string,
+  ) {
     return asyncHandler(async () => {
       const parsedId = ObjectIdDTO.safeParse(id);
       if (!parsedId.success) {
@@ -120,7 +123,10 @@ export class JobPostingController {
         });
       }
 
-      const data = await this.jobPostingService.recordJobView(parsedId.data);
+      const data = await this.jobPostingService.recordJobView(
+        request.user,
+        parsedId.data,
+      );
       return buildSuccessResponse(data, JOB_MESSAGES.VIEW_RECORDED);
     });
   }
