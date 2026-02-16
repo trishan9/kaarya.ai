@@ -7,6 +7,7 @@ import {
   ACResumeBuilderRepository,
 } from 'src/repositories/resume-builder.repository';
 import { CloudinaryService } from 'src/services/cloudinary.service';
+import { GamificationService } from 'src/services/gamification.service';
 import { GeminiService } from 'src/services/gemini.service';
 import { ResumePdfService } from 'src/services/resume-pdf.service';
 import { TAuthenticatedUser } from 'src/types/authenticated-user.type';
@@ -36,6 +37,7 @@ export class ResumeBuilderService {
     private readonly geminiService: GeminiService,
     private readonly resumePdfService: ResumePdfService,
     private readonly cloudinaryService: CloudinaryService,
+    private readonly gamificationService: GamificationService,
   ) {}
 
   async create(
@@ -49,7 +51,12 @@ export class ResumeBuilderService {
       templateId: payload.templateId ?? 'professional',
       content: (payload.content as ResumeBuilderContent) ?? {},
     });
-    return this.toResponse(doc);
+    const response = this.toResponse(doc);
+    await this.gamificationService.awardResumeBuilderCreated({
+      userId: user.id,
+      resumeBuilderId: response.id,
+    });
+    return response;
   }
 
   async getById(
@@ -205,6 +212,11 @@ export class ResumeBuilderService {
     await this.resumeBuilderRepo.update(user.id, id, {
       generatedResumeId: resumeDoc._id as Types.ObjectId,
     });
+    await this.gamificationService.awardResumeBuilderSaved({
+      userId: user.id,
+      resumeBuilderId: id,
+      resumeId: String(resumeDoc._id),
+    });
     return {
       resumeId: String(resumeDoc._id),
       pdfUrl: uploaded.url,
@@ -312,7 +324,7 @@ export class ResumeBuilderService {
       uploaded.originalFilename || file.originalname,
     );
 
-    await this.resumeRepo.create({
+    const savedResume = await this.resumeRepo.create({
       studentId: new Types.ObjectId(user.id),
       type: 'ats_scan',
       fileName: normalizedFileName,
@@ -333,6 +345,12 @@ export class ResumeBuilderService {
           scannedAt: new Date().toISOString(),
         },
       },
+    });
+
+    await this.gamificationService.awardAtsScan({
+      userId: user.id,
+      resumeId: String(savedResume._id),
+      score: atsReport.overallScore,
     });
 
     return atsReport;

@@ -33,6 +33,7 @@ import { InterviewAIService } from './interview-ai.service';
 import { RecruiterProfileService } from './recruiter-profile.service';
 import { StudentService } from './student.service';
 import { UserService } from './user.service';
+import { GamificationService } from './gamification.service';
 
 @Injectable()
 export class InterviewService {
@@ -48,6 +49,7 @@ export class InterviewService {
     private readonly studentService: StudentService,
     private readonly userService: UserService,
     private readonly interviewAIService: InterviewAIService,
+    private readonly gamificationService: GamificationService,
   ) {}
 
   async createInterview(
@@ -543,6 +545,12 @@ export class InterviewService {
       startedAt: new Date(),
     });
 
+    await this.gamificationService.awardInterviewStarted({
+      userId: currentUser.id,
+      interviewId: interview.id,
+      sessionId: createdSession.id,
+    });
+
     return {
       session: sanitizeDocument(createdSession),
       interview: await this.buildInterviewResponse(interview, currentUser.id, {
@@ -654,11 +662,21 @@ export class InterviewService {
         })
       : null;
 
-    if (
+    const completedNow =
       session.status !== InterviewSessionStatus.COMPLETED &&
-      normalizedStatus === InterviewSessionStatus.COMPLETED
-    ) {
+      normalizedStatus === InterviewSessionStatus.COMPLETED;
+
+    if (completedNow) {
       await this.interviewRepository.incrementAttemptsAndTouch(interview.id, 1);
+      await this.gamificationService.awardInterviewCompleted({
+        userId: session.userId.toString(),
+        interviewId: interview.id,
+        sessionId: updatedSession.id,
+        score:
+          savedEvaluation && typeof savedEvaluation.totalScore === 'number'
+            ? savedEvaluation.totalScore
+            : null,
+      });
     }
 
     return {

@@ -11,6 +11,7 @@ import {
   BookmarkListType,
 } from 'src/types/bookmark-entity-type.enum';
 import { UserRole } from 'src/types/user-role.enum';
+import { GamificationService } from './gamification.service';
 import { InterviewService } from './interview.service';
 import { JobPostingService } from './job-posting.service';
 
@@ -32,6 +33,7 @@ export class BookmarkService {
     private readonly bookmarkRepository: ACBookmarkRepository,
     private readonly jobPostingService: JobPostingService,
     private readonly interviewService: InterviewService,
+    private readonly gamificationService: GamificationService,
   ) {}
 
   async listMyBookmarks(
@@ -123,6 +125,10 @@ export class BookmarkService {
       entityType: BookmarkEntityType.JOB,
       entityId: jobId,
     });
+    await this.gamificationService.awardJobSaved({
+      userId: currentUser.id,
+      jobId,
+    });
 
     return {
       entityType: BookmarkEntityType.JOB,
@@ -167,6 +173,10 @@ export class BookmarkService {
       userId: currentUser.id,
       entityType: BookmarkEntityType.INTERVIEW,
       entityId: interviewId,
+    });
+    await this.gamificationService.awardInterviewSaved({
+      userId: currentUser.id,
+      interviewId,
     });
 
     return {

@@ -38,6 +38,7 @@ import { JobWorkMode } from 'src/types/job-work-mode.enum';
 import { CollegeService } from './college.service';
 import { CompanyService } from './company.service';
 import { EmailService } from './email.service';
+import { GamificationService } from './gamification.service';
 import { RecruiterProfileService } from './recruiter-profile.service';
 import { StudentService } from './student.service';
 
@@ -55,6 +56,7 @@ export class JobPostingService {
     private readonly studentService: StudentService,
     private readonly recruiterProfileService: RecruiterProfileService,
     private readonly emailService: EmailService,
+    private readonly gamificationService: GamificationService,
   ) {}
 
   async createJobPosting(
@@ -139,7 +141,7 @@ export class JobPostingService {
     });
   }
 
-  async recordJobView(jobId: string) {
+  async recordJobView(currentUser: TAuthenticatedUser, jobId: string) {
     if (!jobId || !isValidObjectId(jobId)) {
       throw new ApiError({
         statusCode: HttpStatus.BAD_REQUEST,
@@ -152,6 +154,16 @@ export class JobPostingService {
       throw new ApiError({
         statusCode: HttpStatus.NOT_FOUND,
         message: JOB_MESSAGES.NOT_FOUND,
+      });
+    }
+
+    if (
+      currentUser.role === UserRole.USER ||
+      currentUser.role === UserRole.STUDENT
+    ) {
+      await this.gamificationService.awardJobViewed({
+        userId: currentUser.id,
+        jobId,
       });
     }
 
@@ -472,6 +484,12 @@ export class JobPostingService {
       ],
     });
 
+    await this.gamificationService.awardJobApplicationSubmitted({
+      userId: currentUser.id,
+      applicationId: createdApplication.id,
+      jobId: job.id,
+    });
+
     await this.syncApplicationsCountForJob(job.id);
     const hydratedApplication = await this.applicationRepository.findByIdForJob(
       job.id,
@@ -556,6 +574,46 @@ export class JobPostingService {
         statusCode: HttpStatus.NOT_FOUND,
         message: JOB_MESSAGES.APPLICATION_NOT_FOUND,
       });
+    }
+
+    if (nextStatus && nextStatus !== existingApplication.status) {
+      const studentRaw = existingApplication.studentId as unknown;
+      const studentId =
+        typeof studentRaw === 'string'
+          ? studentRaw
+          : ((studentRaw as { id?: string }).id ??
+            (studentRaw as { _id?: { toString?: () => string } })._id
+              ?.toString?.() ??
+            (studentRaw as { toString?: () => string }).toString?.() ??
+            null);
+      if (studentId && nextStatus === ApplicationStatus.SHORTLISTED) {
+        await this.gamificationService.awardApplicationStatus({
+          userId: studentId,
+          applicationId: existingApplication.id,
+          status: 'shortlisted',
+        });
+      } else if (
+        studentId &&
+        nextStatus === ApplicationStatus.INTERVIEW_SCHEDULED
+      ) {
+        await this.gamificationService.awardApplicationStatus({
+          userId: studentId,
+          applicationId: existingApplication.id,
+          status: 'interview_scheduled',
+        });
+      } else if (studentId && nextStatus === ApplicationStatus.ACCEPTED) {
+        await this.gamificationService.awardApplicationStatus({
+          userId: studentId,
+          applicationId: existingApplication.id,
+          status: 'accepted',
+        });
+      } else if (studentId && nextStatus === ApplicationStatus.REJECTED) {
+        await this.gamificationService.awardApplicationStatus({
+          userId: studentId,
+          applicationId: existingApplication.id,
+          status: 'rejected',
+        });
+      }
     }
 
     await this.notifyCandidateOnApplicationUpdate({
