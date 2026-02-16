@@ -37,4 +37,28 @@ describe('User DTOs', () => {
 
     expect(result.success).toBe(true);
   });
+
+  it('should parse candidate profile payload from JSON string', () => {
+    const result = UpdateMeDTO.safeParse({
+      candidateProfile: JSON.stringify({
+        headline: 'Frontend Developer',
+        skills: ['React', 'TypeScript'],
+        experience: [
+          {
+            id: 'exp-1',
+            jobTitle: 'Frontend Engineer',
+            companyName: 'Acme Inc',
+            currentlyWorking: true,
+          },
+        ],
+      }),
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.data?.candidateProfile?.headline).toBe('Frontend Developer');
+    expect(result.data?.candidateProfile?.skills).toEqual([
+      'React',
+      'TypeScript',
+    ]);
+  });
 });

@@ -69,6 +69,16 @@ export class UpdateMeSwaggerDTO {
   email?: string;
 
   @ApiProperty({
+    required: false,
+    type: String,
+    description:
+      'Candidate profile payload as JSON string when using multipart form-data.',
+    example:
+      '{"headline":"Frontend Developer","skills":["React","TypeScript"],"experience":[{"id":"exp-1","jobTitle":"Frontend Engineer","companyName":"Acme","currentlyWorking":true}]}',
+  })
+  candidateProfile?: string;
+
+  @ApiProperty({
     type: 'string',
     format: 'binary',
     required: false,
