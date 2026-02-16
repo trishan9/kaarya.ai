@@ -68,6 +68,7 @@ const recruiterGroups: SidebarNavGroup[] = [
       { label: "Post New Job", href: "/jobs/new", icon: PlusSquare },
       { label: "Interview Management", href: "/interviews", icon: Mic },
       { label: "Create Interview", href: "/interviews/create", icon: PlusSquare },
+      { label: "Leaderboard", href: "/leaderboard", icon: Trophy },
       {
         label: "Company Settings",
         href: "/company-settings",
