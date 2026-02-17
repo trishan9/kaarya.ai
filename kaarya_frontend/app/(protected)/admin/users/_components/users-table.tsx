@@ -51,13 +51,17 @@ export function UsersTable({ users, meta, errorMessage }: UsersTableProps) {
 
   const showing = useMemo(() => getShowingRange(meta), [meta]);
 
-  const setQueryParams = useCallback(
+  const navigateWithQueryParams = useCallback(
     (next: {
       page?: number | null;
       size?: number | null;
       search?: string | null;
-    }) => {
-      const params = new URLSearchParams(searchParams?.toString());
+    },
+    options?: {
+      history?: "push" | "replace";
+    },
+  ) => {
+      const params = new URLSearchParams(searchParams?.toString() ?? "");
 
       if (typeof next.search === "string" && next.search.trim().length > 0) {
         params.set("search", next.search);
@@ -77,8 +81,25 @@ export function UsersTable({ users, meta, errorMessage }: UsersTableProps) {
         params.delete("size");
       }
 
-      const qs = params.toString();
-      router.push(qs ? `${pathname}?${qs}` : pathname);
+      params.sort();
+      const targetQs = params.toString();
+      const targetHref = targetQs ? `${pathname}?${targetQs}` : pathname;
+
+      const currentParams = new URLSearchParams(searchParams?.toString() ?? "");
+      currentParams.sort();
+      const currentQs = currentParams.toString();
+      const currentHref = currentQs ? `${pathname}?${currentQs}` : pathname;
+
+      if (targetHref === currentHref) {
+        return;
+      }
+
+      if (options?.history === "replace") {
+        router.replace(targetHref, { scroll: false });
+        return;
+      }
+
+      router.push(targetHref, { scroll: false });
     },
     [pathname, router, searchParams],
   );
@@ -92,17 +113,29 @@ export function UsersTable({ users, meta, errorMessage }: UsersTableProps) {
   }, [initialSearch]);
 
   useEffect(() => {
+    const normalizedSearch = searchValue.trim();
+    const normalizedInitialSearch = initialSearch.trim();
+    if (normalizedSearch === normalizedInitialSearch) {
+      return;
+    }
+
     const handle = setTimeout(() => {
-      const nextSearch = searchValue.trim();
       setPageInput("1");
-      setQueryParams({
+      navigateWithQueryParams(
+        {
         page: 1,
-        search: nextSearch.length > 0 ? nextSearch : null,
-      });
+        search: normalizedSearch.length > 0 ? normalizedSearch : null,
+        },
+        { history: "replace" },
+      );
     }, 400);
 
     return () => clearTimeout(handle);
-  }, [searchValue, setQueryParams]);
+  }, [initialSearch, navigateWithQueryParams, searchValue]);
+
+  useEffect(() => {
+    setPageInput(String(currentPage));
+  }, [currentPage]);
 
   return (
     <Card className="overflow-hidden py-0">
@@ -273,7 +306,7 @@ export function UsersTable({ users, meta, errorMessage }: UsersTableProps) {
                 onChange={(e) => {
                   const nextSize = Number(e.target.value);
                   setPageInput("1");
-                  setQueryParams({ page: 1, size: nextSize });
+                  navigateWithQueryParams({ page: 1, size: nextSize });
                 }}
               >
                 {PAGE_SIZE_OPTIONS.map((sizeOption) => (
@@ -292,7 +325,7 @@ export function UsersTable({ users, meta, errorMessage }: UsersTableProps) {
                 onClick={() => {
                   if (!meta.prevPage) return;
                   setPageInput(String(meta.prevPage));
-                  setQueryParams({ page: meta.prevPage });
+                  navigateWithQueryParams({ page: meta.prevPage });
                 }}
               >
                 <ChevronLeft className="mr-1 h-4 w-4" />
@@ -315,7 +348,7 @@ export function UsersTable({ users, meta, errorMessage }: UsersTableProps) {
                       ? Math.max(1, Math.min(totalPages || 1, raw))
                       : currentPage;
                     setPageInput(String(nextPage));
-                    setQueryParams({ page: nextPage });
+                    navigateWithQueryParams({ page: nextPage });
                   }}
                   aria-label="Page number"
                 />
@@ -334,7 +367,7 @@ export function UsersTable({ users, meta, errorMessage }: UsersTableProps) {
                 onClick={() => {
                   if (!meta.nextPage) return;
                   setPageInput(String(meta.nextPage));
-                  setQueryParams({ page: meta.nextPage });
+                  navigateWithQueryParams({ page: meta.nextPage });
                 }}
               >
                 Next
