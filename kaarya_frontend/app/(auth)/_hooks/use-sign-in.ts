@@ -27,6 +27,8 @@ export const useSignIn = () => {
       try {
         const response = await signin(data);
         const accessToken = response?.data?.accessToken;
+        const role = response?.data?.user?.role as string | undefined;
+        const landingRoute = role === "admin" ? "/admin" : "/overview";
 
         if (!accessToken) {
           const errorMessage =
@@ -54,11 +56,11 @@ export const useSignIn = () => {
 
           await createSession(linkedToken);
           toast.success(linkResponse?.message || "Social account linked.");
-          router.replace("/overview");
+          router.replace(landingRoute);
           return;
         }
 
-        router.refresh();
+        router.replace(landingRoute);
 
         toast.success(response?.message || "Signed in successfully.");
       } catch (error: Error | any) {
