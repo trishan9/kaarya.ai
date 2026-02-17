@@ -149,7 +149,8 @@ export class JobPostingService {
       });
     }
 
-    const updatedJob = await this.jobPostingRepository.incrementViewsCount(jobId);
+    const updatedJob =
+      await this.jobPostingRepository.incrementViewsCount(jobId);
     if (!updatedJob) {
       throw new ApiError({
         statusCode: HttpStatus.NOT_FOUND,
@@ -323,8 +324,11 @@ export class JobPostingService {
         const companyId =
           typeof sanitizedJob.companyId === 'string'
             ? sanitizedJob.companyId
-            : ((sanitizedJob.companyId as { toString?: () => string } | undefined)
-                ?.toString?.() ?? null);
+            : ((
+                sanitizedJob.companyId as
+                  | { toString?: () => string }
+                  | undefined
+              )?.toString?.() ?? null);
         return companyId;
       })
       .filter(Boolean) as string[];
@@ -338,8 +342,11 @@ export class JobPostingService {
         const collegeId =
           typeof sanitizedJob.collegeId === 'string'
             ? sanitizedJob.collegeId
-            : ((sanitizedJob.collegeId as { toString?: () => string } | undefined)
-                ?.toString?.() ?? null);
+            : ((
+                sanitizedJob.collegeId as
+                  | { toString?: () => string }
+                  | undefined
+              )?.toString?.() ?? null);
         return collegeId;
       })
       .filter(Boolean) as string[];
@@ -390,7 +397,10 @@ export class JobPostingService {
     const collegeMap = await this.buildCollegeMap(
       job.collegeId ? [job.collegeId.toString()] : [],
     );
-    return this.buildApplicationResponse(application, { companyMap, collegeMap });
+    return this.buildApplicationResponse(application, {
+      companyMap,
+      collegeMap,
+    });
   }
 
   async createJobApplication(
@@ -439,7 +449,8 @@ export class JobPostingService {
     const normalizedResumeFileName = this.normalizeResumeFileName(
       payload.resumeFileName ??
         (selectedResume?.fileName as string | undefined),
-      payload.resumeMimeType ?? (selectedResume?.mimeType as string | undefined),
+      payload.resumeMimeType ??
+        (selectedResume?.mimeType as string | undefined),
     );
 
     const createdResume =
@@ -582,8 +593,9 @@ export class JobPostingService {
         typeof studentRaw === 'string'
           ? studentRaw
           : ((studentRaw as { id?: string }).id ??
-            (studentRaw as { _id?: { toString?: () => string } })._id
-              ?.toString?.() ??
+            (
+              studentRaw as { _id?: { toString?: () => string } }
+            )._id?.toString?.() ??
             (studentRaw as { toString?: () => string }).toString?.() ??
             null);
       if (studentId && nextStatus === ApplicationStatus.SHORTLISTED) {
@@ -800,7 +812,10 @@ export class JobPostingService {
         };
       }
 
-      if (!input.requestedCompanyId || !isValidObjectId(input.requestedCompanyId)) {
+      if (
+        !input.requestedCompanyId ||
+        !isValidObjectId(input.requestedCompanyId)
+      ) {
         throw new ApiError({
           statusCode: HttpStatus.BAD_REQUEST,
           message: COMPANY_MESSAGES.INVALID_ID,
@@ -816,10 +831,12 @@ export class JobPostingService {
 
     if (currentUser.role === UserRole.RECRUITER) {
       const companyId =
-        await this.recruiterProfileService.resolveWritableCompanyIdForRecruiter({
-          recruiterId: currentUser.id,
-          requestedCompanyId: input.requestedCompanyId,
-        });
+        await this.recruiterProfileService.resolveWritableCompanyIdForRecruiter(
+          {
+            recruiterId: currentUser.id,
+            requestedCompanyId: input.requestedCompanyId,
+          },
+        );
 
       return {
         companyId,
@@ -831,7 +848,10 @@ export class JobPostingService {
     if (currentUser.role === UserRole.COLLEGE) {
       let collegeId = input.requestedCollegeId;
       if (collegeId) {
-        await this.collegeService.assertCanManageCollege(currentUser, collegeId);
+        await this.collegeService.assertCanManageCollege(
+          currentUser,
+          collegeId,
+        );
       } else {
         const myCollege = await this.collegeService.getMyCollege(currentUser);
         collegeId = (myCollege.college as { id?: string } | undefined)?.id;
@@ -952,7 +972,8 @@ export class JobPostingService {
   }
 
   private async syncApplicationsCountForJob(jobId: string) {
-    const applicationsCount = await this.applicationRepository.countByJobId(jobId);
+    const applicationsCount =
+      await this.applicationRepository.countByJobId(jobId);
     const updatedJob = await this.jobPostingRepository.setApplicationsCount(
       jobId,
       applicationsCount,
@@ -1043,12 +1064,11 @@ export class JobPostingService {
           ? [ApplicationStatus.ACCEPTED]
           : [ApplicationStatus.REJECTED];
 
-      const jobIds = await this.applicationRepository.findJobIdsByStudentAndStatuses(
-        {
+      const jobIds =
+        await this.applicationRepository.findJobIdsByStudentAndStatuses({
           studentId: currentUser.id,
           statuses,
-        },
-      );
+        });
 
       if (!jobIds.length) {
         return { ...workspaceOptions, forceEmpty: true };
@@ -1076,10 +1096,12 @@ export class JobPostingService {
       }
 
       const companyId =
-        await this.recruiterProfileService.resolveWritableCompanyIdForRecruiter({
-          recruiterId: currentUser.id,
-          requestedCompanyId: query.companyId,
-        });
+        await this.recruiterProfileService.resolveWritableCompanyIdForRecruiter(
+          {
+            recruiterId: currentUser.id,
+            requestedCompanyId: query.companyId,
+          },
+        );
 
       return {
         visibility: query.visibility ?? JobVisibility.GLOBAL,
@@ -1090,7 +1112,10 @@ export class JobPostingService {
     if (currentUser.role === UserRole.COLLEGE) {
       let collegeId = query.collegeId;
       if (collegeId) {
-        await this.collegeService.assertCanManageCollege(currentUser, collegeId);
+        await this.collegeService.assertCanManageCollege(
+          currentUser,
+          collegeId,
+        );
       } else {
         try {
           const myCollege = await this.collegeService.getMyCollege(currentUser);
@@ -1114,9 +1139,8 @@ export class JobPostingService {
       currentUser.role === UserRole.USER ||
       currentUser.role === UserRole.STUDENT
     ) {
-      const membershipCollegeIds = await this.studentService.listStudentCollegeIds(
-        currentUser.id,
-      );
+      const membershipCollegeIds =
+        await this.studentService.listStudentCollegeIds(currentUser.id);
       const accessibleCollegeIds = query.collegeId
         ? membershipCollegeIds.includes(query.collegeId)
           ? [query.collegeId]
@@ -1142,10 +1166,14 @@ export class JobPostingService {
       isValidObjectId(companyId),
     );
     if (!validCompanyIds.length) {
-      return new Map<string, { id: string; name: string; logo: string | null }>();
+      return new Map<
+        string,
+        { id: string; name: string; logo: string | null }
+      >();
     }
 
-    const companiesRaw = await this.companyRepository.findByIds(validCompanyIds);
+    const companiesRaw =
+      await this.companyRepository.findByIds(validCompanyIds);
     const companies = Array.isArray(companiesRaw) ? companiesRaw : [];
     const companyMap = new Map<
       string,
@@ -1169,7 +1197,10 @@ export class JobPostingService {
       isValidObjectId(collegeId),
     );
     if (!validCollegeIds.length) {
-      return new Map<string, { id: string; name: string; logo: string | null }>();
+      return new Map<
+        string,
+        { id: string; name: string; logo: string | null }
+      >();
     }
 
     const collegesRaw = await this.collegeRepository.findByIds(validCollegeIds);
@@ -1195,7 +1226,10 @@ export class JobPostingService {
     job: unknown,
     companyMap: Map<string, { id: string; name: string; logo: string | null }>,
     options?: {
-      collegeMap?: Map<string, { id: string; name: string; logo: string | null }>;
+      collegeMap?: Map<
+        string,
+        { id: string; name: string; logo: string | null }
+      >;
       myApplicationByJobId?: Map<
         string,
         { applicationId: string; status: ApplicationStatus }
@@ -1209,13 +1243,15 @@ export class JobPostingService {
     const companyId =
       typeof jobData.companyId === 'string'
         ? jobData.companyId
-        : ((jobData.companyId as { toString?: () => string } | undefined)
-            ?.toString?.() ?? null);
+        : ((
+            jobData.companyId as { toString?: () => string } | undefined
+          )?.toString?.() ?? null);
     const collegeId =
       typeof jobData.collegeId === 'string'
         ? jobData.collegeId
-        : ((jobData.collegeId as { toString?: () => string } | undefined)
-            ?.toString?.() ?? null);
+        : ((
+            jobData.collegeId as { toString?: () => string } | undefined
+          )?.toString?.() ?? null);
     const company = companyId ? (companyMap.get(companyId) ?? null) : null;
     const college =
       collegeId && options?.collegeMap
@@ -1257,8 +1293,14 @@ export class JobPostingService {
   private buildApplicationResponse(
     application: unknown,
     options?: {
-      companyMap?: Map<string, { id: string; name: string; logo: string | null }>;
-      collegeMap?: Map<string, { id: string; name: string; logo: string | null }>;
+      companyMap?: Map<
+        string,
+        { id: string; name: string; logo: string | null }
+      >;
+      collegeMap?: Map<
+        string,
+        { id: string; name: string; logo: string | null }
+      >;
       myApplicationByJobId?: Map<
         string,
         { applicationId: string; status: ApplicationStatus }
@@ -1284,22 +1326,23 @@ export class JobPostingService {
     const jobId =
       (typeof applicationData.jobId === 'string'
         ? applicationData.jobId
-        : ((applicationData.jobId as { toString?: () => string } | undefined)
-            ?.toString?.() ?? null)) ??
+        : ((
+            applicationData.jobId as { toString?: () => string } | undefined
+          )?.toString?.() ?? null)) ??
       (jobData?.id as string | undefined) ??
       null;
     const jobCompanyId =
       (typeof jobData?.companyId === 'string'
         ? jobData.companyId
-        : ((jobData?.companyId as { toString?: () => string } | undefined)
-            ?.toString?.() ?? null)) ??
-      null;
+        : ((
+            jobData?.companyId as { toString?: () => string } | undefined
+          )?.toString?.() ?? null)) ?? null;
     const jobCollegeId =
       (typeof jobData?.collegeId === 'string'
         ? jobData.collegeId
-        : ((jobData?.collegeId as { toString?: () => string } | undefined)
-            ?.toString?.() ?? null)) ??
-      null;
+        : ((
+            jobData?.collegeId as { toString?: () => string } | undefined
+          )?.toString?.() ?? null)) ?? null;
     const company = jobCompanyId
       ? (options?.companyMap?.get(jobCompanyId) ?? null)
       : null;
@@ -1342,6 +1385,11 @@ export class JobPostingService {
             name: student.name ?? null,
             email: student.email ?? null,
             photo: student.photo ?? null,
+            candidateProfile:
+              typeof student.candidateProfile === 'object' &&
+              student.candidateProfile
+                ? student.candidateProfile
+                : null,
           }
         : null,
       resume: resumeData,
@@ -1471,15 +1519,16 @@ export class JobPostingService {
   }
 
   private buildApplicationTimeline(applicationData: Record<string, unknown>) {
-    const stageOrder: Array<{ key: string; label: string; minOrder: number }> = [
-      { key: 'submitted', label: 'Application Submitted', minOrder: 1 },
-      { key: 'screening', label: 'Application Screening', minOrder: 2 },
-      { key: 'hr_interview', label: 'HR Interview', minOrder: 3 },
-      { key: 'assessment', label: 'Assessment', minOrder: 4 },
-      { key: 'second_interview', label: 'Second Interview', minOrder: 5 },
-      { key: 'offering', label: 'Offering', minOrder: 6 },
-      { key: 'accepted', label: 'Accepted', minOrder: 7 },
-    ];
+    const stageOrder: Array<{ key: string; label: string; minOrder: number }> =
+      [
+        { key: 'submitted', label: 'Application Submitted', minOrder: 1 },
+        { key: 'screening', label: 'Application Screening', minOrder: 2 },
+        { key: 'hr_interview', label: 'HR Interview', minOrder: 3 },
+        { key: 'assessment', label: 'Assessment', minOrder: 4 },
+        { key: 'second_interview', label: 'Second Interview', minOrder: 5 },
+        { key: 'offering', label: 'Offering', minOrder: 6 },
+        { key: 'accepted', label: 'Accepted', minOrder: 7 },
+      ];
 
     const currentStatus =
       typeof applicationData.status === 'string'
@@ -1522,7 +1571,9 @@ export class JobPostingService {
       });
       const at =
         matchedHistory &&
-        this.toIsoDateString((matchedHistory as { changedAt?: unknown }).changedAt)
+        this.toIsoDateString(
+          (matchedHistory as { changedAt?: unknown }).changedAt,
+        )
           ? this.toIsoDateString(
               (matchedHistory as { changedAt?: unknown }).changedAt,
             )
@@ -1579,8 +1630,12 @@ export class JobPostingService {
       return;
     }
 
-    const companyId = input.job.companyId ? input.job.companyId.toString() : null;
-    const collegeId = input.job.collegeId ? input.job.collegeId.toString() : null;
+    const companyId = input.job.companyId
+      ? input.job.companyId.toString()
+      : null;
+    const collegeId = input.job.collegeId
+      ? input.job.collegeId.toString()
+      : null;
     const [companyMap, collegeMap] = await Promise.all([
       this.buildCompanyMap(companyId ? [companyId] : []),
       this.buildCollegeMap(collegeId ? [collegeId] : []),
@@ -1620,10 +1675,16 @@ export class JobPostingService {
   private async buildMyApplicationMetaByJobId(
     currentUser: TAuthenticatedUser,
     jobIds: string[],
-  ): Promise<Map<string, { applicationId: string; status: ApplicationStatus }>> {
-    const map = new Map<string, { applicationId: string; status: ApplicationStatus }>();
+  ): Promise<
+    Map<string, { applicationId: string; status: ApplicationStatus }>
+  > {
+    const map = new Map<
+      string,
+      { applicationId: string; status: ApplicationStatus }
+    >();
     if (
-      (currentUser.role !== UserRole.STUDENT && currentUser.role !== UserRole.USER) ||
+      (currentUser.role !== UserRole.STUDENT &&
+        currentUser.role !== UserRole.USER) ||
       !jobIds.length
     ) {
       return map;
@@ -1656,7 +1717,8 @@ export class JobPostingService {
     jobIds: string[],
   ): Promise<Set<string>> {
     if (
-      (currentUser.role !== UserRole.STUDENT && currentUser.role !== UserRole.USER) ||
+      (currentUser.role !== UserRole.STUDENT &&
+        currentUser.role !== UserRole.USER) ||
       !jobIds.length
     ) {
       return new Set<string>();
