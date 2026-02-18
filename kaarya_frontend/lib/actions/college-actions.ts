@@ -82,6 +82,32 @@ export async function listCollegeWorkspaces(params?: { page?: number; size?: num
   }
 }
 
+export async function listColleges(params?: {
+  page?: number;
+  size?: number;
+  search?: string;
+}) {
+  try {
+    const response = await api.get(API_URLS.COLLEGE.LIST, {
+      params: {
+        page: params?.page,
+        size: params?.size,
+        search: toTrimmedOrUndefined(params?.search),
+      },
+    });
+    return response.data;
+  } catch (error: Error | any) {
+    const errorMessage =
+      error?.response?.data?.message ||
+      error.message ||
+      "Failed to load colleges";
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+}
+
 export async function listCollegeStudents(
   collegeId: string,
   params?: {
