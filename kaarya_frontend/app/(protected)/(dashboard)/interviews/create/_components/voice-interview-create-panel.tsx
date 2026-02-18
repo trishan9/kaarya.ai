@@ -46,6 +46,7 @@ const toErrorMessage = (value: unknown, fallback: string) => {
 type VoiceInterviewCreatePanelProps = {
   candidateName?: string;
   candidatePhoto?: string | null;
+  redirectHref?: string;
 };
 
 const formatElapsed = (seconds: number) => {
@@ -60,6 +61,7 @@ const formatElapsed = (seconds: number) => {
 export function VoiceInterviewCreatePanel({
   candidateName = "Interview Owner",
   candidatePhoto,
+  redirectHref = "/interviews",
 }: VoiceInterviewCreatePanelProps) {
   const router = useRouter();
   const vapiRef = useRef<Vapi | null>(null);
@@ -112,7 +114,7 @@ export function VoiceInterviewCreatePanel({
     const onCallEnd = () => {
       setStatus("completed");
       redirectTimerRef.current = window.setTimeout(() => {
-        router.push("/interviews");
+        router.push(redirectHref);
         router.refresh();
       }, 1600);
     };
