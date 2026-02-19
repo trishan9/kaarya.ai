@@ -4,17 +4,21 @@ import Image from "next/image";
 import { useRef, useState } from "react";
 import { Upload, X } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
-import { TUpdateProfileSchema } from "../_schemas";
+import { TUpdateProfileSchemaInput } from "../_schemas";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 interface ProfilePictureUploadProps {
-  form: UseFormReturn<TUpdateProfileSchema>;
+  form: UseFormReturn<TUpdateProfileSchemaInput>;
   currentPhoto?: string | null;
   userName: string;
 }
 
-export function ProfilePictureUpload({ form }: ProfilePictureUploadProps) {
+export function ProfilePictureUpload({
+  form,
+  currentPhoto,
+  userName,
+}: ProfilePictureUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -74,7 +78,8 @@ export function ProfilePictureUpload({ form }: ProfilePictureUploadProps) {
     }
   };
 
-  const showPreview = !!preview;
+  const displayImage = preview ?? currentPhoto ?? null;
+  const showPreview = !!displayImage;
 
   return (
     <div className="space-y-4">
@@ -85,21 +90,23 @@ export function ProfilePictureUpload({ form }: ProfilePictureUploadProps) {
               <Image
                 width={128}
                 height={128}
-                src={preview ?? ""}
-                alt="Profile preview"
+                src={displayImage ?? ""}
+                alt={`${userName || "User"} profile preview`}
                 className="h-full w-full object-cover"
               />
             </div>
 
-            <Button
-              type="button"
-              variant="destructive"
-              size="icon"
-              className="absolute -top-2 -right-2 rounded-full shadow-lg"
-              onClick={handleRemove}
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            {preview ? (
+              <Button
+                type="button"
+                variant="destructive"
+                size="icon"
+                className="absolute -top-2 -right-2 rounded-full shadow-lg"
+                onClick={handleRemove}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            ) : null}
           </div>
 
           <div className="text-center">
