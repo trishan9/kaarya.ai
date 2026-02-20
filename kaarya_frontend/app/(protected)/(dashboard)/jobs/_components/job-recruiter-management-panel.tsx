@@ -106,6 +106,17 @@ const formatBytes = (value?: number) => {
   return `${mb.toFixed(1)} MB`;
 };
 
+const formatProfileDate = (value?: string | null) => {
+  if (!value) return "Present";
+  const normalized = /^\d{4}-\d{2}$/.test(value) ? `${value}-01` : value;
+  const parsed = new Date(normalized);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return parsed.toLocaleDateString("en-US", {
+    month: "short",
+    year: "numeric",
+  });
+};
+
 const WORD_MIME_TYPES = new Set([
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -238,6 +249,7 @@ export function JobRecruiterManagementPanel({
     (applicant) => applicant.id === selectedApplicantId,
   );
   const selectedState = selectedApplicant ? applicantState[selectedApplicant.id] : null;
+  const selectedApplicantProfile = selectedApplicant?.candidateProfile ?? null;
 
   const openResumePreview = async (applicant: JobApplicantRecord) => {
     const fileUrl = applicant.resume?.fileUrl ?? null;
@@ -601,6 +613,183 @@ export function JobRecruiterManagementPanel({
                         </a>
                       ))}
                     </div>
+                  </div>
+                ) : null}
+
+                {selectedApplicantProfile ? (
+                  <div className="space-y-3 rounded-lg border border-[#e6e8ee] bg-neutral-50 p-3">
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Candidate Profile
+                      </p>
+                      {selectedApplicantProfile.headline ? (
+                        <p className="text-sm font-medium text-foreground">
+                          {selectedApplicantProfile.headline}
+                        </p>
+                      ) : null}
+                      {selectedApplicantProfile.summary ? (
+                        <p className="text-sm leading-6 text-muted-foreground">
+                          {selectedApplicantProfile.summary}
+                        </p>
+                      ) : null}
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                      {selectedApplicantProfile.location ? (
+                        <span className="rounded-md border bg-white px-2 py-1">
+                          Location: {selectedApplicantProfile.location}
+                        </span>
+                      ) : null}
+                      {selectedApplicantProfile.phone ? (
+                        <span className="rounded-md border bg-white px-2 py-1">
+                          Phone: {selectedApplicantProfile.phone}
+                        </span>
+                      ) : null}
+                      {selectedApplicantProfile.openToWork !== undefined ? (
+                        <span className="rounded-md border bg-white px-2 py-1">
+                          Open to work: {selectedApplicantProfile.openToWork ? "Yes" : "No"}
+                        </span>
+                      ) : null}
+                    </div>
+
+                    {selectedApplicantProfile.skills?.length ? (
+                      <div className="space-y-1">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          Skills
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedApplicantProfile.skills.map((skill) => (
+                            <Badge
+                              key={`${selectedApplicant.id}-skill-${skill}`}
+                              variant="outline"
+                              className="text-[11px]"
+                            >
+                              {skill}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {selectedApplicantProfile.preferredRoles?.length ||
+                    selectedApplicantProfile.preferredLocations?.length ||
+                    selectedApplicantProfile.preferredWorkModes?.length ? (
+                      <div className="space-y-1 text-xs text-muted-foreground">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          Preferences
+                        </p>
+                        {selectedApplicantProfile.preferredRoles?.length ? (
+                          <p>
+                            Roles: {selectedApplicantProfile.preferredRoles.join(", ")}
+                          </p>
+                        ) : null}
+                        {selectedApplicantProfile.preferredLocations?.length ? (
+                          <p>
+                            Locations: {selectedApplicantProfile.preferredLocations.join(", ")}
+                          </p>
+                        ) : null}
+                        {selectedApplicantProfile.preferredWorkModes?.length ? (
+                          <p>
+                            Work modes: {selectedApplicantProfile.preferredWorkModes.join(", ")}
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
+
+                    {selectedApplicantProfile.experience?.length ? (
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          Experience
+                        </p>
+                        <div className="space-y-2">
+                          {selectedApplicantProfile.experience.slice(0, 3).map((item) => (
+                            <div
+                              key={item.id}
+                              className="rounded-md border bg-white p-2 text-xs"
+                            >
+                              <p className="font-medium text-foreground">
+                                {item.jobTitle} - {item.companyName}
+                              </p>
+                              <p className="text-muted-foreground">
+                                {formatProfileDate(item.startDate)} -{" "}
+                                {item.currentlyWorking
+                                  ? "Present"
+                                  : formatProfileDate(item.endDate)}
+                                {item.location ? ` | ${item.location}` : ""}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {selectedApplicantProfile.education?.length ? (
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          Education
+                        </p>
+                        <div className="space-y-2">
+                          {selectedApplicantProfile.education.slice(0, 3).map((item) => (
+                            <div
+                              key={item.id}
+                              className="rounded-md border bg-white p-2 text-xs"
+                            >
+                              <p className="font-medium text-foreground">
+                                {item.degree} {item.fieldOfStudy ? `in ${item.fieldOfStudy}` : ""}
+                              </p>
+                              <p className="text-muted-foreground">
+                                {item.institution}
+                                {item.startDate || item.endDate
+                                  ? ` | ${formatProfileDate(item.startDate)} - ${formatProfileDate(item.endDate)}`
+                                  : ""}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {selectedApplicantProfile.certifications?.length ? (
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          Certifications
+                        </p>
+                        <div className="space-y-2">
+                          {selectedApplicantProfile.certifications.slice(0, 3).map((item) => (
+                            <div
+                              key={item.id}
+                              className="rounded-md border bg-white p-2 text-xs"
+                            >
+                              <p className="font-medium text-foreground">
+                                {item.name} - {item.issuer}
+                              </p>
+                              <div className="mt-1 flex flex-wrap gap-2">
+                                {item.credentialUrl ? (
+                                  <a
+                                    href={item.credentialUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-primary underline-offset-2 hover:underline"
+                                  >
+                                    Verification link
+                                  </a>
+                                ) : null}
+                                {item.mediaUrl ? (
+                                  <a
+                                    href={item.mediaUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-primary underline-offset-2 hover:underline"
+                                  >
+                                    View certificate file
+                                  </a>
+                                ) : null}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
                 ) : null}
 
