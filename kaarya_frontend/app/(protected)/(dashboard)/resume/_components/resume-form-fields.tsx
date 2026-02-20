@@ -33,12 +33,14 @@ type DateInputProps = {
   value?: string | null;
   onChange: (nextValue: string) => void;
   placeholder?: string;
+  disabled?: boolean;
 };
 
 export function ResumeDateInput({
   value,
   onChange,
   placeholder = "Select date",
+  disabled = false,
 }: DateInputProps) {
   const selectedDate = parseDateValue(value);
 
@@ -48,6 +50,7 @@ export function ResumeDateInput({
         <Button
           type="button"
           variant="outline"
+          disabled={disabled}
           className={cn(
             "h-10 w-full justify-start rounded-md border-input bg-white px-3 text-sm font-normal",
             !selectedDate && "text-muted-foreground"
@@ -64,6 +67,7 @@ export function ResumeDateInput({
       <PopoverContent align="start" className="z-[1300] w-auto p-3">
         <Calendar
           selected={selectedDate}
+          disabled={disabled ? () => true : undefined}
           onSelect={(date) => onChange(date ? toDateValueString(date) : "")}
         />
       </PopoverContent>
@@ -74,6 +78,8 @@ export function ResumeDateInput({
 type SkillsInputProps = {
   value: string[];
   onChange: (skills: string[]) => void;
+  placeholder?: string;
+  addButtonLabel?: string;
 };
 
 function normalizeSkillsInput(input: string): string[] {
@@ -83,7 +89,12 @@ function normalizeSkillsInput(input: string): string[] {
     .filter(Boolean);
 }
 
-export function ResumeSkillsInput({ value, onChange }: SkillsInputProps) {
+export function ResumeSkillsInput({
+  value,
+  onChange,
+  placeholder = "Type and press comma/enter",
+  addButtonLabel = "Add Skill",
+}: SkillsInputProps) {
   const [inputValue, setInputValue] = React.useState("");
 
   const addSkills = React.useCallback(
@@ -152,7 +163,7 @@ export function ResumeSkillsInput({ value, onChange }: SkillsInputProps) {
             addSkills(inputValue);
             setInputValue("");
           }}
-          placeholder={value.length === 0 ? "Type a skill and press comma/enter" : ""}
+          placeholder={value.length === 0 ? placeholder : ""}
           className="h-7 min-w-[180px] flex-1 bg-transparent text-sm outline-none"
         />
       </div>
@@ -170,7 +181,7 @@ export function ResumeSkillsInput({ value, onChange }: SkillsInputProps) {
         disabled={!inputValue.trim()}
       >
         <Plus className="h-3.5 w-3.5" />
-        Add Skill
+        {addButtonLabel}
       </Button>
     </div>
   );
