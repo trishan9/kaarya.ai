@@ -4,8 +4,19 @@ import { FileScan, PenLine } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AtsScannerTab } from "./ats-scanner-tab";
 import { ResumeBuilderTab } from "./resume-builder-tab";
+import type { TCandidateProfile } from "@/lib/definitions";
 
-export function ResumePageTabs() {
+export type ResumeProfileSeed = {
+  name: string;
+  email?: string | null;
+  candidateProfile?: TCandidateProfile | null;
+};
+
+type ResumePageTabsProps = {
+  profileSeed?: ResumeProfileSeed;
+};
+
+export function ResumePageTabs({ profileSeed }: ResumePageTabsProps) {
   return (
     <Tabs defaultValue="builder" className="w-full">
       <TabsList className="inline-flex h-9 w-full max-w-xs rounded-lg border border-[#ececf0] bg-white p-1 shadow-sm">
@@ -25,7 +36,7 @@ export function ResumePageTabs() {
         </TabsTrigger>
       </TabsList>
       <TabsContent value="builder" className="mt-6">
-        <ResumeBuilderTab />
+        <ResumeBuilderTab profileSeed={profileSeed} />
       </TabsContent>
       <TabsContent value="scanner" className="mt-6">
         <AtsScannerTab />

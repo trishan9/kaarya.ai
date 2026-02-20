@@ -40,6 +40,7 @@ import {
 } from "@/lib/actions/resume-builder-actions";
 import { cn } from "@/lib/utils";
 import { ResumeEditorFlow } from "./resume-editor-flow";
+import type { ResumeProfileSeed } from "./resume-page-tabs";
 
 const STATUS_FILTERS = [
   { id: "all", label: "All" },
@@ -58,7 +59,11 @@ const TEMPLATE_FILTERS: { id: TemplateFilter; label: string }[] = [
   { id: "executive", label: "Executive" },
 ];
 
-export function ResumeBuilderTab() {
+type ResumeBuilderTabProps = {
+  profileSeed?: ResumeProfileSeed;
+};
+
+export function ResumeBuilderTab({ profileSeed }: ResumeBuilderTabProps) {
   const [items, setItems] = useState<ResumeBuilderListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -151,6 +156,7 @@ export function ResumeBuilderTab() {
         resumeId={editingId}
         onClose={handleCloseEditor}
         onSaved={handleCloseEditor}
+        profileSeed={profileSeed}
       />
     );
   }
