@@ -48,6 +48,7 @@ const candidateGroups: SidebarNavGroup[] = [
       { label: "AI Interview Hub", href: "/interview-hub", icon: Bot },
       { label: "My Interviews", href: "/interviews", icon: Mic },
       { label: "Leaderboard", href: "/leaderboard", icon: Trophy },
+
       { label: "My Applications", href: "/applications", icon: Folder },
       { label: "Saved", href: "/saved", icon: Bookmark },
       { label: "Inbox", href: "/inbox", icon: Inbox },
