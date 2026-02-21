@@ -28,6 +28,10 @@ export const AUTH_MESSAGES = {
   LOGIN_SUCCESS: 'Login successful.',
   SIGNUP_SUCCESS: 'Signup successful.',
   CURRENT_USER_SUCCESS: 'Current user fetched.',
+  CHANGE_PASSWORD_SUCCESS: 'Password changed successfully.',
+  CHANGE_PASSWORD_WRONG_CURRENT: 'Current password is incorrect.',
+  CHANGE_PASSWORD_NO_PASSWORD:
+    'Cannot change password for social-login-only accounts.',
 } as const;
 
 export const USER_MESSAGES = {

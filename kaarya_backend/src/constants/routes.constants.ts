@@ -16,6 +16,7 @@ export const ROUTES = {
     OAUTH_EXCHANGE: 'oauth/exchange',
     OAUTH_LINK_COMPLETE: 'oauth/link/complete',
     CERTIFICATION_UPLOAD: 'candidate-profile/certifications/upload',
+    CHANGE_PASSWORD: 'change-password',
   },
   ADMIN: {
     BASE: 'admin',
