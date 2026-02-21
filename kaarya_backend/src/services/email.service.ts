@@ -9,6 +9,7 @@ import { buildCompanyInviteEmail } from 'src/templates/email/company-invite.temp
 import { buildOnboardingWelcomeEmail } from 'src/templates/email/onboarding-welcome.template';
 import { buildPasswordResetEmail } from 'src/templates/email/password-reset.template';
 import { buildPasswordResetSuccessEmail } from 'src/templates/email/password-reset-success.template';
+import { buildPasswordChangedEmail } from 'src/templates/email/password-changed.template';
 import { AllConfigType } from 'src/types/config.type';
 import { ApplicationStatus } from 'src/types/application-status.enum';
 import { EmailProvider } from 'src/types/email-provider.type';
@@ -139,6 +140,29 @@ export class EmailService {
     },
   ) {
     const { subject, html, text } = buildPasswordResetSuccessEmail({
+      brandName: this.brandName,
+      userName: options.userName,
+      occurredAt: options.occurredAt,
+      ipAddress: options.ipAddress,
+      userAgent: options.userAgent,
+      supportUrl: this.supportUrl,
+      logoUrl: this.logoUrl,
+      primaryColor: this.primaryColor,
+    });
+
+    await this.sendEmail({ to, subject, html, text });
+  }
+
+  async sendPasswordChanged(
+    to: string,
+    options: {
+      userName?: string | null;
+      occurredAt?: Date;
+      ipAddress?: string;
+      userAgent?: string;
+    },
+  ) {
+    const { subject, html, text } = buildPasswordChangedEmail({
       brandName: this.brandName,
       userName: options.userName,
       occurredAt: options.occurredAt,

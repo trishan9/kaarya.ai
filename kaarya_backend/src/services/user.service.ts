@@ -9,7 +9,9 @@ import { ACUserRepository } from 'src/repositories/user.repository';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: ACUserRepository) {}
+  constructor(
+    private readonly userRepository: ACUserRepository,
+  ) {}
 
   async createUser(payload: Partial<TUser>) {
     return await this.userRepository.create(payload);
