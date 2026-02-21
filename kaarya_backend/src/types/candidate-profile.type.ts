@@ -172,6 +172,61 @@ const candidateExperienceItemSchema = z
     }
   });
 
+const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+const skillProofTypes = [
+  'certification',
+  'github',
+  'youtube',
+  'external_link',
+  'uploaded_file',
+  'portfolio_project',
+] as const;
+
+const skillProficiencyLevels = [
+  'beginner',
+  'intermediate',
+  'advanced',
+  'expert',
+  'master',
+] as const;
+
+const skillProofItemSchema = z.object({
+  id: z.string().trim().min(1).max(64),
+  type: z.enum(skillProofTypes),
+  label: z.string().trim().min(1).max(120),
+  url: z.string().trim().max(2048).url('Enter a valid URL.'),
+  description: optionalTrimmedText(500),
+});
+
+const candidateSkillItemSchema = z.object({
+  id: z.string().trim().min(1).max(64),
+  name: z.string().trim().min(1).max(64),
+  category: z.string().trim().min(1).max(64),
+  proficiency: z.enum(skillProficiencyLevels),
+  proofs: z.array(skillProofItemSchema).max(10).optional().default([]),
+});
+
+
+const skillsFieldSchema = z.preprocess(
+  (value) => {
+    if (!Array.isArray(value)) return value;
+    return value.map((item) => {
+      if (typeof item === 'string') {
+        return {
+          id: `migrated-${item.toLowerCase().replace(/\s+/g, '-').slice(0, 50)}`,
+          name: item,
+          category: 'Technical',
+          proficiency: 'intermediate' as const,
+          proofs: [],
+        };
+      }
+      return item;
+    });
+  },
+  z.array(candidateSkillItemSchema).max(60).optional().default([]),
+);
+
 const candidateCertificationItemSchema = z
   .object({
     id: z.string().trim().min(1).max(64),
@@ -221,7 +276,7 @@ export const CandidateProfileZodSchema = z.object({
     .max(3)
     .optional()
     .default([]),
-  skills: normalizedStringArray(64, 60).optional().default([]),
+  skills: skillsFieldSchema,
   education: z
     .array(candidateEducationItemSchema)
     .max(30)
@@ -254,3 +309,13 @@ export type TCandidateExperienceItem = z.infer<
 export type TCandidateCertificationItem = z.infer<
   typeof candidateCertificationItemSchema
 >;
+export type TCandidateSkillItem = z.infer<typeof candidateSkillItemSchema>;
+export type TSkillProofItem = z.infer<typeof skillProofItemSchema>;
+export type TSkillProficiency = (typeof skillProficiencyLevels)[number];
+
+export {
+  candidateSkillItemSchema,
+  skillProofItemSchema,
+  skillProficiencyLevels,
+  skillProofTypes,
+};

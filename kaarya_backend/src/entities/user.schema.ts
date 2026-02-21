@@ -7,6 +7,7 @@ import type {
   TCandidateExperienceItem,
   TCandidateProfile,
   TCandidateSalary,
+  TCandidateSkillItem,
 } from 'src/types/candidate-profile.type';
 import { UserRole } from 'src/types/user-role.enum';
 
@@ -14,12 +15,13 @@ export type UserSchemaDocument = HydratedDocument<UserSchemaClass>;
 
 type TCandidateProfileDocument = Omit<
   TCandidateProfile,
-  'education' | 'experience' | 'certifications' | 'salary'
+  'education' | 'experience' | 'certifications' | 'salary' | 'skills'
 > & {
   education?: TCandidateEducationItem[];
   experience?: TCandidateExperienceItem[];
   certifications?: TCandidateCertificationItem[];
   salary?: TCandidateSalary;
+  skills?: TCandidateSkillItem[];
 };
 
 @Schema({
@@ -87,7 +89,43 @@ export class UserSchemaClass {
         default: [],
       },
       skills: {
-        type: [String],
+        type: [
+          {
+            _id: false,
+            id: { type: String, required: true },
+            name: { type: String, required: true },
+            category: { type: String, required: true },
+            proficiency: {
+              type: String,
+              enum: ['beginner', 'intermediate', 'advanced', 'expert', 'master'],
+              default: 'intermediate',
+            },
+            proofs: {
+              type: [
+                {
+                  _id: false,
+                  id: { type: String, required: true },
+                  type: {
+                    type: String,
+                    enum: [
+                      'certification',
+                      'github',
+                      'youtube',
+                      'external_link',
+                      'uploaded_file',
+                      'portfolio_project',
+                    ],
+                    required: true,
+                  },
+                  label: { type: String, required: true },
+                  url: { type: String, required: true },
+                  description: { type: String, default: null },
+                },
+              ],
+              default: [],
+            },
+          },
+        ],
         default: [],
       },
       education: {
