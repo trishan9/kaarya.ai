@@ -3,8 +3,9 @@ import type { DeadlineCardProps } from "./_components/deadline-card";
 import type { InvitationCardProps } from "./_components/invitation-card";
 import { getJobs, getMyApplications } from "@/lib/actions/job-actions";
 import { listInterviews } from "@/lib/actions/interview-actions";
-import type { TJob } from "@/lib/definitions";
+import type { TJob, TUser } from "@/lib/definitions";
 import { formatRelativeTime } from "@/lib/date/relative-time";
+import { computeProfileRating } from "@/lib/compute-profile-rating";
 import type {
   JobRecommendationsCardProps,
 } from "../_components/job-recommendations-card";
@@ -234,6 +235,7 @@ const OVERVIEW_DEFAULT_DATA: OverviewDashboardData = {
 
 type OverviewDashboardOptions = {
   enableInterviewMetrics?: boolean;
+  user?: TUser | null;
 };
 
 const companyInitials = (companyName?: string | null) => {
@@ -367,6 +369,7 @@ export async function getOverviewDashboardData(
   options?: OverviewDashboardOptions,
 ): Promise<OverviewDashboardData> {
   const enableInterviewMetrics = options?.enableInterviewMetrics !== false;
+  const profileRating = computeProfileRating(options?.user).completion;
   try {
     const [
       forYouResponse,
@@ -437,7 +440,7 @@ export async function getOverviewDashboardData(
     return {
       ...OVERVIEW_DEFAULT_DATA,
       ratings: {
-        ...OVERVIEW_DEFAULT_DATA.ratings,
+        profile: profileRating,
         interview: interviewRating,
       },
       deadlineCard: nearestDeadline
@@ -492,7 +495,7 @@ export async function getOverviewDashboardData(
     return {
       ...OVERVIEW_DEFAULT_DATA,
       ratings: {
-        ...OVERVIEW_DEFAULT_DATA.ratings,
+        profile: profileRating,
         interview: 0,
       },
     };

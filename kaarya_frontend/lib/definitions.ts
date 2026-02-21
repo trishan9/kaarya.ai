@@ -20,6 +20,32 @@ export type TLinkedAccount = {
 export type TCandidateWorkMode = "remote" | "onsite" | "hybrid";
 export type TCandidateSalaryPeriod = "yearly" | "monthly" | "hourly";
 
+export type TSkillProficiency = "beginner" | "intermediate" | "advanced" | "expert" | "master";
+
+export type TSkillProofType =
+  | "certification"
+  | "github"
+  | "youtube"
+  | "external_link"
+  | "uploaded_file"
+  | "portfolio_project";
+
+export type TSkillProofItem = {
+  id: string;
+  type: TSkillProofType;
+  label: string;
+  url: string;
+  description?: string | null;
+};
+
+export type TCandidateSkillItem = {
+  id: string;
+  name: string;
+  category: string;
+  proficiency: TSkillProficiency;
+  proofs?: TSkillProofItem[];
+};
+
 export type TCandidateSalaryExpectation = {
   currency?: string | null;
   minAmount?: number | null;
@@ -75,7 +101,7 @@ export type TCandidateProfile = {
   preferredRoles?: string[];
   preferredLocations?: string[];
   preferredWorkModes?: TCandidateWorkMode[];
-  skills?: string[];
+  skills?: TCandidateSkillItem[];
   education?: TCandidateEducationItem[];
   experience?: TCandidateExperienceItem[];
   certifications?: TCandidateCertificationItem[];
@@ -83,6 +109,30 @@ export type TCandidateProfile = {
   defaultResumeId?: string | null;
   portfolioLinks?: string[];
   openToWork?: boolean;
+};
+
+export type TProfileRatingSummary = {
+  overall: number;
+  tier: "beginner" | "developing" | "intermediate" | "strong" | "expert";
+};
+
+export type TProfileRatingItem = {
+  label: string;
+  completed: boolean;
+  points: number;
+  maxPoints: number;
+};
+
+export type TProfileRatingSection = {
+  key: string;
+  label: string;
+  score: number;
+  maxScore: number;
+  items: TProfileRatingItem[];
+};
+
+export type TProfileRatingFull = TProfileRatingSummary & {
+  sections: TProfileRatingSection[];
 };
 
 export type TUser = {
@@ -96,6 +146,7 @@ export type TUser = {
   photo?: string | null;
   socialId?: string | null;
   candidateProfile?: TCandidateProfile | null;
+  profileRating?: TProfileRatingSummary | null;
   createdAt?: string;
   updatedAt?: string;
 };

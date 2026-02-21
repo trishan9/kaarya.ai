@@ -19,6 +19,7 @@ import { listCollegeWorkspaces } from "@/lib/actions/college-actions";
 import {
   Role,
 } from "@/lib/definitions";
+import { computeProfileRating } from "@/lib/compute-profile-rating";
 import { listRecruiterWorkspaces } from "@/lib/actions/company-actions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -334,8 +335,10 @@ export default async function OverviewPage({
     user?.role === Role.USER || user?.role === Role.STUDENT;
   const overviewData = await getOverviewDashboardData({
     enableInterviewMetrics: canTakeInterview,
+    user: user ?? undefined,
   });
   const interviewRatingMeta = getInterviewRatingMeta(overviewData.ratings.interview);
+  const profileRatingMeta = user ? computeProfileRating(user) : null;
 
   return (
     <div className="min-h-svh bg-neutral-100 p-2 sm:p-4 lg:pl-0 lg:p-5">
@@ -359,14 +362,14 @@ export default async function OverviewPage({
               <RatingCard
                 title="Your Profile Rating"
                 rating={overviewData.ratings.profile}
-                badgeLabel="Standard"
-                ratingClassName="text-[#f4b000]"
-                badgeClassName="bg-[#fff3d8] text-[#f4b000]"
-                description="It's already great, but it still needs to be even better to impress the recruiters."
+                badgeLabel={profileRatingMeta?.tierLabel ?? "STARTER"}
+                ratingClassName={profileRatingMeta?.tierColor ?? "text-zinc-600"}
+                badgeClassName={profileRatingMeta?.tierBadgeClass ?? "bg-zinc-500/10 text-zinc-600"}
+                description={profileRatingMeta?.summaryText ?? "Complete your profile to get started."}
                 suggestionTitle="Our Suggestion"
-                suggestionBody="Try enhancing your profile & re-generating your version of an interactive resume with the help of our very own Resume Builder AI."
-                actionLabel="Enhance with AI"
-                actionHref="/resume"
+                suggestionBody={profileRatingMeta?.suggestionBody ?? "Fill out your profile and resume details."}
+                actionLabel="Improve Profile"
+                actionHref="/settings"
                 showAction
               />
 
