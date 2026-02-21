@@ -70,6 +70,10 @@ describe('AuthService', () => {
       completeOAuthLink: jest.fn(),
     } as unknown as jest.Mocked<AuthOAuthService>;
 
+    const gamificationService = {
+      awardProfileUpdated: jest.fn(),
+    } as never;
+
     service = new AuthService(
       userService,
       jwtService,
@@ -77,6 +81,7 @@ describe('AuthService', () => {
       logger,
       authIdentityRepository,
       oauthService,
+      gamificationService,
     );
   });
 
