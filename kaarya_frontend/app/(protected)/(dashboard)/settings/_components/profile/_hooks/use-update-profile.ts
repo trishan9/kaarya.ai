@@ -51,7 +51,34 @@ const buildCandidateProfileDefaults = (
           mode === "remote" || mode === "onsite" || mode === "hybrid",
       )
     : [],
-  skills: normalizeStringArray(profile?.skills),
+  skills: Array.isArray(profile?.skills)
+    ? profile.skills.map((item) => {
+        if (typeof item === "string") {
+          return {
+            id: createId(),
+            name: item,
+            category: "Technical",
+            proficiency: "intermediate" as const,
+            proofs: [],
+          };
+        }
+        return {
+          id: item.id || createId(),
+          name: item.name ?? "",
+          category: item.category ?? "Technical",
+          proficiency: item.proficiency ?? "intermediate",
+          proofs: Array.isArray(item.proofs)
+            ? item.proofs.map((proof) => ({
+                id: proof.id || createId(),
+                type: proof.type ?? "external_link",
+                label: proof.label ?? "",
+                url: proof.url ?? "",
+                description: proof.description ?? "",
+              }))
+            : [],
+        };
+      })
+    : [],
   education: Array.isArray(profile?.education)
     ? profile.education.map((item) => ({
         id: item.id || createId(),

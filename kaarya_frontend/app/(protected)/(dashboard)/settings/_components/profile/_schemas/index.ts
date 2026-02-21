@@ -186,6 +186,49 @@ const candidateCertificationSchema = z
     }
   });
 
+const skillProofTypes = [
+  "certification",
+  "github",
+  "youtube",
+  "external_link",
+  "uploaded_file",
+  "portfolio_project",
+] as const;
+
+const skillProficiencyLevels = [
+  "beginner",
+  "intermediate",
+  "advanced",
+  "expert",
+  "master",
+] as const;
+
+export const skillProofItemSchema = z.object({
+  id: z.string().trim().min(1).max(64),
+  type: z.enum(skillProofTypes),
+  label: z.string().trim().min(1, "Label is required.").max(120),
+  url: z
+    .string()
+    .trim()
+    .min(1, "URL is required.")
+    .max(2048)
+    .refine(
+      (value) => /^https?:\/\/[^\s]+$/i.test(value),
+      "Enter a valid URL.",
+    ),
+  description: optionalTrimmedText(500),
+});
+
+export const candidateSkillItemSchema = z.object({
+  id: z.string().trim().min(1).max(64),
+  name: z.string().trim().min(1, "Skill name is required.").max(64),
+  category: z.string().trim().min(1, "Category is required.").max(64),
+  proficiency: z.enum(skillProficiencyLevels),
+  proofs: z.array(skillProofItemSchema).max(10).optional().default([]),
+});
+
+export { skillProofTypes, skillProficiencyLevels };
+
 const candidateSalarySchema = z
   .object({
     currency: optionalTrimmedText(16),
@@ -243,7 +286,7 @@ export const candidateProfileSchema = z.object({
     .max(3)
     .optional()
     .default([]),
-  skills: normalizedStringArray(64, 60).optional().default([]),
+  skills: z.array(candidateSkillItemSchema).max(60).optional().default([]),
   education: z.array(candidateEducationSchema).max(30).optional().default([]),
   experience: z.array(candidateExperienceSchema).max(30).optional().default([]),
   certifications: z

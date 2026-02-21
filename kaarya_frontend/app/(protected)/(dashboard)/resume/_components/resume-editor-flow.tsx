@@ -170,7 +170,7 @@ const mapProfileToResumeContent = (
       endDate: item.endDate ?? null,
       coursework: item.description ?? null,
     })),
-    skills: (candidateProfile?.skills ?? []).filter(Boolean),
+    skills: (candidateProfile?.skills ?? []).map((s) => typeof s === "string" ? s : s.name).filter(Boolean),
     projects: (candidateProfile?.portfolioLinks ?? []).map((link, index) => ({
       id: `portfolio-${index + 1}`,
       name: `Portfolio ${index + 1}`,
