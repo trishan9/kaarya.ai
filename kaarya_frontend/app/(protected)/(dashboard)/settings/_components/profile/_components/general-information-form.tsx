@@ -26,19 +26,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   Field,
   FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
+import { Separator } from "@/components/ui/separator";
 import { ProfileSaveButton } from "./profile-save-button";
 import { generateAiSuggestions } from "@/lib/actions/resume-builder-actions";
 
@@ -70,7 +64,8 @@ export function GeneralInformationForm({
             undefined,
           personalInfo: {
             firstName: form.getValues("name")?.split(" ")[0] ?? null,
-            lastName: form.getValues("name")?.split(" ").slice(1).join(" ") || null,
+            lastName:
+              form.getValues("name")?.split(" ").slice(1).join(" ") || null,
             jobTitle: profile?.headline ?? null,
             email: form.getValues("email") ?? null,
             phone: profile?.phone ?? null,
@@ -80,7 +75,9 @@ export function GeneralInformationForm({
             portfolio: profile?.portfolioUrl ?? null,
           },
           professionalSummary: profile?.summary ?? undefined,
-          skills: profile?.skills ?? [],
+          skills: (profile?.skills ?? []).map((s) =>
+            typeof s === "string" ? s : s.name,
+          ),
         }),
         generateAiSuggestions({
           focus: "summary",
@@ -96,9 +93,7 @@ export function GeneralInformationForm({
             startDate: item.startDate,
             endDate: item.endDate,
             currentlyWorking: item.currentlyWorking,
-            bulletPoints: item.description
-              ? [item.description]
-              : [],
+            bulletPoints: item.description ? [item.description] : [],
           })),
           education: (profile?.education ?? []).map((item) => ({
             id: item.id,
@@ -109,16 +104,17 @@ export function GeneralInformationForm({
             endDate: item.endDate,
             coursework: item.description,
           })),
-          skills: profile?.skills ?? [],
+          skills: (profile?.skills ?? []).map((s) =>
+            typeof s === "string" ? s : s.name,
+          ),
         }),
       ]);
 
       if (personalSuggestion?.jobTitle) {
-        form.setValue(
-          "candidateProfile.headline",
-          personalSuggestion.jobTitle,
-          { shouldDirty: true, shouldValidate: true },
-        );
+        form.setValue("candidateProfile.headline", personalSuggestion.jobTitle, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
       } else if (personalSuggestion?.targetRole) {
         form.setValue(
           "candidateProfile.headline",
@@ -149,49 +145,35 @@ export function GeneralInformationForm({
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Camera className="h-5 w-5" />
-            Profile Picture
-          </CardTitle>
+      {/* Profile Picture */}
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <Camera className="h-4 w-4 text-muted-foreground" />
+          <h3 className="text-sm font-semibold">Profile Picture</h3>
+        </div>
+        <ProfilePictureUpload
+          form={form}
+          currentPhoto={currentPhoto}
+          userName={userName}
+        />
+      </div>
 
-          <CardDescription>
-            Upload a profile picture. This will be displayed across the
-            platform.
-          </CardDescription>
-        </CardHeader>
+      <Separator />
 
-        <CardContent>
-          <ProfilePictureUpload
-            form={form}
-            currentPhoto={currentPhoto}
-            userName={userName}
-          />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            Personal Information
-          </CardTitle>
-
-          <CardDescription>
-            Update your personal details and contact information.
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent>
-          <FieldGroup>
+      {/* Personal Info */}
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <User className="h-4 w-4 text-muted-foreground" />
+          <h3 className="text-sm font-semibold">Personal Information</h3>
+        </div>
+        <FieldGroup>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Controller
               name="name"
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field>
                   <FieldLabel htmlFor="name">Full Name</FieldLabel>
-
                   <Input
                     {...field}
                     value={field.value ?? ""}
@@ -199,11 +181,6 @@ export function GeneralInformationForm({
                     placeholder="John Doe"
                     aria-invalid={fieldState.invalid}
                   />
-
-                  <FieldDescription>
-                    Your full name as you&apos;d like it to appear.
-                  </FieldDescription>
-
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
                   )}
@@ -216,86 +193,75 @@ export function GeneralInformationForm({
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field>
-                  <FieldLabel htmlFor="email">
-                    <Mail className="w-4 h-4 inline mr-1" />
-                    Email Address
-                  </FieldLabel>
-
+                  <FieldLabel htmlFor="email">Email Address</FieldLabel>
                   <Input
                     {...field}
                     value={field.value ?? ""}
                     id="email"
                     type="email"
-                    placeholder="john.doe@example.com"
+                    placeholder="john@example.com"
                     aria-invalid={fieldState.invalid}
                   />
-
-                  <FieldDescription>
-                    Your email address for account notifications.
-                  </FieldDescription>
-
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
                   )}
                 </Field>
               )}
             />
+          </div>
 
-            <Controller
-              name="candidateProfile.phone"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field>
-                  <FieldLabel htmlFor="phone">Phone Number</FieldLabel>
-                  <Input
-                    {...field}
-                    value={field.value ?? ""}
-                    id="phone"
-                    placeholder="+1 555 123 4567"
-                    aria-invalid={fieldState.invalid}
-                  />
-                  <FieldDescription>
-                    Optional contact number visible to recruiters.
-                  </FieldDescription>
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-          </FieldGroup>
-        </CardContent>
-      </Card>
+          <Controller
+            name="candidateProfile.phone"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field>
+                <FieldLabel htmlFor="phone">Phone Number</FieldLabel>
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  id="phone"
+                  placeholder="+1 555 123 4567"
+                  aria-invalid={fieldState.invalid}
+                />
+                <FieldDescription>
+                  Optional. Visible to recruiters when you apply.
+                </FieldDescription>
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+        </FieldGroup>
+      </div>
 
-      <Card>
-        <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
-          <div className="space-y-1">
-            <CardTitle className="flex items-center gap-2">
-              <Briefcase className="h-5 w-5" />
-              Professional Snapshot
-            </CardTitle>
-            <CardDescription>
-              Add role intent and summary used across job applications.
-            </CardDescription>
+      <Separator />
+
+      {/* Professional Snapshot */}
+      <div>
+        <div className="flex items-center justify-between gap-2 mb-4">
+          <div className="flex items-center gap-2">
+            <Briefcase className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-semibold">Professional Snapshot</h3>
           </div>
           <Button
             type="button"
             variant="outline"
-            className="gap-2"
+            size="sm"
+            className="gap-1.5 h-7 text-xs"
             onClick={() => void handleAiAutofill()}
             disabled={isAiFilling}
           >
             {isAiFilling ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-3 w-3 animate-spin" />
             ) : (
-              <Sparkles className="h-4 w-4" />
+              <Sparkles className="h-3 w-3" />
             )}
             AI Autofill
           </Button>
-        </CardHeader>
-
-        <CardContent>
-          <FieldGroup>
+        </div>
+        <FieldGroup>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Controller
               name="candidateProfile.headline"
               control={form.control}
@@ -309,9 +275,6 @@ export function GeneralInformationForm({
                     placeholder="Frontend Engineer | React | TypeScript"
                     aria-invalid={fieldState.invalid}
                   />
-                  <FieldDescription>
-                    One-line value proposition visible in profile cards.
-                  </FieldDescription>
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
                   )}
@@ -338,80 +301,81 @@ export function GeneralInformationForm({
                 </Field>
               )}
             />
+          </div>
 
-            <Controller
-              name="candidateProfile.openToWork"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field>
-                  <FieldLabel>Open To Work</FieldLabel>
-                  <Select
-                    value={field.value ? "yes" : "no"}
-                    onValueChange={(value) => field.onChange(value === "yes")}
-                  >
-                    <SelectTrigger aria-invalid={fieldState.invalid}>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="yes">Yes</SelectItem>
-                      <SelectItem value="no">No</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FieldDescription>
-                    Enables open-to-work visibility for job recommendations.
-                  </FieldDescription>
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-
-            <Controller
-              name="candidateProfile.summary"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field>
-                  <FieldLabel htmlFor="summary">About You</FieldLabel>
-                  <Textarea
-                    {...field}
-                    value={field.value ?? ""}
-                    id="summary"
-                    placeholder="Share your strengths, interests, and what kind of roles you're targeting."
-                    className="min-h-[140px]"
+          <Controller
+            name="candidateProfile.openToWork"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field>
+                <FieldLabel>Open To Work</FieldLabel>
+                <Select
+                  value={field.value ? "yes" : "no"}
+                  onValueChange={(value) => field.onChange(value === "yes")}
+                >
+                  <SelectTrigger
                     aria-invalid={fieldState.invalid}
-                  />
-                  <FieldDescription>
-                    This summary appears in candidate previews and applications.
-                  </FieldDescription>
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-          </FieldGroup>
-        </CardContent>
-      </Card>
+                    className="sm:w-40"
+                  >
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="yes">Yes</SelectItem>
+                    <SelectItem value="no">No</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FieldDescription>
+                  Enables open-to-work visibility for job recommendations.
+                </FieldDescription>
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <LinkIcon className="h-5 w-5" />
-            Professional Links
-          </CardTitle>
-          <CardDescription>
-            Add your public profile links and portfolio presence.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <FieldGroup>
+          <Controller
+            name="candidateProfile.summary"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field>
+                <FieldLabel htmlFor="summary">About You</FieldLabel>
+                <Textarea
+                  {...field}
+                  value={field.value ?? ""}
+                  id="summary"
+                  placeholder="Share your strengths, interests, and what kind of roles you're targeting."
+                  className="min-h-[120px]"
+                  aria-invalid={fieldState.invalid}
+                />
+                <FieldDescription>
+                  Appears in candidate previews and applications.
+                </FieldDescription>
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+        </FieldGroup>
+      </div>
+
+      <Separator />
+
+      {/* Professional Links */}
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <LinkIcon className="h-4 w-4 text-muted-foreground" />
+          <h3 className="text-sm font-semibold">Professional Links</h3>
+        </div>
+        <FieldGroup>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Controller
               name="candidateProfile.portfolioUrl"
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field>
-                  <FieldLabel htmlFor="portfolioUrl">Portfolio URL</FieldLabel>
+                  <FieldLabel htmlFor="portfolioUrl">Portfolio</FieldLabel>
                   <Input
                     {...field}
                     value={field.value ?? ""}
@@ -431,12 +395,12 @@ export function GeneralInformationForm({
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field>
-                  <FieldLabel htmlFor="linkedinUrl">LinkedIn URL</FieldLabel>
+                  <FieldLabel htmlFor="linkedinUrl">LinkedIn</FieldLabel>
                   <Input
                     {...field}
                     value={field.value ?? ""}
                     id="linkedinUrl"
-                    placeholder="https://linkedin.com/in/your-profile"
+                    placeholder="https://linkedin.com/in/..."
                     aria-invalid={fieldState.invalid}
                   />
                   {fieldState.invalid && (
@@ -451,12 +415,12 @@ export function GeneralInformationForm({
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field>
-                  <FieldLabel htmlFor="githubUrl">GitHub URL</FieldLabel>
+                  <FieldLabel htmlFor="githubUrl">GitHub</FieldLabel>
                   <Input
                     {...field}
                     value={field.value ?? ""}
                     id="githubUrl"
-                    placeholder="https://github.com/your-handle"
+                    placeholder="https://github.com/..."
                     aria-invalid={fieldState.invalid}
                   />
                   {fieldState.invalid && (
@@ -465,9 +429,9 @@ export function GeneralInformationForm({
                 </Field>
               )}
             />
-          </FieldGroup>
-        </CardContent>
-      </Card>
+          </div>
+        </FieldGroup>
+      </div>
 
       <ProfileSaveButton isSubmitting={isSubmitting} />
     </div>
