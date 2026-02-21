@@ -12,20 +12,17 @@ import {
 } from "lucide-react";
 import { TUser } from "@/lib/definitions";
 import { useUpdateProfile } from "../_hooks/use-update-profile";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GeneralInformationForm } from "./general-information-form";
 import { useFieldArray } from "react-hook-form";
 import { EducationInformationForm } from "./education-information-form";
 import { ExperienceInformationForm } from "./experience-information-form";
 import { SalaryInformationForm } from "./salary-information-form";
-import { ResumeInformationForm, TSettingsResumeOption } from "./resume-information-form";
+import {
+  ResumeInformationForm,
+  TSettingsResumeOption,
+} from "./resume-information-form";
 import { CertificationsInformationForm } from "./certifications-information-form";
 import { SkillsInformationForm } from "./skills-information-form";
 
@@ -40,7 +37,11 @@ const createId = () =>
     ? crypto.randomUUID()
     : `entry-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
-export function ProfileForm({ user, resumeOptions, onSuccess }: ProfileFormProps) {
+export function ProfileForm({
+  user,
+  resumeOptions,
+  onSuccess,
+}: ProfileFormProps) {
   const [activeTab, setActiveTab] = useState("general");
   const { form, onSubmit, isSubmitting } = useUpdateProfile({
     user,
@@ -62,56 +63,37 @@ export function ProfileForm({ user, resumeOptions, onSuccess }: ProfileFormProps
     keyName: "fieldKey",
   });
 
+  const tabItems = [
+    { value: "general", label: "General", icon: User },
+    { value: "skill", label: "Skills", icon: Code },
+    { value: "work", label: "Experience", icon: Briefcase },
+    { value: "education", label: "Education", icon: GraduationCap },
+    { value: "resume", label: "Resume", icon: FileText },
+    { value: "certification", label: "Certifications", icon: Award },
+    { value: "salary", label: "Salary", icon: DollarSign },
+  ] as const;
+
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Profile Information</CardTitle>
-        <CardDescription>
-          Manage profile data used across applications, recommendations, and
-          recruiter views.
-        </CardDescription>
-      </CardHeader>
-
-      <CardContent>
+      <CardContent className="p-5">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid h-auto w-full grid-cols-2 gap-1 bg-muted p-1 lg:grid-cols-4 xl:grid-cols-7">
-            <TabsTrigger value="general" className="gap-2">
-              <User className="w-4 h-4" />
-              <span className="hidden sm:inline">General</span>
-            </TabsTrigger>
-
-            <TabsTrigger value="education" className="gap-2">
-              <GraduationCap className="w-4 h-4" />
-              <span className="hidden sm:inline">Education</span>
-            </TabsTrigger>
-
-            <TabsTrigger value="work" className="gap-2">
-              <Briefcase className="w-4 h-4" />
-              <span className="hidden sm:inline">Experience</span>
-            </TabsTrigger>
-
-            <TabsTrigger value="salary" className="gap-2">
-              <DollarSign className="w-4 h-4" />
-              <span className="hidden sm:inline">Salary</span>
-            </TabsTrigger>
-
-            <TabsTrigger value="resume" className="gap-2">
-              <FileText className="w-4 h-4" />
-              <span className="hidden sm:inline">Resume</span>
-            </TabsTrigger>
-
-            <TabsTrigger value="certification" className="gap-2">
-              <Award className="w-4 h-4" />
-              <span className="hidden sm:inline">Certs</span>
-            </TabsTrigger>
-
-            <TabsTrigger value="skill" className="gap-2">
-              <Code className="w-4 h-4" />
-              <span className="hidden sm:inline">Skills</span>
-            </TabsTrigger>
+          <TabsList className="inline-flex overflow-y-hidden h-9 w-full items-center justify-start gap-0 overflow-x-auto rounded-lg border bg-background p-0.5">
+            {tabItems.map(({ value, label, icon: Icon }) => (
+              <TabsTrigger
+                key={value}
+                value={value}
+                className="gap-1.5 rounded-md text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+              >
+                <Icon className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{label}</span>
+              </TabsTrigger>
+            ))}
           </TabsList>
 
-          <form onSubmit={form.handleSubmit(onSubmit)} className="mt-6 space-y-6">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="mt-5 space-y-5"
+          >
             <TabsContent value="general" className="mt-0">
               <GeneralInformationForm
                 form={form}
@@ -121,27 +103,8 @@ export function ProfileForm({ user, resumeOptions, onSuccess }: ProfileFormProps
               />
             </TabsContent>
 
-            <TabsContent value="education" className="mt-0">
-              <EducationInformationForm
-                form={form}
-                fields={educationFieldArray.fields.map((field) => ({
-                  id: field.fieldKey,
-                }))}
-                onAdd={() =>
-                  educationFieldArray.append({
-                    id: createId(),
-                    institution: "",
-                    degree: "",
-                    fieldOfStudy: "",
-                    startDate: "",
-                    endDate: "",
-                    grade: "",
-                    description: "",
-                  })
-                }
-                onRemove={(index) => educationFieldArray.remove(index)}
-                isSubmitting={isSubmitting}
-              />
+            <TabsContent value="skill" className="mt-0">
+              <SkillsInformationForm form={form} isSubmitting={isSubmitting} />
             </TabsContent>
 
             <TabsContent value="work" className="mt-0">
@@ -168,8 +131,27 @@ export function ProfileForm({ user, resumeOptions, onSuccess }: ProfileFormProps
               />
             </TabsContent>
 
-            <TabsContent value="salary" className="mt-0">
-              <SalaryInformationForm form={form} isSubmitting={isSubmitting} />
+            <TabsContent value="education" className="mt-0">
+              <EducationInformationForm
+                form={form}
+                fields={educationFieldArray.fields.map((field) => ({
+                  id: field.fieldKey,
+                }))}
+                onAdd={() =>
+                  educationFieldArray.append({
+                    id: createId(),
+                    institution: "",
+                    degree: "",
+                    fieldOfStudy: "",
+                    startDate: "",
+                    endDate: "",
+                    grade: "",
+                    description: "",
+                  })
+                }
+                onRemove={(index) => educationFieldArray.remove(index)}
+                isSubmitting={isSubmitting}
+              />
             </TabsContent>
 
             <TabsContent value="resume" className="mt-0">
@@ -205,8 +187,8 @@ export function ProfileForm({ user, resumeOptions, onSuccess }: ProfileFormProps
               />
             </TabsContent>
 
-            <TabsContent value="skill" className="mt-0">
-              <SkillsInformationForm form={form} isSubmitting={isSubmitting} />
+            <TabsContent value="salary" className="mt-0">
+              <SalaryInformationForm form={form} isSubmitting={isSubmitting} />
             </TabsContent>
           </form>
         </Tabs>

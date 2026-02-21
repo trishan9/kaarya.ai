@@ -3,10 +3,25 @@
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
-import { ExternalLink, FileText, Loader2, Trash2, UploadCloud } from "lucide-react";
+import {
+  ExternalLink,
+  FileText,
+  Loader2,
+  Trash2,
+  UploadCloud,
+  CheckCircle2,
+  File,
+  Download,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Field,
   FieldDescription,
@@ -20,6 +35,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { uploadMyResume, deleteMyResume } from "@/lib/actions/job-actions";
 import { ResumeSkillsInput } from "@/app/(protected)/(dashboard)/resume/_components/resume-form-fields";
 import { TUpdateProfileSchemaInput } from "../_schemas";
@@ -62,6 +79,19 @@ const validateResumeFile = (file: File) => {
   return null;
 };
 
+function formatUploadDate(dateStr: string | null | undefined) {
+  if (!dateStr) return null;
+  try {
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  } catch {
+    return null;
+  }
+}
+
 export function ResumeInformationForm({
   form,
   resumeOptions,
@@ -74,8 +104,10 @@ export function ResumeInformationForm({
   const [deletingResumeId, setDeletingResumeId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const selectedResumeId = form.watch("candidateProfile.defaultResumeId") ?? "";
-  const portfolioLinks = form.watch("candidateProfile.portfolioLinks") ?? [];
+  const selectedResumeId =
+    form.watch("candidateProfile.defaultResumeId") ?? "";
+  const portfolioLinks =
+    form.watch("candidateProfile.portfolioLinks") ?? [];
 
   const selectedResume = useMemo(
     () => resumeLibrary.find((item) => item.id === selectedResumeId),
@@ -104,7 +136,8 @@ export function ResumeInformationForm({
           ? {
               id: uploaded.id,
               fileName:
-                typeof uploaded.fileName === "string" && uploaded.fileName.trim()
+                typeof uploaded.fileName === "string" &&
+                uploaded.fileName.trim()
                   ? uploaded.fileName.trim()
                   : file.name,
               previewUrl:
@@ -131,14 +164,17 @@ export function ResumeInformationForm({
         return;
       }
 
-      setResumeLibrary((prev) => [mapped, ...prev.filter((item) => item.id !== mapped.id)]);
+      setResumeLibrary((prev) => [
+        mapped,
+        ...prev.filter((item) => item.id !== mapped.id),
+      ]);
       if (!form.getValues("candidateProfile.defaultResumeId")) {
         form.setValue("candidateProfile.defaultResumeId", mapped.id, {
           shouldDirty: true,
           shouldValidate: true,
         });
       }
-      toast.success("Resume uploaded to your library.");
+      toast.success("Resume uploaded successfully.");
     } finally {
       setIsUploadingResume(false);
     }
@@ -152,7 +188,9 @@ export function ResumeInformationForm({
         toast.error(response?.message || "Failed to delete resume.");
         return;
       }
-      setResumeLibrary((prev) => prev.filter((item) => item.id !== resumeId));
+      setResumeLibrary((prev) =>
+        prev.filter((item) => item.id !== resumeId),
+      );
       if (form.getValues("candidateProfile.defaultResumeId") === resumeId) {
         form.setValue("candidateProfile.defaultResumeId", "", {
           shouldDirty: true,
@@ -165,146 +203,234 @@ export function ResumeInformationForm({
     }
   };
 
+  const handleSetDefault = (resumeId: string) => {
+    form.setValue("candidateProfile.defaultResumeId", resumeId, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    toast.success("Default resume updated.");
+  };
+
   return (
     <div className="space-y-4">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Resume & Portfolio
+            Resume & Documents
           </CardTitle>
           <CardDescription>
-            Upload, delete, and choose your default resume for auto-selection in job applications.
+            Upload resumes and select a default. The default resume is
+            auto-selected when you apply for jobs and visible to recruiters.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          {/* Upload */}
+          <div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              accept={ACCEPTED_RESUME_MIME_TYPES.join(",")}
+              onChange={(event) => {
+                const file = event.currentTarget.files?.[0] ?? null;
+                void handleUploadResume(file);
+                event.currentTarget.value = "";
+              }}
+            />
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                className="gap-2"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingResume}
+              >
+                {isUploadingResume ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <UploadCloud className="h-4 w-4" />
+                )}
+                Upload Resume
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                PDF, DOC, DOCX \u2014 Max 10 MB
+              </span>
+            </div>
+          </div>
+
+          {/* Default resume selector */}
+          <Controller
+            name="candidateProfile.defaultResumeId"
+            control={form.control}
+            render={({ field }) => (
+              <Field>
+                <FieldLabel>Default Resume for Applications</FieldLabel>
+                {resumeLibrary.length ? (
+                  <Select
+                    value={
+                      field.value &&
+                      resumeLibrary.some((r) => r.id === field.value)
+                        ? field.value
+                        : "none"
+                    }
+                    onValueChange={(value) =>
+                      field.onChange(value === "none" ? "" : value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a default resume" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">
+                        No default selected
+                      </SelectItem>
+                      {resumeLibrary.map((resume) => (
+                        <SelectItem key={resume.id} value={resume.id}>
+                          {resume.fileName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground text-center">
+                    No resumes uploaded yet. Upload one above.
+                  </div>
+                )}
+                <FieldDescription>
+                  This resume is pre-selected when you apply for a job and
+                  shown on your profile to recruiters.
+                </FieldDescription>
+              </Field>
+            )}
+          />
+
+          {/* Resume library list */}
+          {resumeLibrary.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Your Resumes ({resumeLibrary.length})
+              </p>
+              <div className="divide-y rounded-lg border">
+                {resumeLibrary.map((resume) => {
+                  const isDefault = resume.id === selectedResumeId;
+                  const isDeleting = deletingResumeId === resume.id;
+                  return (
+                    <div
+                      key={resume.id}
+                      className={`flex items-center gap-3 p-3 transition-colors ${
+                        isDefault ? "bg-primary/5" : "hover:bg-muted/30"
+                      }`}
+                    >
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted shrink-0">
+                        <File className="h-4 w-4 text-muted-foreground" />
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium truncate">
+                            {resume.fileName}
+                          </p>
+                          {isDefault && (
+                            <Badge className="bg-primary/10 text-primary border-0 text-[10px] h-5 gap-0.5 shrink-0">
+                              <CheckCircle2 className="h-2.5 w-2.5" />
+                              Default
+                            </Badge>
+                          )}
+                        </div>
+                        {resume.uploadedAt && (
+                          <p className="text-[11px] text-muted-foreground">
+                            Uploaded {formatUploadDate(resume.uploadedAt)}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-1 shrink-0">
+                        {!isDefault && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={() => handleSetDefault(resume.id)}
+                          >
+                            Set Default
+                          </Button>
+                        )}
+                        {resume.previewUrl && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0"
+                            asChild
+                          >
+                            <a
+                              href={resume.previewUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              title="Preview"
+                            >
+                              <ExternalLink className="h-3.5 w-3.5" />
+                            </a>
+                          </Button>
+                        )}
+                        {resume.downloadUrl && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0"
+                            asChild
+                          >
+                            <a
+                              href={resume.downloadUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              title="Download"
+                              download
+                            >
+                              <Download className="h-3.5 w-3.5" />
+                            </a>
+                          </Button>
+                        )}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                          onClick={() => void handleDeleteResume(resume.id)}
+                          disabled={isDeleting}
+                          title="Delete resume"
+                        >
+                          {isDeleting ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-3.5 w-3.5" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Portfolio Links */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Portfolio Links</CardTitle>
+          <CardDescription>
+            Add links to projects, GitHub repos, or portfolio sites. These are
+            included with your profile and applications.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <FieldGroup>
             <Field>
-              <FieldLabel>Resume Library</FieldLabel>
-              <input
-                ref={fileInputRef}
-                type="file"
-                className="hidden"
-                accept={ACCEPTED_RESUME_MIME_TYPES.join(",")}
-                onChange={(event) => {
-                  const file = event.currentTarget.files?.[0] ?? null;
-                  void handleUploadResume(file);
-                  event.currentTarget.value = "";
-                }}
-              />
-              <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="gap-2"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploadingResume}
-                >
-                  {isUploadingResume ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <UploadCloud className="h-4 w-4" />
-                  )}
-                  Upload Resume
-                </Button>
-                <span className="text-xs text-muted-foreground">
-                  PDF, DOC, DOCX up to 10 MB
-                </span>
-              </div>
-            </Field>
-
-            <Controller
-              name="candidateProfile.defaultResumeId"
-              control={form.control}
-              render={({ field }) => (
-                <Field>
-                  <FieldLabel>Default Resume</FieldLabel>
-                  {resumeLibrary.length ? (
-                    <Select
-                      value={
-                        field.value &&
-                        resumeLibrary.some((resume) => resume.id === field.value)
-                          ? field.value
-                          : "none"
-                      }
-                      onValueChange={(value) =>
-                        field.onChange(value === "none" ? "" : value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose a resume" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">No default selected</SelectItem>
-                        {resumeLibrary.map((resume) => (
-                          <SelectItem key={resume.id} value={resume.id}>
-                            {resume.fileName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-                      No resumes saved yet. Upload one to set as default.
-                    </div>
-                  )}
-
-                  <FieldDescription>
-                    This resume is pre-selected whenever you apply for a job.
-                  </FieldDescription>
-                </Field>
-              )}
-            />
-
-            {selectedResume ? (
-              <div className="rounded-lg border bg-muted/20 p-3 text-sm">
-                <p className="font-medium">{selectedResume.fileName}</p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {selectedResume.previewUrl ? (
-                    <Button asChild size="sm" variant="outline">
-                      <a
-                        href={selectedResume.previewUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Preview
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </a>
-                    </Button>
-                  ) : null}
-                  {selectedResume.downloadUrl ? (
-                    <Button asChild size="sm" variant="outline">
-                      <a
-                        href={selectedResume.downloadUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Open File
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </a>
-                    </Button>
-                  ) : null}
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    className="text-rose-600 hover:text-rose-700"
-                    onClick={() => void handleDeleteResume(selectedResume.id)}
-                    disabled={deletingResumeId === selectedResume.id}
-                  >
-                    {deletingResumeId === selectedResume.id ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-3.5 w-3.5" />
-                    )}
-                    Delete
-                  </Button>
-                </div>
-              </div>
-            ) : null}
-
-            <Field>
-              <FieldLabel htmlFor="portfolioLinks">Portfolio Links</FieldLabel>
               <ResumeSkillsInput
                 value={portfolioLinks}
                 onChange={(next) =>
@@ -316,30 +442,33 @@ export function ResumeInformationForm({
                 placeholder="https://github.com/username/project"
                 addButtonLabel="Add Link"
               />
-              <FieldDescription>
-                These links are included with your profile and applications.
-              </FieldDescription>
             </Field>
           </FieldGroup>
         </CardContent>
       </Card>
 
+      {/* Resume Workspace Link */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Resume Workspace</CardTitle>
-          <CardDescription>
-            Manage templates, ATS scans, and resume versions in the dedicated
-            resume module.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button asChild variant="outline">
-            <Link href="/resume">Open Resume Workspace</Link>
+        <CardContent className="flex items-center gap-3 p-4">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+            <FileText className="h-4 w-4" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-medium">Resume Builder & ATS Scanner</p>
+            <p className="text-xs text-muted-foreground">
+              Build ATS-optimized resumes and scan them for improvements.
+            </p>
+          </div>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/resume">Open</Link>
           </Button>
         </CardContent>
       </Card>
 
-      <ProfileSaveButton isSubmitting={isSubmitting} label="Save Resume Settings" />
+      <ProfileSaveButton
+        isSubmitting={isSubmitting}
+        label="Save Resume Settings"
+      />
     </div>
   );
 }
