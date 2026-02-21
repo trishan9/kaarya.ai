@@ -17,6 +17,7 @@ export const API_URLS = {
     PASSWORD_RESET_REQUEST: "/auth/password-reset/request",
     PASSWORD_RESET_VERIFY: "/auth/password-reset/verify",
     PASSWORD_RESET_CONFIRM: "/auth/password-reset/confirm",
+    CHANGE_PASSWORD: "/auth/change-password",
     CERTIFICATION_UPLOAD: "/auth/candidate-profile/certifications/upload",
   },
   ADMIN: {
