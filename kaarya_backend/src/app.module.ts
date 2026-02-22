@@ -19,6 +19,7 @@ import { JobPostingModule } from './modules/job-posting.module';
 import { InterviewModule } from './modules/interview.module';
 import { BookmarkModule } from './modules/bookmark.module';
 import { ResumeBuilderModule } from './modules/resume-builder.module';
+import { JobMatchModule } from './modules/job-match.module';
 
 export const InfrastructureDatabaseModule = MongoDatabaseModule;
 
@@ -48,6 +49,7 @@ export const InfrastructureDatabaseModule = MongoDatabaseModule;
     InterviewModule,
     BookmarkModule,
     ResumeBuilderModule,
+    JobMatchModule,
   ],
   controllers: [AppController],
   providers: [AppService],
