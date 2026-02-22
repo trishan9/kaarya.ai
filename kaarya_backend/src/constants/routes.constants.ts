@@ -84,6 +84,10 @@ export const ROUTES = {
     JOB: 'jobs/:jobId',
     INTERVIEW: 'interviews/:interviewId',
   },
+  JOB_MATCH: {
+    BASE: 'job-match',
+    TRIGGER: 'trigger/:jobId',
+  },
   RESUME_BUILDER: {
     BASE: 'resume-builder',
     BY_ID: ':id',
