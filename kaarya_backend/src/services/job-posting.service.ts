@@ -39,6 +39,7 @@ import { CollegeService } from './college.service';
 import { CompanyService } from './company.service';
 import { EmailService } from './email.service';
 import { GamificationService } from './gamification.service';
+import { JobMatchService } from './job-match.service';
 import { RecruiterProfileService } from './recruiter-profile.service';
 import { StudentService } from './student.service';
 
@@ -57,6 +58,7 @@ export class JobPostingService {
     private readonly recruiterProfileService: RecruiterProfileService,
     private readonly emailService: EmailService,
     private readonly gamificationService: GamificationService,
+    private readonly jobMatchService: JobMatchService,
   ) {}
 
   async createJobPosting(
@@ -103,6 +105,31 @@ export class JobPostingService {
     const collegeMap = await this.buildCollegeMap(
       writableWorkspace.collegeId ? [writableWorkspace.collegeId] : [],
     );
+
+    const companyId = writableWorkspace.companyId;
+    const collegeId = writableWorkspace.collegeId;
+    const companyInfo = companyId ? companyMap.get(companyId) ?? null : null;
+    const collegeInfo =
+      collegeId && collegeMap ? collegeMap.get(collegeId) ?? null : null;
+    const matchCompany = companyInfo ?? collegeInfo;
+
+    this.jobMatchService
+      .processNewJobPosting({
+        jobId: createdJob.id,
+        title: createdJob.title,
+        description: createdJob.description,
+        location: createdJob.location,
+        workMode: createdJob.workMode,
+        employmentType: createdJob.employmentType,
+        salaryRange: createdJob.salaryRange,
+        requirements:
+          (createdJob.requirements as Record<string, unknown>) ?? {},
+        company: matchCompany
+          ? { name: matchCompany.name, logo: matchCompany.logo }
+          : null,
+      })
+      .catch(() => {});
+
     return this.buildJobResponse(createdJob, companyMap, { collegeMap });
   }
 
