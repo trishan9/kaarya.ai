@@ -186,6 +186,12 @@ export const BOOKMARK_MESSAGES = {
   FORBIDDEN: 'Only candidate users can manage saved bookmarks.',
 } as const;
 
+export const JOB_MATCH_MESSAGES = {
+  PROCESSING: 'Job matching in progress.',
+  NO_MATCHES: 'No matching candidates found.',
+  NOTIFICATIONS_SENT: 'Match notifications sent successfully.',
+} as const;
+
 export const RESPONSE_MESSAGES = {
   INTERNAL_SERVER_ERROR: 'Something went wrong.',
   VALIDATION_FAILED: 'Validation failed.',
