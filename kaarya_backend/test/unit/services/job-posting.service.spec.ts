@@ -12,8 +12,11 @@ import { ACCollegeRepository } from 'src/repositories/college.repository';
 import { ACCompanyRepository } from 'src/repositories/company.repository';
 import { ACJobPostingRepository } from 'src/repositories/job-posting.repository';
 import { ACResumeRepository } from 'src/repositories/resume.repository';
+import { ACBookmarkRepository } from 'src/repositories/bookmark.repository';
 import { CollegeService } from 'src/services/college.service';
 import { EmailService } from 'src/services/email.service';
+import { GamificationService } from 'src/services/gamification.service';
+import { JobMatchService } from 'src/services/job-match.service';
 import { StudentService } from 'src/services/student.service';
 import { ApplicationStatus } from 'src/types/application-status.enum';
 import { JobFeedFilter } from 'src/types/job-feed-filter.enum';
@@ -129,8 +132,23 @@ describe('JobPostingService', () => {
       sendApplicationStatusUpdate: jest.fn(),
     } as unknown as jest.Mocked<EmailService>;
 
+    const bookmarkRepository = {
+      findSavedEntityIds: jest.fn().mockResolvedValue(new Set()),
+    } as unknown as jest.Mocked<ACBookmarkRepository>;
+
+    const gamificationService = {
+      awardJobViewed: jest.fn(),
+      awardJobApplicationSubmitted: jest.fn(),
+      awardApplicationStatus: jest.fn(),
+    } as unknown as jest.Mocked<GamificationService>;
+
+    const jobMatchService = {
+      processNewJobPosting: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<JobMatchService>;
+
     service = new JobPostingService(
       jobPostingRepository,
+      bookmarkRepository,
       applicationRepository,
       resumeRepository,
       collegeRepository,
@@ -140,6 +158,8 @@ describe('JobPostingService', () => {
       studentService,
       recruiterProfileService,
       emailService,
+      gamificationService,
+      jobMatchService,
     );
   });
 
