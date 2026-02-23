@@ -39,10 +39,55 @@ export abstract class ACApplicationRepository {
     page: number;
     size: number;
     status?: ApplicationStatus;
+    fromDate?: Date;
+    toDate?: Date;
   }): Promise<{
     applications: ApplicationSchemaDocument[];
     total: number;
   }>;
+  abstract countByStudentWithFilters(input: {
+    studentId: string;
+    statuses?: ApplicationStatus[];
+    fromDate?: Date;
+    toDate?: Date;
+  }): Promise<number>;
+  abstract getStatusCountsByStudentWithFilters(input: {
+    studentId: string;
+    fromDate?: Date;
+    toDate?: Date;
+  }): Promise<{
+    applied: number;
+    reviewing: number;
+    shortlisted: number;
+    interviewScheduled: number;
+    accepted: number;
+    rejected: number;
+    withdrawn: number;
+  }>;
+  abstract getDailyCountsByStudentWithFilters(input: {
+    studentId: string;
+    fromDate: Date;
+    toDate: Date;
+    statuses?: ApplicationStatus[];
+  }): Promise<
+    Array<{
+      date: string;
+      count: number;
+    }>
+  >;
+  abstract getJobCountsByStudentWithFilters(input: {
+    studentId: string;
+    statuses?: ApplicationStatus[];
+    fromDate?: Date;
+    toDate?: Date;
+    limit?: number;
+  }): Promise<
+    Array<{
+      jobId: string;
+      count: number;
+      latestAppliedAt: string;
+    }>
+  >;
   abstract updateById(
     id: string,
     payload: Partial<ApplicationSchemaClass>,
@@ -235,23 +280,24 @@ export class ApplicationRepository implements ACApplicationRepository {
     page: number;
     size: number;
     status?: ApplicationStatus;
+    fromDate?: Date;
+    toDate?: Date;
   }): Promise<{
     applications: ApplicationSchemaDocument[];
     total: number;
   }> {
-    const { studentId, page, size, status } = options;
+    const { studentId, page, size, status, fromDate, toDate } = options;
     if (!studentId) {
       return { applications: [], total: 0 };
     }
 
     const skip = (page - 1) * size;
-    const filter: Record<string, unknown> = {
-      studentId: this.toObjectId(studentId),
-    };
-
-    if (status) {
-      filter.status = status;
-    }
+    const filter = this.buildStudentFilter({
+      studentId,
+      statuses: status ? [status] : undefined,
+      fromDate,
+      toDate,
+    });
 
     const [applications, total] = await Promise.all([
       this.applicationModel
@@ -270,6 +316,150 @@ export class ApplicationRepository implements ACApplicationRepository {
     ]);
 
     return { applications, total };
+  }
+
+  async countByStudentWithFilters(input: {
+    studentId: string;
+    statuses?: ApplicationStatus[];
+    fromDate?: Date;
+    toDate?: Date;
+  }): Promise<number> {
+    if (!input.studentId) return 0;
+    const filter = this.buildStudentFilter(input);
+    return await this.applicationModel.countDocuments(filter).exec();
+  }
+
+  async getStatusCountsByStudentWithFilters(input: {
+    studentId: string;
+    fromDate?: Date;
+    toDate?: Date;
+  }): Promise<{
+    applied: number;
+    reviewing: number;
+    shortlisted: number;
+    interviewScheduled: number;
+    accepted: number;
+    rejected: number;
+    withdrawn: number;
+  }> {
+    if (!input.studentId) {
+      return this.emptyStatusCounts();
+    }
+
+    const filter = this.buildStudentFilter({
+      studentId: input.studentId,
+      fromDate: input.fromDate,
+      toDate: input.toDate,
+    });
+
+    const rows = await this.applicationModel
+      .aggregate<{ _id: ApplicationStatus; count: number }>([
+        { $match: filter },
+        {
+          $group: {
+            _id: '$status',
+            count: { $sum: 1 },
+          },
+        },
+      ])
+      .exec();
+
+    return this.rowsToStatusCounts(rows);
+  }
+
+  async getDailyCountsByStudentWithFilters(input: {
+    studentId: string;
+    fromDate: Date;
+    toDate: Date;
+    statuses?: ApplicationStatus[];
+  }): Promise<
+    Array<{
+      date: string;
+      count: number;
+    }>
+  > {
+    if (!input.studentId) return [];
+
+    const filter = this.buildStudentFilter({
+      studentId: input.studentId,
+      statuses: input.statuses,
+      fromDate: input.fromDate,
+      toDate: input.toDate,
+    });
+
+    return await this.applicationModel
+      .aggregate<{ date: string; count: number }>([
+        { $match: filter },
+        {
+          $group: {
+            _id: {
+              $dateToString: {
+                format: '%Y-%m-%d',
+                date: '$createdAt',
+                timezone: 'UTC',
+              },
+            },
+            count: { $sum: 1 },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            date: '$_id',
+            count: 1,
+          },
+        },
+        { $sort: { date: 1 } },
+      ])
+      .exec();
+  }
+
+  async getJobCountsByStudentWithFilters(input: {
+    studentId: string;
+    statuses?: ApplicationStatus[];
+    fromDate?: Date;
+    toDate?: Date;
+    limit?: number;
+  }): Promise<
+    Array<{
+      jobId: string;
+      count: number;
+      latestAppliedAt: string;
+    }>
+  > {
+    if (!input.studentId) return [];
+
+    const filter = this.buildStudentFilter({
+      studentId: input.studentId,
+      statuses: input.statuses,
+      fromDate: input.fromDate,
+      toDate: input.toDate,
+    });
+    const limit = Math.max(1, Math.min(input.limit ?? 20, 100));
+
+    const rows = await this.applicationModel
+      .aggregate<{ _id: Types.ObjectId; count: number; latestAppliedAt: Date }>([
+        { $match: filter },
+        {
+          $group: {
+            _id: '$jobId',
+            count: { $sum: 1 },
+            latestAppliedAt: { $max: '$createdAt' },
+          },
+        },
+        { $sort: { latestAppliedAt: -1, count: -1, _id: 1 } },
+        { $limit: limit },
+      ])
+      .exec();
+
+    return rows.map((row) => ({
+      jobId: row._id.toString(),
+      count: row.count ?? 0,
+      latestAppliedAt:
+        row.latestAppliedAt instanceof Date
+          ? row.latestAppliedAt.toISOString()
+          : new Date().toISOString(),
+    }));
   }
 
   async updateById(
@@ -402,15 +592,7 @@ export class ApplicationRepository implements ACApplicationRepository {
     withdrawn: number;
   }> {
     if (!studentIds.length) {
-      return {
-        applied: 0,
-        reviewing: 0,
-        shortlisted: 0,
-        interviewScheduled: 0,
-        accepted: 0,
-        rejected: 0,
-        withdrawn: 0,
-      };
+      return this.emptyStatusCounts();
     }
 
     const result = await this.applicationModel
@@ -431,18 +613,7 @@ export class ApplicationRepository implements ACApplicationRepository {
       ])
       .exec();
 
-    const statusMap = new Map(result.map((row) => [row._id, row.count]));
-
-    return {
-      applied: statusMap.get(ApplicationStatus.APPLIED) ?? 0,
-      reviewing: statusMap.get(ApplicationStatus.REVIEWING) ?? 0,
-      shortlisted: statusMap.get(ApplicationStatus.SHORTLISTED) ?? 0,
-      interviewScheduled:
-        statusMap.get(ApplicationStatus.INTERVIEW_SCHEDULED) ?? 0,
-      accepted: statusMap.get(ApplicationStatus.ACCEPTED) ?? 0,
-      rejected: statusMap.get(ApplicationStatus.REJECTED) ?? 0,
-      withdrawn: statusMap.get(ApplicationStatus.WITHDRAWN) ?? 0,
-    };
+    return this.rowsToStatusCounts(result);
   }
 
   async getLeaderboardStatsByStudentIds(studentIds: string[]): Promise<
@@ -648,6 +819,70 @@ export class ApplicationRepository implements ACApplicationRepository {
       })),
       total,
     };
+  }
+
+  private emptyStatusCounts() {
+    return {
+      applied: 0,
+      reviewing: 0,
+      shortlisted: 0,
+      interviewScheduled: 0,
+      accepted: 0,
+      rejected: 0,
+      withdrawn: 0,
+    };
+  }
+
+  private rowsToStatusCounts(
+    rows: Array<{ _id: string; count: number }>,
+  ): {
+    applied: number;
+    reviewing: number;
+    shortlisted: number;
+    interviewScheduled: number;
+    accepted: number;
+    rejected: number;
+    withdrawn: number;
+  } {
+    const statusMap = new Map(rows.map((row) => [row._id, row.count]));
+    return {
+      applied: statusMap.get(ApplicationStatus.APPLIED) ?? 0,
+      reviewing: statusMap.get(ApplicationStatus.REVIEWING) ?? 0,
+      shortlisted: statusMap.get(ApplicationStatus.SHORTLISTED) ?? 0,
+      interviewScheduled:
+        statusMap.get(ApplicationStatus.INTERVIEW_SCHEDULED) ?? 0,
+      accepted: statusMap.get(ApplicationStatus.ACCEPTED) ?? 0,
+      rejected: statusMap.get(ApplicationStatus.REJECTED) ?? 0,
+      withdrawn: statusMap.get(ApplicationStatus.WITHDRAWN) ?? 0,
+    };
+  }
+
+  private buildStudentFilter(input: {
+    studentId: string;
+    statuses?: ApplicationStatus[];
+    fromDate?: Date;
+    toDate?: Date;
+  }) {
+    const filter: Record<string, unknown> = {
+      studentId: this.toObjectId(input.studentId),
+    };
+
+    if (input.statuses?.length) {
+      filter.status = { $in: input.statuses };
+    }
+
+    if (input.fromDate || input.toDate) {
+      const createdAt: Record<string, Date> = {};
+      if (input.fromDate) {
+        createdAt.$gte = input.fromDate;
+      }
+      if (input.toDate) {
+        createdAt.$lt = input.toDate;
+      }
+      filter.createdAt = createdAt;
+    }
+
+    return filter;
   }
 
   private toObjectId(value: string) {
