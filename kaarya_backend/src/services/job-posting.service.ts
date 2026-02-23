@@ -327,6 +327,8 @@ export class JobPostingService {
         page: query.page,
         size: query.size,
         status: query.status,
+        fromDate: query.fromDate,
+        toDate: query.toDate,
       });
 
     const jobIds = applications
