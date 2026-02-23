@@ -58,6 +58,7 @@ export const API_URLS = {
   },
   APPLICATION: {
     MY_APPLICATIONS: "/applications/me",
+    MY_APPLICATIONS_SUMMARY: "/applications/me/summary",
     MY_APPLICATION_BY_JOB: (jobId: string) => `/applications/job/${jobId}/me`,
     RESUMES_ME: "/applications/resumes/me",
     RESUME_BY_ID: (resumeId: string) => `/applications/resumes/${resumeId}`,
