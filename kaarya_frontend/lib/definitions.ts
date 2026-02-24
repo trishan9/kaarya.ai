@@ -467,3 +467,88 @@ export type TInterview = {
   myLatestScore?: number | null;
   isSaved?: boolean;
 };
+
+export type TResourceCourseDifficulty =
+  | "beginner"
+  | "intermediate"
+  | "advanced";
+
+export type TResourceCourseVisibility = "private" | "public";
+export type TResourceCourseSource = "candidate" | "company" | "college";
+export type TResourceCourseGenerationMode = "learn" | "interview_prep";
+
+export type TResourceCourseSection = {
+  heading: string;
+  subheadings: string[];
+  summary: string | null;
+  content: string[];
+};
+
+export type TResourceCourseVideo = {
+  title: string;
+  youtubeUrl: string;
+  reason: string | null;
+};
+
+export type TResourceCourseCoreConcept = {
+  concept: string;
+  theory: string | null;
+  explanation: string | null;
+  interviewApplication: string | null;
+};
+
+export type TResourceCourseInterviewQuestion = {
+  question: string;
+  whyAsked: string | null;
+  answerFramework: string | null;
+  sampleAnswer: string | null;
+};
+
+export type TResourceCourseChapter = {
+  title: string;
+  overview: string | null;
+  estimatedMinutes: number;
+  material: string[];
+  sections: TResourceCourseSection[];
+  learningObjectives: string[];
+  coreConcepts: TResourceCourseCoreConcept[];
+  interviewQuestions: TResourceCourseInterviewQuestion[];
+  practicePrompts: string[];
+  youtubeVideos: TResourceCourseVideo[];
+};
+
+export type TResourceCourse = {
+  id: string;
+  title: string;
+  description?: string | null;
+  category: string;
+  generationMode: TResourceCourseGenerationMode;
+  difficulty: TResourceCourseDifficulty;
+  targetRoles: string[];
+  visibility: TResourceCourseVisibility;
+  source: TResourceCourseSource;
+  companyId?: string | null;
+  collegeId?: string | null;
+  company?: TInterviewWorkspace | null;
+  college?: TInterviewWorkspace | null;
+  learningOutcomes: string[];
+  chapters: TResourceCourseChapter[];
+  customVideoUrls: string[];
+  jobDescriptionContext?: string | null;
+  includeVideoRecommendations: boolean;
+  aiGenerated: boolean;
+  aiPrompt?: string | null;
+  aiModel?: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  isOwner?: boolean;
+  canEdit?: boolean;
+  creator?: {
+    id: string;
+    name?: string;
+    email?: string | null;
+    role?: Role;
+    photo?: string | null;
+  } | null;
+};
