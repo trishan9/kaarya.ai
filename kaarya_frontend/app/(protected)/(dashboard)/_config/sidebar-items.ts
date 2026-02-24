@@ -85,6 +85,7 @@ const recruiterGroups: SidebarNavGroup[] = [
     label: "Others",
     items: [
       { label: "Inbox", href: "/inbox", icon: Inbox },
+      { label: "Resources", href: "/resources", icon: FileText },
       { label: "Blogs & Articles", href: "/blogs", icon: Newspaper },
       { label: "Settings", href: "/settings", icon: Settings },
     ],
@@ -112,6 +113,7 @@ const collegeGroups: SidebarNavGroup[] = [
     label: "Others",
     items: [
       { label: "Inbox", href: "/inbox", icon: Inbox },
+      { label: "Resources", href: "/resources", icon: FileText },
       { label: "Blogs & Articles", href: "/blogs", icon: Newspaper },
       { label: "Settings", href: "/settings", icon: Settings },
     ],
