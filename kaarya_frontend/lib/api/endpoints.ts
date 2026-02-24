@@ -99,4 +99,8 @@ export const API_URLS = {
     AI_SUGGESTIONS: "/resume-builder/ai/suggestions",
     ATS_SCAN: "/resume-builder/ats-scan",
   },
+  RESOURCE: {
+    LIST: "/resources",
+    BY_ID: (id: string) => `/resources/${id}`,
+  },
 };
