@@ -192,6 +192,23 @@ export const JOB_MATCH_MESSAGES = {
   NOTIFICATIONS_SENT: 'Match notifications sent successfully.',
 } as const;
 
+export const RESOURCE_MESSAGES = {
+  NOT_FOUND: 'Resource course not found.',
+  INVALID_ID: 'Invalid resource course id.',
+  CREATE_SUCCESS: 'Resource course created successfully.',
+  UPDATE_SUCCESS: 'Resource course updated successfully.',
+  DELETE_SUCCESS: 'Resource course deleted successfully.',
+  FETCH_SUCCESS: 'Resource course fetched successfully.',
+  FETCH_ALL_SUCCESS: 'Resource courses fetched successfully.',
+  FORBIDDEN_ACCESS: 'You are not allowed to access this resource course.',
+  FORBIDDEN_MANAGE: 'You are not allowed to manage this resource course.',
+  FORBIDDEN_CREATE: 'You are not allowed to create this type of resource course.',
+  RECRUITER_WORKSPACE_REQUIRED:
+    'Recruiter must be linked to a company workspace before creating resource courses.',
+  COLLEGE_WORKSPACE_REQUIRED:
+    'College user must be linked to a college workspace before creating resource courses.',
+} as const;
+
 export const RESPONSE_MESSAGES = {
   INTERNAL_SERVER_ERROR: 'Something went wrong.',
   VALIDATION_FAILED: 'Validation failed.',

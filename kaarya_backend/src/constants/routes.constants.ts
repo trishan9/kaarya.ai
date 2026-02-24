@@ -100,4 +100,8 @@ export const ROUTES = {
     AI_SUGGESTIONS: 'ai/suggestions',
     ATS_SCAN: 'ats-scan',
   },
+  RESOURCE: {
+    BASE: 'resources',
+    BY_ID: ':id',
+  },
 } as const;

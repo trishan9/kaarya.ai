@@ -20,6 +20,7 @@ import { InterviewModule } from './modules/interview.module';
 import { BookmarkModule } from './modules/bookmark.module';
 import { ResumeBuilderModule } from './modules/resume-builder.module';
 import { JobMatchModule } from './modules/job-match.module';
+import { ResourceCourseModule } from './modules/resource-course.module';
 
 export const InfrastructureDatabaseModule = MongoDatabaseModule;
 
@@ -50,6 +51,7 @@ export const InfrastructureDatabaseModule = MongoDatabaseModule;
     BookmarkModule,
     ResumeBuilderModule,
     JobMatchModule,
+    ResourceCourseModule,
   ],
   controllers: [AppController],
   providers: [AppService],
