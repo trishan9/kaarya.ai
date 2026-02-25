@@ -103,4 +103,11 @@ export const API_URLS = {
     LIST: "/resources",
     BY_ID: (id: string) => `/resources/${id}`,
   },
+  STREAM: {
+    CHAT_TOKEN: "/stream/chat-token",
+    VIDEO_TOKEN: "/stream/video-token",
+    CONFIG: "/stream/config",
+    ENSURE_CHANNELS: "/stream/ensure-channels",
+    ENSURE_CHANNEL_WITH: "/stream/ensure-channel-with",
+  },
 };
