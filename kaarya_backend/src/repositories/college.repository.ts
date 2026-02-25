@@ -24,6 +24,7 @@ export abstract class ACCollegeRepository {
   abstract findFirstByCreatedBy(
     createdBy: string,
   ): Promise<CollegeSchemaDocument | null>;
+  abstract findByCreatedBy(createdBy: string): Promise<CollegeSchemaDocument[]>;
   abstract updateById(
     id: string,
     payload: Partial<CollegeSchemaClass>,
@@ -78,6 +79,16 @@ export class CollegeRepository implements ACCollegeRepository {
     if (!createdBy) return null;
     return await this.collegeModel
       .findOne({
+        createdBy: this.toObjectId(createdBy),
+      })
+      .sort({ createdAt: -1, _id: -1 })
+      .exec();
+  }
+
+  async findByCreatedBy(createdBy: string): Promise<CollegeSchemaDocument[]> {
+    if (!createdBy) return [];
+    return await this.collegeModel
+      .find({
         createdBy: this.toObjectId(createdBy),
       })
       .sort({ createdAt: -1, _id: -1 })

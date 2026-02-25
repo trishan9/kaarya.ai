@@ -107,6 +107,7 @@ export abstract class ACApplicationRepository {
     applications: ApplicationSchemaDocument[];
     total: number;
   }>;
+  abstract findDistinctStudentIdsByJobIds(jobIds: string[]): Promise<string[]>;
   abstract countByStudentAndResumeId(input: {
     studentId: string;
     resumeId: string;
@@ -565,6 +566,21 @@ export class ApplicationRepository implements ACApplicationRepository {
     ]);
 
     return { applications, total };
+  }
+
+  async findDistinctStudentIdsByJobIds(jobIds: string[]): Promise<string[]> {
+    if (!jobIds?.length) return [];
+    const objectIds = jobIds
+      .filter(Boolean)
+      .map((id) => this.toObjectId(id));
+    const results = await this.applicationModel
+      .aggregate<{ _id: Types.ObjectId }>([
+        { $match: { jobId: { $in: objectIds } } },
+        { $group: { _id: '$studentId' } },
+        { $match: { _id: { $ne: null } } },
+      ])
+      .exec();
+    return results.map((r) => r._id.toString());
   }
 
   async countByStudentAndResumeId(input: {
