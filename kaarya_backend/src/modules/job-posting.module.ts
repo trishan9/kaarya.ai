@@ -68,6 +68,10 @@ import { JobMatchModule } from './job-match.module';
     { provide: ACApplicationRepository, useClass: ApplicationRepository },
     { provide: ACResumeRepository, useClass: ResumeRepository },
   ],
-  exports: [JobPostingService, ACJobPostingRepository],
+  exports: [
+    JobPostingService,
+    ACJobPostingRepository,
+    ACApplicationRepository,
+  ],
 })
 export class JobPostingModule {}
