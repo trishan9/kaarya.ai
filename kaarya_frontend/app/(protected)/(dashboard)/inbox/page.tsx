@@ -1,6 +1,6 @@
 import { DashboardHeader } from "../_components/dashboard-header";
 import { OverviewHeaderActions } from "../overview/_components/overview-header-actions";
-import { InboxWorkspace } from "./_components/inbox-workspace";
+import { InboxContainer } from "./_components/inbox-container";
 import { getInboxPageData } from "./inbox-data";
 
 export default async function InboxPage() {
@@ -12,7 +12,7 @@ export default async function InboxPage() {
         <DashboardHeader title={inboxData.title} actions={<OverviewHeaderActions />} />
 
         <div className="min-h-0 px-3 pb-3 sm:px-4 sm:pb-4">
-          <InboxWorkspace data={inboxData} />
+          <InboxContainer data={inboxData} />
         </div>
       </div>
     </div>
