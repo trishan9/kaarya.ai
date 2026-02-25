@@ -104,4 +104,12 @@ export const ROUTES = {
     BASE: 'resources',
     BY_ID: ':id',
   },
+  STREAM: {
+    BASE: 'stream',
+    CHAT_TOKEN: 'chat-token',
+    VIDEO_TOKEN: 'video-token',
+    CONFIG: 'config',
+    ENSURE_CHANNELS: 'ensure-channels',
+    ENSURE_CHANNEL_WITH: 'ensure-channel-with',
+  },
 } as const;
