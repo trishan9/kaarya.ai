@@ -6,6 +6,7 @@ export const CONFIG_NAMESPACE = {
   EMAIL: 'email',
   REDIS: 'redis',
   GEMINI: 'gemini',
+  STREAM: 'stream',
 } as const;
 
 export const CONFIG_KEYS = {
@@ -77,5 +78,11 @@ export const CONFIG_KEYS = {
     API_KEY: `${CONFIG_NAMESPACE.GEMINI}.apiKey`,
     MODEL: `${CONFIG_NAMESPACE.GEMINI}.model`,
     FALLBACK_MODELS: `${CONFIG_NAMESPACE.GEMINI}.fallbackModels`,
+  },
+  STREAM: {
+    CHAT_API_KEY: `${CONFIG_NAMESPACE.STREAM}.chatApiKey`,
+    CHAT_SECRET: `${CONFIG_NAMESPACE.STREAM}.chatSecret`,
+    VIDEO_API_KEY: `${CONFIG_NAMESPACE.STREAM}.videoApiKey`,
+    VIDEO_SECRET: `${CONFIG_NAMESPACE.STREAM}.videoSecret`,
   },
 } as const;

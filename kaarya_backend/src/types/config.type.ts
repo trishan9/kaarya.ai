@@ -5,6 +5,7 @@ import { DatabaseConfig } from './database-config.type';
 import { EmailConfig } from './email-config.type';
 import { GeminiConfig } from './gemini-config.type';
 import { RedisConfig } from './redis-config.type';
+import { StreamConfig } from './stream-config.type';
 
 export type AllConfigType = {
   app: AppConfig;
@@ -14,4 +15,5 @@ export type AllConfigType = {
   email: EmailConfig;
   redis: RedisConfig;
   gemini: GeminiConfig;
+  stream: StreamConfig;
 };
