@@ -65,6 +65,7 @@ export type JobApplicantStatus =
 
 export type JobApplicantRecord = {
   id: string;
+  applicantUserId?: string | null;
   name: string;
   email: string;
   photo?: string;
@@ -94,7 +95,7 @@ export type JobApplicantRecord = {
 };
 
 type JobDetailOptions = {
-  isRecruiter?: boolean;
+  isWorkspaceManager?: boolean;
   workspaceId?: string | null;
 };
 
@@ -120,7 +121,7 @@ const buildFallbackJobData = (
 ): JobDetailPageData => {
   const title = toTitleCase(jobId.replace(/[-_]/g, " ").replace(/^job /, "").trim());
   const company = "Kaarya Partner Company";
-  const isRecruiter = Boolean(options?.isRecruiter);
+  const isWorkspaceManager = Boolean(options?.isWorkspaceManager);
   return {
     id: jobId,
     title: title || "Job Opportunity",
@@ -154,9 +155,9 @@ const buildFallbackJobData = (
       profileHref: "/jobs",
     },
     similarJobs: [],
-    applyLabel: isRecruiter ? "Manage Job" : "Apply Now",
-    applyHref: isRecruiter ? undefined : `/jobs/${jobId}`,
-    isRecruiterView: isRecruiter,
+    applyLabel: isWorkspaceManager ? "Manage Job" : "Apply Now",
+    applyHref: isWorkspaceManager ? undefined : `/jobs/${jobId}`,
+    isRecruiterView: isWorkspaceManager,
     workspaceId: options?.workspaceId ?? null,
     applicants: [],
     myApplicationId: null,
@@ -296,8 +297,19 @@ const parseApplications = (response: any): JobApplicantRecord[] => {
             }
           : undefined;
 
+      const applicantUserIdRaw =
+        asString(candidate?.id) ??
+        asString((candidate as { _id?: unknown })?._id) ??
+        asString((raw?.student as { id?: unknown })?.id) ??
+        asString((raw?.student as { _id?: unknown })?._id) ??
+        asString(raw?.studentId);
+      const applicantUserId =
+        applicantUserIdRaw && isObjectId(applicantUserIdRaw)
+          ? applicantUserIdRaw
+          : null;
       return {
         id,
+        applicantUserId: applicantUserId ?? undefined,
         name,
         email,
         photo: asString(candidate?.photo) ?? undefined,
@@ -390,22 +402,22 @@ const mapSimilarJobs = (
       salaryRange: job.salaryRange || "Compensation not specified",
       logoText: companyInitials(job.company?.name),
       logoUrl: job.company?.logo ?? undefined,
-      extraTags: options?.isRecruiter
+      extraTags: options?.isWorkspaceManager
         ? [`${job.applicationsCount ?? 0} applicants`, `${job.viewsCount ?? 0} views`]
         : [`${job.applicationsCount ?? 0} applicants`],
-      applyLabel: options?.isRecruiter
+      applyLabel: options?.isWorkspaceManager
         ? "Manage Job"
         : job.hasApplied
           ? "View Application"
           : "Apply",
-      applyHref: options?.isRecruiter
+      applyHref: options?.isWorkspaceManager
         ? `/jobs/${job.id}${options.workspaceId ? `?workspace=${options.workspaceId}` : ""}`
         : job.hasApplied
           ? job.myApplicationId
             ? `/applications?application=${job.myApplicationId}`
             : "/applications"
           : `/jobs/${job.id}`,
-      showBookmark: !options?.isRecruiter,
+      showBookmark: !options?.isWorkspaceManager,
       isBookmarked: Boolean(job.isSaved),
     }));
 
@@ -413,7 +425,7 @@ export async function getJobDetailPageData(
   jobId: string,
   options?: JobDetailOptions,
 ): Promise<JobDetailPageData | null> {
-  const isRecruiter = Boolean(options?.isRecruiter);
+  const isWorkspaceManager = Boolean(options?.isWorkspaceManager);
 
   if (!isObjectId(jobId)) {
     return buildFallbackJobData(jobId, options);
@@ -439,14 +451,16 @@ export async function getJobDetailPageData(
   const similarJobs = Array.isArray(similarResponse?.data?.jobs)
     ? (similarResponse.data.jobs as TJob[])
     : [];
-  const applicationsResponse = isRecruiter
+  const applicationsResponse = isWorkspaceManager
     ? await getJobApplications(job.id, { page: 1, size: 100 })
     : null;
-  const myApplicationResponse = !isRecruiter
+  const myApplicationResponse = !isWorkspaceManager
     ? await getMyApplicationForJob(job.id)
     : null;
   const myApplication =
-    !isRecruiter && myApplicationResponse?.success ? myApplicationResponse.data : null;
+    !isWorkspaceManager && myApplicationResponse?.success
+      ? myApplicationResponse.data
+      : null;
   const myApplicationId =
     asString(myApplication?.id) ??
     asString(job.myApplicationId) ??
@@ -529,7 +543,7 @@ export async function getJobDetailPageData(
         : `/jobs?search=${encodeURIComponent(resolvedCompanyName)}`,
     },
     similarJobs: mapSimilarJobs(similarJobs, job.id, options),
-    applyLabel: isRecruiter
+    applyLabel: isWorkspaceManager
       ? "Manage Job"
       : hasApplied
         ? "View My Application"
@@ -537,14 +551,14 @@ export async function getJobDetailPageData(
         ? "Applications Closed"
         : "Apply Now",
     applyHref:
-      !isRecruiter && hasApplied
+      !isWorkspaceManager && hasApplied
         ? myApplicationId
           ? `/applications?application=${myApplicationId}`
           : "/applications"
         : undefined,
-    isRecruiterView: isRecruiter,
+    isRecruiterView: isWorkspaceManager,
     workspaceId: options?.workspaceId ?? null,
-    applicants: isRecruiter ? parseApplications(applicationsResponse) : [],
+    applicants: isWorkspaceManager ? parseApplications(applicationsResponse) : [],
     myApplicationId,
     isSaved: Boolean(job.isSaved),
   };

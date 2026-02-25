@@ -24,19 +24,21 @@ export default async function JobDetailPage({
 }: JobDetailPageProps) {
   const user = await getCurrentUser();
   const isRecruiter = user?.role === Role.RECRUITER;
+  const isCollege = user?.role === Role.COLLEGE;
+  const isWorkspaceManager = isRecruiter || isCollege;
   const query = await searchParams;
   const workspaceId =
     typeof query?.workspace === "string" ? query.workspace : null;
   const { jobId } = await params;
   const detailData = await getJobDetailPageData(decodeURIComponent(jobId), {
-    isRecruiter,
+    isWorkspaceManager,
     workspaceId,
   });
   if (!detailData) {
     notFound();
   }
 
-  const headerActions = isRecruiter ? (
+  const headerActions = isWorkspaceManager ? (
     <div className="flex items-center gap-2">
       <Button asChild variant="outline" className="h-9 rounded-lg text-xs font-semibold">
         <Link href={workspaceId ? `/jobs?workspace=${workspaceId}` : "/jobs"}>
@@ -56,11 +58,11 @@ export default async function JobDetailPage({
   return (
     <div className="min-h-svh bg-neutral-100 p-2 sm:p-4 lg:pl-0 lg:p-5">
       <div className="rounded-xl bg-white sm:rounded-2xl">
-        {!isRecruiter ? (
+        {!isWorkspaceManager ? (
           <JobViewTracker jobId={detailData.id} enabled viewerId={user?.id} />
         ) : null}
         <JobDetailHeader
-          title={isRecruiter ? "Manage Job" : "Detail Job"}
+          title={isWorkspaceManager ? "Manage Job" : "Detail Job"}
           actions={headerActions}
         />
 

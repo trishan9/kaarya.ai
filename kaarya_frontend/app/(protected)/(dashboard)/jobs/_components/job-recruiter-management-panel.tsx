@@ -9,6 +9,7 @@ import {
   ExternalLink,
   Eye,
   Loader2,
+  MessageCircle,
   UserCheck,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -36,6 +37,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { ensureStreamChannelWith } from "@/lib/actions/inbox-actions";
 import {
   updateApplicationResumeActivity,
   updateJobApplication,
@@ -578,6 +580,38 @@ export function JobRecruiterManagementPanel({
                   </div>
 
                   <div className="flex items-center gap-2">
+                    {selectedApplicant.applicantUserId ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          try {
+                            const res = await ensureStreamChannelWith(
+                              selectedApplicant.applicantUserId!,
+                              jobId,
+                            );
+                            if (res.success) {
+                              router.push(
+                                `/inbox?with=${encodeURIComponent(selectedApplicant.applicantUserId!)}&jobId=${encodeURIComponent(jobId)}`,
+                              );
+                            } else {
+                              toast.error(
+                                res.message ?? "Failed to start chat. Please try again.",
+                              );
+                            }
+                          } catch (err) {
+                            toast.error(
+                              err instanceof Error
+                                ? err.message
+                                : "Something went wrong. Please try again.",
+                            );
+                          }
+                        }}
+                      >
+                        <MessageCircle className="h-3.5 w-3.5" />
+                        Message
+                      </Button>
+                    ) : null}
                     {selectedApplicant.resume?.previewUrl ||
                     selectedApplicant.resume?.fileUrl ? (
                       <Button
