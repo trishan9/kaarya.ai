@@ -1410,7 +1410,11 @@ export class JobPostingService {
           : null),
       candidate: student
         ? {
-            id: student.id ?? applicationData.studentId,
+            id:
+              student.id ??
+              (typeof applicationData.studentId === 'string'
+                ? applicationData.studentId
+                : (applicationData.studentId as { toString?: () => string })?.toString?.()),
             name: student.name ?? null,
             email: student.email ?? null,
             photo: student.photo ?? null,
@@ -1421,6 +1425,12 @@ export class JobPostingService {
                 : null,
           }
         : null,
+      studentId:
+        (student?.id as string) ??
+        (typeof applicationData.studentId === 'string'
+          ? applicationData.studentId
+          : (applicationData.studentId as { toString?: () => string })?.toString?.() ??
+            null),
       resume: resumeData,
       resumeActivity: {
         viewedAt: this.toIsoDateString(applicationData.resumeViewedAt),
