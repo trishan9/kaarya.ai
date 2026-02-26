@@ -10,12 +10,14 @@ import { ProfileRating } from "./profile/_components/profile-rating";
 import { LinkedAccountsSettings } from "./linked-accounts-settings";
 import { PreferencesSettings } from "./preferences-settings";
 import { SecuritySettings } from "./security-settings";
+import { TSettingsResumeOption } from "./profile/_components/resume-information-form";
 
 type SettingsTabsProps = {
   user: TUser;
+  resumeOptions: TSettingsResumeOption[];
 };
 
-export function SettingsTabs({ user }: SettingsTabsProps) {
+export function SettingsTabs({ user, resumeOptions }: SettingsTabsProps) {
   const [activeTab, setActiveTab] = useState("profile");
 
   return (
@@ -48,12 +50,12 @@ export function SettingsTabs({ user }: SettingsTabsProps) {
             <ProfileOverview user={user} />
           </div>
           <div className="space-y-6 lg:col-span-4">
-            <ProfileRating />
+            <ProfileRating user={user} />
           </div>
         </div>
 
         <div className="mt-6">
-          <ProfileForm user={user} />
+          <ProfileForm user={user} resumeOptions={resumeOptions} />
         </div>
       </TabsContent>
 

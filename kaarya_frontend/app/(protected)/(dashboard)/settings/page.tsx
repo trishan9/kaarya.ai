@@ -1,6 +1,8 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { getMyResumes } from "@/lib/actions/job-actions";
 import { getCurrentUser } from "@/lib/dal";
+import { Role } from "@/lib/definitions";
 import { DashboardHeader } from "../_components/dashboard-header";
 import { SettingsTabs } from "./_components/settings-tabs";
 
@@ -9,12 +11,73 @@ export const metadata: Metadata = {
   description: "Manage profile details and connected sign-in methods",
 };
 
+const toTrimmedString = (value: unknown) => {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
+
 export default async function SettingsPage() {
   const user = await getCurrentUser();
 
   if (!user) {
     redirect("/sign-in");
   }
+
+  const isCandidate =
+    user.role === Role.USER || user.role === Role.STUDENT || user.role === Role.FACULTY;
+
+  const resumeResponse = isCandidate
+    ? await getMyResumes({
+        page: 1,
+        size: 100,
+      })
+    : null;
+
+  const rawResumes = Array.isArray(resumeResponse?.data?.resumes)
+    ? resumeResponse.data.resumes
+    : [];
+
+  const resumeOptions = rawResumes
+    .map((resume: Record<string, unknown>) => {
+      const id =
+        toTrimmedString(resume.id) ?? toTrimmedString(resume._id) ?? null;
+      if (!id) return null;
+
+      const fileName = toTrimmedString(resume.fileName) ?? "resume.pdf";
+      const previewUrl =
+        toTrimmedString(resume.previewUrl) ?? toTrimmedString(resume.fileUrl) ?? undefined;
+      const downloadUrl =
+        toTrimmedString(resume.downloadUrl) ?? toTrimmedString(resume.fileUrl) ?? undefined;
+      const uploadedAt = toTrimmedString(resume.createdAt);
+
+      return {
+        id,
+        fileName,
+        previewUrl,
+        downloadUrl,
+        uploadedAt,
+      };
+    })
+    .filter(
+      (
+        item:
+          | {
+              id: string;
+              fileName: string;
+              previewUrl?: string;
+              downloadUrl?: string;
+              uploadedAt: string | null;
+            }
+          | null,
+      ): item is {
+        id: string;
+        fileName: string;
+        previewUrl?: string;
+        downloadUrl?: string;
+        uploadedAt: string | null;
+      } => Boolean(item),
+    );
 
   return (
     <div className="min-h-svh bg-neutral-100 lg:pl-0 lg:p-5">
@@ -40,7 +103,7 @@ export default async function SettingsPage() {
           </CardContent>
         </Card> */}
 
-          <SettingsTabs user={user} />
+          <SettingsTabs user={user} resumeOptions={resumeOptions} />
         </div>
       </div>
     </div>
