@@ -123,7 +123,7 @@ export class ApplicationRepository implements ACApplicationRepository {
       .findById(id)
       .populate({
         path: 'studentId',
-        select: 'name email photo role',
+        select: 'name email photo role candidateProfile',
       })
       .populate({
         path: 'jobId',
@@ -165,7 +165,7 @@ export class ApplicationRepository implements ACApplicationRepository {
       })
       .populate({
         path: 'studentId',
-        select: 'name email photo role',
+        select: 'name email photo role candidateProfile',
       })
       .populate({
         path: 'jobId',
@@ -189,7 +189,7 @@ export class ApplicationRepository implements ACApplicationRepository {
       })
       .populate({
         path: 'studentId',
-        select: 'name email photo role',
+        select: 'name email photo role candidateProfile',
       })
       .populate({
         path: 'resumeId',
@@ -282,7 +282,7 @@ export class ApplicationRepository implements ACApplicationRepository {
       .findByIdAndUpdate(id, payload, { new: true })
       .populate({
         path: 'studentId',
-        select: 'name email photo role',
+        select: 'name email photo role candidateProfile',
       })
       .populate({
         path: 'resumeId',
@@ -365,7 +365,7 @@ export class ApplicationRepository implements ACApplicationRepository {
         .limit(size)
         .populate({
           path: 'studentId',
-          select: 'name email photo role',
+          select: 'name email photo role candidateProfile',
         })
         .populate({
           path: 'resumeId',
@@ -445,9 +445,7 @@ export class ApplicationRepository implements ACApplicationRepository {
     };
   }
 
-  async getLeaderboardStatsByStudentIds(
-    studentIds: string[],
-  ): Promise<
+  async getLeaderboardStatsByStudentIds(studentIds: string[]): Promise<
     Map<
       string,
       {
