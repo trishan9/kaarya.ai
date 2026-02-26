@@ -93,6 +93,32 @@ export async function listRecruiterWorkspaces(params?: {
   }
 }
 
+export async function listCompanies(params?: {
+  page?: number;
+  size?: number;
+  search?: string;
+}) {
+  try {
+    const response = await api.get(API_URLS.COMPANY.LIST, {
+      params: {
+        page: params?.page,
+        size: params?.size,
+        search: toTrimmedOrUndefined(params?.search),
+      },
+    });
+    return response.data;
+  } catch (error: Error | any) {
+    const errorMessage =
+      error?.response?.data?.message ||
+      error.message ||
+      "Failed to load companies";
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+}
+
 export async function listCompanyRecruiters(
   companyId: string,
   params?: {
