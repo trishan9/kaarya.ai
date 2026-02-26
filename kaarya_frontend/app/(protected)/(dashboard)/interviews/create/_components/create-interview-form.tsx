@@ -27,6 +27,8 @@ type CreateInterviewFormProps = {
   role?: Role | null;
   recruiterWorkspaces: WorkspaceOption[];
   collegeWorkspaces: WorkspaceOption[];
+  listHref?: string;
+  detailHrefPrefix?: string;
 };
 
 type VisibilityValue = "public" | "college_only" | "private";
@@ -107,6 +109,8 @@ export function CreateInterviewForm({
   role,
   recruiterWorkspaces,
   collegeWorkspaces,
+  listHref = "/interviews",
+  detailHrefPrefix = "/interviews",
 }: CreateInterviewFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -258,13 +262,13 @@ export function CreateInterviewForm({
       if (!interviewId) {
         setError("Interview created but id is missing.");
         toast.success("Interview created successfully.");
-        router.push("/interviews");
+        router.push(listHref);
         router.refresh();
         return;
       }
 
       toast.success("Interview created successfully.");
-      router.push(`/interviews/${interviewId}`);
+      router.push(`${detailHrefPrefix}/${interviewId}`);
       router.refresh();
     } catch (caughtError) {
       const message = toErrorMessage(
