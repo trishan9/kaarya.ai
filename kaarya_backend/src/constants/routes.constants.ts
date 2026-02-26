@@ -15,6 +15,7 @@ export const ROUTES = {
     OAUTH_CALLBACK: 'oauth/:provider/callback',
     OAUTH_EXCHANGE: 'oauth/exchange',
     OAUTH_LINK_COMPLETE: 'oauth/link/complete',
+    CERTIFICATION_UPLOAD: 'candidate-profile/certifications/upload',
   },
   ADMIN: {
     BASE: 'admin',
@@ -60,8 +61,7 @@ export const ROUTES = {
     RESUMES_ME: 'resumes/me',
     RESUME_BY_ID: 'resumes/:resumeId',
     APPLICATION_BY_JOB: 'jobs/:jobId/:applicationId',
-    APPLICATION_RESUME_ACTIVITY:
-      'jobs/:jobId/:applicationId/resume-activity',
+    APPLICATION_RESUME_ACTIVITY: 'jobs/:jobId/:applicationId/resume-activity',
   },
   LEADERBOARD: {
     BASE: 'leaderboard',
