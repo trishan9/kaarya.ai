@@ -42,10 +42,12 @@ import {
   TJobApplicationsQueryDTO,
   TMyJobApplicationsQueryDTO,
   TMyResumesQueryDTO,
+  TUploadMyResumeDTO,
   TUpdateJobApplicationDTO,
   TUpdateResumeActivityDTO,
   UpdateJobApplicationDTO,
   UpdateResumeActivityDTO,
+  UploadMyResumeDTO,
 } from 'src/dtos/jobs/job-application.dto';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { CloudinaryService } from 'src/services/cloudinary.service';
@@ -102,7 +104,10 @@ export class JobApplicationController {
         parsedQuery.data,
       );
 
-      return buildSuccessResponse(data, JOB_MESSAGES.MY_APPLICATIONS_FETCH_SUCCESS);
+      return buildSuccessResponse(
+        data,
+        JOB_MESSAGES.MY_APPLICATIONS_FETCH_SUCCESS,
+      );
     });
   }
 
@@ -133,7 +138,10 @@ export class JobApplicationController {
         parsedJobId.data,
       );
 
-      return buildSuccessResponse(data, JOB_MESSAGES.MY_APPLICATION_FETCH_SUCCESS);
+      return buildSuccessResponse(
+        data,
+        JOB_MESSAGES.MY_APPLICATION_FETCH_SUCCESS,
+      );
     });
   }
 
@@ -165,6 +173,88 @@ export class JobApplicationController {
       );
 
       return buildSuccessResponse(data, 'Resumes fetched successfully.');
+    });
+  }
+
+  @Roles(UserRole.USER, UserRole.STUDENT)
+  @UseGuards(RolesGuard)
+  @Post(ROUTES.APPLICATION.RESUMES_ME)
+  @UseInterceptors(
+    FileInterceptor('resume', {
+      storage: memoryStorage(),
+      limits: {
+        fileSize: 10 * 1024 * 1024,
+      },
+      fileFilter: (_req, file, cb) => {
+        const extension = extname(file.originalname ?? '').toLowerCase();
+        const mimeTypeAllowed = ALLOWED_RESUME_MIME_TYPES.has(file.mimetype);
+        const extensionAllowed = ALLOWED_RESUME_EXTENSIONS.has(extension);
+
+        if (!mimeTypeAllowed && !extensionAllowed) {
+          cb(
+            new ApiError({
+              statusCode: HttpStatus.BAD_REQUEST,
+              message: 'Only PDF, DOC, or DOCX resumes are allowed.',
+            }),
+            false,
+          );
+          return;
+        }
+
+        cb(null, true);
+      },
+    }),
+  )
+  @ApiOperation({
+    summary: 'Upload resume to my library',
+    description:
+      'Uploads a resume for the current candidate/user so it can be reused in future applications.',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        resume: { type: 'string', format: 'binary' },
+      },
+      required: ['resume'],
+    },
+  })
+  @HttpCode(HttpStatus.OK)
+  async uploadMyResume(
+    @Request() request: { user: TAuthenticatedUser },
+    @UploadedFile() resume?: Express.Multer.File,
+  ) {
+    return asyncHandler(async () => {
+      if (!resume) {
+        throw new ApiError({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Resume file is required.',
+        });
+      }
+
+      const resumeUpload = await this.cloudinaryService.uploadDocument(resume);
+      const parsedData = UploadMyResumeDTO.safeParse({
+        resumeFileName: resume.originalname ?? resumeUpload.originalFilename,
+        resumeUrl: resumeUpload.url,
+        resumePublicId: resumeUpload.publicId,
+        resumeMimeType: resume.mimetype,
+        resumeFileSize: resumeUpload.bytes,
+      });
+
+      if (!parsedData.success) {
+        throw new ApiError({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: z.prettifyError(parsedData.error),
+        });
+      }
+
+      const data = await this.jobApplicationService.uploadMyResume(
+        request.user,
+        parsedData.data as TUploadMyResumeDTO,
+      );
+
+      return buildSuccessResponse(data, 'Resume uploaded successfully.');
     });
   }
 
@@ -236,7 +326,10 @@ export class JobApplicationController {
         parsedQuery.data,
       );
 
-      return buildSuccessResponse(data, JOB_MESSAGES.APPLICATIONS_FETCH_SUCCESS);
+      return buildSuccessResponse(
+        data,
+        JOB_MESSAGES.APPLICATIONS_FETCH_SUCCESS,
+      );
     });
   }
 
@@ -359,7 +452,10 @@ export class JobApplicationController {
         parsedData.data,
       );
 
-      return buildSuccessResponse(data, JOB_MESSAGES.APPLICATION_CREATE_SUCCESS);
+      return buildSuccessResponse(
+        data,
+        JOB_MESSAGES.APPLICATION_CREATE_SUCCESS,
+      );
     });
   }
 
@@ -410,7 +506,10 @@ export class JobApplicationController {
         parsedData.data,
       );
 
-      return buildSuccessResponse(data, JOB_MESSAGES.APPLICATION_UPDATE_SUCCESS);
+      return buildSuccessResponse(
+        data,
+        JOB_MESSAGES.APPLICATION_UPDATE_SUCCESS,
+      );
     });
   }
 
@@ -454,12 +553,13 @@ export class JobApplicationController {
         });
       }
 
-      const data = await this.jobApplicationService.updateApplicationResumeActivity(
-        request.user,
-        parsedJobId.data,
-        parsedApplicationId.data,
-        parsedPayload.data,
-      );
+      const data =
+        await this.jobApplicationService.updateApplicationResumeActivity(
+          request.user,
+          parsedJobId.data,
+          parsedApplicationId.data,
+          parsedPayload.data,
+        );
 
       return buildSuccessResponse(
         data,
