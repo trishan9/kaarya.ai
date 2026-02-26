@@ -18,7 +18,6 @@ import {
 } from "@/lib/workspaces";
 import { LeaderboardGuideCard } from "./_components/leaderboard-guide-card";
 import { LeaderboardRankingsCard } from "./_components/leaderboard-rankings-card";
-import { LeaderboardScopeCard } from "./_components/leaderboard-scope-card";
 import {
   XP_PER_LEVEL,
   normalizePage,
@@ -124,19 +123,14 @@ export default async function LeaderboardPage({
         <DashboardHeader title="Leaderboard" />
 
         <div className="space-y-4 px-3 pb-6 sm:px-4 sm:pb-8">
-          <LeaderboardScopeCard
+          <LeaderboardRankingsCard
             activeScope={activeScope}
             isCandidateRole={isCandidateRole}
             isRecruiterRole={isRecruiterRole}
             isCollegeRole={isCollegeRole}
-            rowsCount={rows.length}
             selectedCollegeId={selectedCollegeId}
-            selectedCollegeName={selectedWorkspace?.college?.name}
-            leaderboardWorkspaceName={leaderboardData?.workspace?.name}
+            rowsCount={rows.length}
             buildScopeHref={buildScopeHref}
-          />
-
-          <LeaderboardRankingsCard
             topThree={topThree}
             spotlightRows={spotlightRows}
             rankingRows={rankingRows}

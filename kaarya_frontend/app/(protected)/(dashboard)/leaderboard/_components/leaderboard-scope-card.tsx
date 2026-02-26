@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ChevronDown, Trophy } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -76,16 +75,18 @@ export const LeaderboardScopeCard = ({
             </DropdownMenu>
           ) : null}
           {isRecruiterRole ? (
-            <Badge variant="secondary">Global leaderboard</Badge>
+            <p className="text-xs text-muted-foreground">Global leaderboard</p>
           ) : null}
-          {isCollegeRole ? <Badge variant="secondary">College leaderboard</Badge> : null}
+          {isCollegeRole ? (
+            <p className="text-xs text-muted-foreground">College leaderboard</p>
+          ) : null}
         </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700">
         <Trophy className="h-4 w-4 text-slate-700" />
         <span>{boardName}</span>
-        <Badge variant="secondary">{rowsCount} shown</Badge>
+        <span className="text-muted-foreground">- {rowsCount} shown</span>
       </div>
     </Card>
   );
