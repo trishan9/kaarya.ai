@@ -17,6 +17,8 @@ interface ProfileOverviewProps {
 }
 
 export function ProfileOverview({ user }: ProfileOverviewProps) {
+  const candidateProfile = user.candidateProfile ?? {};
+  const topSkills = (candidateProfile.skills ?? []).slice(0, 4);
   const providerLabelMap: Record<string, string> = {
     email: "Email",
     google: "Google",
@@ -61,6 +63,11 @@ export function ProfileOverview({ user }: ProfileOverviewProps) {
           <div className="flex-1 space-y-3">
             <div>
               <h3 className="text-xl font-semibold mb-1">{user.name}</h3>
+              {candidateProfile.headline ? (
+                <p className="text-sm text-muted-foreground mb-2">
+                  {candidateProfile.headline}
+                </p>
+              ) : null}
 
               <div className="flex items-center gap-2 flex-wrap">
                 <Badge variant="secondary" className="text-xs">
@@ -81,11 +88,28 @@ export function ProfileOverview({ user }: ProfileOverviewProps) {
                 <span>{user.email}</span>
               </div>
 
+              {candidateProfile.location ? (
+                <div className="flex items-center gap-2">
+                  <UserIcon className="w-4 h-4" />
+                  <span>{candidateProfile.location}</span>
+                </div>
+              ) : null}
+
               <div className="flex items-center gap-2">
                 <UserIcon className="w-4 h-4" />
                 <span>@{user.name?.toLowerCase().replace(/\s+/g, "")}</span>
               </div>
             </div>
+
+            {topSkills.length ? (
+              <div className="flex flex-wrap gap-2 pt-1">
+                {topSkills.map((skill) => (
+                  <Badge key={skill} variant="outline" className="text-xs">
+                    {skill}
+                  </Badge>
+                ))}
+              </div>
+            ) : null}
           </div>
         </div>
       </CardContent>
