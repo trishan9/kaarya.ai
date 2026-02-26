@@ -65,7 +65,19 @@ export default async function JobDetailPage({
         />
 
         <div className="space-y-4 px-3 pb-6 sm:px-4 sm:pb-8">
-          <JobDetailView data={detailData} />
+          <JobDetailView
+            data={detailData}
+            defaultResumeId={user?.candidateProfile?.defaultResumeId ?? null}
+            defaultPortfolioLinks={
+              Array.isArray(user?.candidateProfile?.portfolioLinks)
+                ? user.candidateProfile.portfolioLinks
+                    .map((link) =>
+                      typeof link === "string" ? link.trim() : "",
+                    )
+                    .filter(Boolean)
+                : []
+            }
+          />
         </div>
       </div>
     </div>

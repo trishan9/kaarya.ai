@@ -73,6 +73,8 @@ type ResumeLibraryItem = {
 
 export type JobApplicationSheetProps = {
   job: JobSheetSummary;
+  defaultResumeId?: string | null;
+  defaultPortfolioLinks?: string[];
   triggerLabel: string;
   sheetTitle: string;
   uploadLabel: string;
@@ -141,6 +143,8 @@ const formatResumeDate = (value?: string) => {
 
 export function JobApplicationSheet({
   job,
+  defaultResumeId,
+  defaultPortfolioLinks,
   triggerLabel,
   sheetTitle,
   uploadLabel,
@@ -158,14 +162,20 @@ export function JobApplicationSheet({
 }: JobApplicationSheetProps) {
   const [open, setOpen] = React.useState(false);
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
-  const [selectedResumeId, setSelectedResumeId] = React.useState<string>("");
+  const [selectedResumeId, setSelectedResumeId] = React.useState<string>(
+    defaultResumeId ?? "",
+  );
   const [resumeSelectOpen, setResumeSelectOpen] = React.useState(false);
   const [resumeLibrary, setResumeLibrary] = React.useState<ResumeLibraryItem[]>([]);
   const [isLoadingResumes, setIsLoadingResumes] = React.useState(false);
   const [deletingResumeId, setDeletingResumeId] = React.useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = React.useState<ResumeLibraryItem | null>(null);
   const [coverLetter, setCoverLetter] = React.useState("");
-  const [portfolioLinks, setPortfolioLinks] = React.useState<string[]>([""]);
+  const [portfolioLinks, setPortfolioLinks] = React.useState<string[]>(
+    defaultPortfolioLinks && defaultPortfolioLinks.length > 0
+      ? defaultPortfolioLinks
+      : [""],
+  );
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [successOpen, setSuccessOpen] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -207,13 +217,26 @@ export function JobApplicationSheet({
         })
         .filter(Boolean) as ResumeLibraryItem[];
       setResumeLibrary(mapped);
+      if (defaultResumeId && mapped.some((item) => item.id === defaultResumeId)) {
+        setSelectedResumeId((current) => current || defaultResumeId);
+      }
     } finally {
       setIsLoadingResumes(false);
     }
-  }, []);
+  }, [defaultResumeId]);
 
   React.useEffect(() => {
     if (!open) return;
+
+    setSelectedFile(null);
+    setSelectedResumeId(defaultResumeId ?? "");
+    setPortfolioLinks(
+      defaultPortfolioLinks && defaultPortfolioLinks.length > 0
+        ? defaultPortfolioLinks
+        : [""],
+    );
+    setCoverLetter("");
+    setErrorMessage(null);
 
     let isMounted = true;
     void (async () => {
@@ -224,7 +247,7 @@ export function JobApplicationSheet({
     return () => {
       isMounted = false;
     };
-  }, [loadResumes, open]);
+  }, [defaultPortfolioLinks, defaultResumeId, loadResumes, open]);
 
   const handleDeleteResume = React.useCallback(async () => {
     if (!deleteTarget) return;

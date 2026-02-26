@@ -7,6 +7,7 @@ import {
 import { getCompanyById } from "@/lib/actions/company-actions";
 import { getCollegeById } from "@/lib/actions/college-actions";
 import type { TJob } from "@/lib/definitions";
+import type { TCandidateProfile } from "@/lib/definitions";
 import type { JobCardProps } from "../_components/job-card";
 import { formatRelativeTime } from "@/lib/date/relative-time";
 
@@ -67,6 +68,7 @@ export type JobApplicantRecord = {
   name: string;
   email: string;
   photo?: string;
+  candidateProfile?: TCandidateProfile | null;
   status: JobApplicantStatus;
   appliedAtLabel: string;
   interviewScheduledAt?: string;
@@ -195,6 +197,11 @@ const asStringArray = (value: unknown) =>
         .filter(Boolean)
     : [];
 
+const asCandidateProfile = (value: unknown): TCandidateProfile | null => {
+  if (!value || typeof value !== "object") return null;
+  return value as TCandidateProfile;
+};
+
 const normalizeStatus = (value: unknown): JobApplicantStatus => {
   const normalized = asString(value)?.toLowerCase();
   if (normalized === "under_review") return "reviewing";
@@ -294,6 +301,9 @@ const parseApplications = (response: any): JobApplicantRecord[] => {
         name,
         email,
         photo: asString(candidate?.photo) ?? undefined,
+        candidateProfile:
+          asCandidateProfile(candidate?.candidateProfile) ??
+          asCandidateProfile(raw?.candidateProfile),
         status: normalizeStatus(raw?.status),
         appliedAtLabel: toDateLabel(raw?.createdAt ?? raw?.appliedAt),
         interviewScheduledAt: interviewScheduledAt ?? undefined,
