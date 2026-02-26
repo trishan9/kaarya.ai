@@ -17,6 +17,74 @@ export type TLinkedAccount = {
   lastLoginAt?: string | null;
 };
 
+export type TCandidateWorkMode = "remote" | "onsite" | "hybrid";
+export type TCandidateSalaryPeriod = "yearly" | "monthly" | "hourly";
+
+export type TCandidateSalaryExpectation = {
+  currency?: string | null;
+  minAmount?: number | null;
+  maxAmount?: number | null;
+  period?: TCandidateSalaryPeriod | null;
+  isNegotiable?: boolean;
+};
+
+export type TCandidateExperienceItem = {
+  id: string;
+  jobTitle: string;
+  companyName: string;
+  location?: string | null;
+  employmentType?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  currentlyWorking?: boolean;
+  description?: string | null;
+};
+
+export type TCandidateEducationItem = {
+  id: string;
+  institution: string;
+  degree: string;
+  fieldOfStudy?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  grade?: string | null;
+  description?: string | null;
+};
+
+export type TCandidateCertificationItem = {
+  id: string;
+  name: string;
+  issuer: string;
+  issueDate?: string | null;
+  expiryDate?: string | null;
+  credentialId?: string | null;
+  credentialUrl?: string | null;
+  mediaUrl?: string | null;
+  mediaMimeType?: string | null;
+  noExpiry?: boolean;
+};
+
+export type TCandidateProfile = {
+  headline?: string | null;
+  phone?: string | null;
+  location?: string | null;
+  summary?: string | null;
+  portfolioUrl?: string | null;
+  linkedinUrl?: string | null;
+  githubUrl?: string | null;
+  preferredRoles?: string[];
+  preferredLocations?: string[];
+  preferredWorkModes?: TCandidateWorkMode[];
+  skills?: string[];
+  education?: TCandidateEducationItem[];
+  experience?: TCandidateExperienceItem[];
+  certifications?: TCandidateCertificationItem[];
+  salary?: TCandidateSalaryExpectation;
+  defaultResumeId?: string | null;
+  portfolioLinks?: string[];
+  openToWork?: boolean;
+};
+
 export type TUser = {
   id: string;
   name: string;
@@ -27,6 +95,7 @@ export type TUser = {
   linkedProviders?: AuthProvider[];
   photo?: string | null;
   socialId?: string | null;
+  candidateProfile?: TCandidateProfile | null;
   createdAt?: string;
   updatedAt?: string;
 };

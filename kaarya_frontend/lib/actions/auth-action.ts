@@ -417,6 +417,28 @@ export async function updateProfile(formData: FormData) {
   }
 }
 
+export async function uploadCertificationMedia(file: File) {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await api.post(
+      API_URLS.AUTH.CERTIFICATION_UPLOAD,
+      formData,
+      MULTIPART_FORM_DATA_CONFIG,
+    );
+    return response.data;
+  } catch (error: Error | any) {
+    const errorMessage =
+      error?.response?.data?.message ||
+      error.message ||
+      "Failed to upload certification media";
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+}
+
 export async function requestPasswordReset(data: TRequestPasswordResetSchema) {
   try {
     const response = await api.post(
