@@ -1,5 +1,6 @@
 import z from 'zod';
 import { AuthProvider } from './auth-provider.enum';
+import { CandidateProfileZodSchema } from './candidate-profile.type';
 
 export const UserZodSchema = z.object({
   name: z
@@ -21,6 +22,7 @@ export const UserZodSchema = z.object({
   provider: z.nativeEnum(AuthProvider).optional(),
   socialId: z.string().nullable().optional(),
   photo: z.string().nullable().optional(),
+  candidateProfile: CandidateProfileZodSchema.optional(),
 });
 
 export type TUser = z.infer<typeof UserZodSchema>;
