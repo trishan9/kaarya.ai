@@ -43,6 +43,7 @@ import {
   type ResumeBuilderDetail,
   type ResumeBuilderTemplateId,
 } from "@/lib/actions/resume-builder-actions";
+import type { TCandidateProfile } from "@/lib/definitions";
 import { cn } from "@/lib/utils";
 import { ResumeDateInput, ResumeSkillsInput } from "./resume-form-fields";
 
@@ -70,6 +71,11 @@ type Props = {
   resumeId: string;
   onClose: () => void;
   onSaved: () => void;
+  profileSeed?: {
+    name: string;
+    email?: string | null;
+    candidateProfile?: TCandidateProfile | null;
+  };
 };
 
 const makeId = (prefix: string) => `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -96,7 +102,90 @@ function mergeUniqueSkills(existing: string[], next: string[]): string[] {
   return Array.from(map.values());
 }
 
-export function ResumeEditorFlow({ resumeId, onClose, onSaved }: Props) {
+const splitName = (fullName: string) => {
+  const tokens = fullName
+    .split(" ")
+    .map((token) => token.trim())
+    .filter(Boolean);
+  if (tokens.length === 0) {
+    return { firstName: "", lastName: "" };
+  }
+  return {
+    firstName: tokens[0],
+    lastName: tokens.slice(1).join(" "),
+  };
+};
+
+const mapProfileToResumeContent = (
+  profileSeed?: Props["profileSeed"],
+): ResumeBuilderContent | null => {
+  if (!profileSeed) return null;
+  const candidateProfile = profileSeed.candidateProfile ?? null;
+  const hasSeedContent =
+    Boolean(profileSeed.name?.trim()) ||
+    Boolean(profileSeed.email?.trim()) ||
+    Boolean(candidateProfile);
+  if (!hasSeedContent) return null;
+
+  const { firstName, lastName } = splitName(profileSeed.name ?? "");
+
+  return {
+    personalInfo: {
+      firstName: firstName || null,
+      lastName: lastName || null,
+      jobTitle: candidateProfile?.headline ?? null,
+      email: profileSeed.email ?? null,
+      phone: candidateProfile?.phone ?? null,
+      city: candidateProfile?.location ?? null,
+      country: null,
+      linkedin: candidateProfile?.linkedinUrl ?? null,
+      github: candidateProfile?.githubUrl ?? null,
+      portfolio: candidateProfile?.portfolioUrl ?? null,
+    },
+    targetRole:
+      candidateProfile?.preferredRoles?.[0] ??
+      candidateProfile?.headline ??
+      null,
+    professionalSummary: candidateProfile?.summary ?? null,
+    experience: (candidateProfile?.experience ?? []).map((item) => ({
+      id: item.id,
+      company: item.companyName ?? null,
+      position: item.jobTitle ?? null,
+      startDate: item.startDate ?? null,
+      endDate: item.endDate ?? null,
+      currentlyWorking: Boolean(item.currentlyWorking),
+      bulletPoints: item.description
+        ? item.description
+            .split(/\n+/)
+            .map((line) => line.trim())
+            .filter(Boolean)
+        : [],
+    })),
+    education: (candidateProfile?.education ?? []).map((item) => ({
+      id: item.id,
+      school: item.institution ?? null,
+      degree: item.degree ?? null,
+      major: item.fieldOfStudy ?? null,
+      startDate: item.startDate ?? null,
+      endDate: item.endDate ?? null,
+      coursework: item.description ?? null,
+    })),
+    skills: (candidateProfile?.skills ?? []).filter(Boolean),
+    projects: (candidateProfile?.portfolioLinks ?? []).map((link, index) => ({
+      id: `portfolio-${index + 1}`,
+      name: `Portfolio ${index + 1}`,
+      description: null,
+      url: link,
+      technologies: null,
+    })),
+    achievements: (candidateProfile?.certifications ?? []).map((item) => ({
+      id: item.id,
+      text: `${item.name} - ${item.issuer}`,
+    })),
+  };
+};
+
+export function ResumeEditorFlow({ resumeId, onClose, onSaved, profileSeed }: Props) {
   const [detail, setDetail] = useState<ResumeBuilderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -107,6 +196,7 @@ export function ResumeEditorFlow({ resumeId, onClose, onSaved }: Props) {
   const [bulletLoadingId, setBulletLoadingId] = useState<string | null>(null);
   const [bulkBulletLoading, setBulkBulletLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState<AiFocus | null>(null);
+  const [isImportingProfile, setIsImportingProfile] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [experienceContext, setExperienceContext] = useState<Record<string, string>>({});
 
@@ -348,6 +438,45 @@ export function ResumeEditorFlow({ resumeId, onClose, onSaved }: Props) {
     }
   }
 
+  async function handleImportFromProfile() {
+    setIsImportingProfile(true);
+    try {
+      const mapped = mapProfileToResumeContent(profileSeed);
+      if (!mapped) {
+        toast.error("Profile data is not available to import.");
+        return;
+      }
+
+      setPdfUrl(null);
+      setContent((prev) => ({
+        ...prev,
+        ...mapped,
+        skills: mapped.skills ?? prev.skills ?? [],
+      }));
+
+      const profileTargetRole = mapped.targetRole ?? "";
+      if (profileTargetRole) {
+        setupForm.setValue("targetRole", profileTargetRole, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      }
+
+      if (profileSeed?.name?.trim()) {
+        const nextTitle = `${profileSeed.name.trim()} Resume`;
+        setDetail((prev) => (prev ? { ...prev, title: nextTitle } : prev));
+        setupForm.setValue("title", nextTitle, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      }
+
+      toast.success("Imported data from profile. You can now edit it.");
+    } finally {
+      setIsImportingProfile(false);
+    }
+  }
+
   async function handleGenerateBullets(index: number) {
     const exp = experiences[index];
     if (!exp) return;
@@ -434,6 +563,21 @@ export function ResumeEditorFlow({ resumeId, onClose, onSaved }: Props) {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => void handleImportFromProfile()}
+            disabled={isImportingProfile}
+          >
+            {isImportingProfile ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="h-3.5 w-3.5" />
+            )}
+            Import from profile
+          </Button>
           <Badge variant="secondary" className="font-normal">
             {completion}% complete
           </Badge>

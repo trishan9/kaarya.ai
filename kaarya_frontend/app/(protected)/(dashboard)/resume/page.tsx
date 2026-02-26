@@ -2,8 +2,11 @@ import { DashboardHeader } from "../_components/dashboard-header";
 import { OverviewHeaderActions } from "../overview/_components/overview-header-actions";
 import { ResumeBuilderHero } from "./_components/resume-builder-hero";
 import { ResumePageTabs } from "./_components/resume-page-tabs";
+import { getCurrentUser } from "@/lib/dal";
 
 export default async function ResumeBuilderPage() {
+  const user = await getCurrentUser();
+
   return (
     <div className="min-h-svh bg-neutral-100 p-2 sm:p-4 lg:pl-0 lg:p-5">
       <div className="rounded-xl bg-white sm:rounded-2xl">
@@ -22,7 +25,13 @@ export default async function ResumeBuilderPage() {
               { id: "preview-3", title: "Design", subtitle: "One-page" },
             ]}
           />
-          <ResumePageTabs />
+          <ResumePageTabs
+            profileSeed={{
+              name: user?.name ?? "",
+              email: user?.email ?? null,
+              candidateProfile: user?.candidateProfile ?? null,
+            }}
+          />
         </div>
       </div>
     </div>
