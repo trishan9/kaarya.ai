@@ -1,4 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
+import { Types } from 'mongoose';
 import { ApiError } from 'src/common/errors/api-error';
 import { buildPaginationMeta } from 'src/common/utils/pagination';
 import { sanitizeDocument } from 'src/common/utils/sanitize-document';
@@ -7,6 +8,7 @@ import {
   TJobApplicationsQueryDTO,
   TMyJobApplicationsQueryDTO,
   TMyResumesQueryDTO,
+  TUploadMyResumeDTO,
   TUpdateJobApplicationDTO,
   TUpdateResumeActivityDTO,
 } from 'src/dtos/jobs/job-application.dto';
@@ -28,7 +30,11 @@ export class JobApplicationService {
     jobId: string,
     query: TJobApplicationsQueryDTO,
   ) {
-    return await this.jobPostingService.getJobApplications(currentUser, jobId, query);
+    return await this.jobPostingService.getJobApplications(
+      currentUser,
+      jobId,
+      query,
+    );
   }
 
   async getMyApplications(
@@ -39,10 +45,16 @@ export class JobApplicationService {
   }
 
   async getMyApplicationForJob(currentUser: TAuthenticatedUser, jobId: string) {
-    return await this.jobPostingService.getMyApplicationForJob(currentUser, jobId);
+    return await this.jobPostingService.getMyApplicationForJob(
+      currentUser,
+      jobId,
+    );
   }
 
-  async listMyResumes(currentUser: TAuthenticatedUser, query: TMyResumesQueryDTO) {
+  async listMyResumes(
+    currentUser: TAuthenticatedUser,
+    query: TMyResumesQueryDTO,
+  ) {
     const { resumes, total } = await this.resumeRepository.findAllByStudentId({
       studentId: currentUser.id,
       page: query.page,
@@ -99,6 +111,30 @@ export class JobApplicationService {
       applicationId,
       payload,
     );
+  }
+
+  async uploadMyResume(
+    currentUser: TAuthenticatedUser,
+    payload: TUploadMyResumeDTO,
+  ) {
+    if (!payload.resumeUrl) {
+      throw new ApiError({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'Resume URL is required.',
+      });
+    }
+
+    const createdResume = await this.resumeRepository.create({
+      studentId: new Types.ObjectId(currentUser.id),
+      type: 'uploaded_resume',
+      fileName: payload.resumeFileName ?? 'resume.pdf',
+      fileUrl: payload.resumeUrl,
+      filePublicId: payload.resumePublicId ?? null,
+      mimeType: payload.resumeMimeType ?? null,
+      fileSize: payload.resumeFileSize ?? null,
+    });
+
+    return this.buildResumeResponse(createdResume);
   }
 
   async deleteMyResume(currentUser: TAuthenticatedUser, resumeId: string) {
