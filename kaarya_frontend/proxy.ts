@@ -35,7 +35,10 @@ export function proxy(request: NextRequest) {
   }
 
   if (token && (path === "/sign-in" || path === "/sign-up")) {
-    return NextResponse.redirect(new URL("/overview", request.url));
+    const payload = decodeJwtPayload(token);
+    const role = typeof payload?.role === "string" ? payload.role : null;
+    const destination = role === "admin" ? "/admin" : "/overview";
+    return NextResponse.redirect(new URL(destination, request.url));
   }
 
   const isAdminRoute = adminRoutes.some(

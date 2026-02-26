@@ -11,14 +11,21 @@ import { JobSimilarJobsSection } from "./job-similar-jobs-section";
 
 export type JobDetailViewProps = {
   data: JobDetailPageData;
+  defaultResumeId?: string | null;
+  defaultPortfolioLinks?: string[];
 };
 
-export function JobDetailView({ data }: JobDetailViewProps) {
+export function JobDetailView({
+  data,
+  defaultResumeId,
+  defaultPortfolioLinks,
+}: JobDetailViewProps) {
   const isRecruiter = data.isRecruiterView;
 
   return (
     <div className="space-y-4">
       <JobDetailHero
+        id={data.id}
         title={data.title}
         company={data.company}
         locationLabel={data.locationLabel}
@@ -30,6 +37,8 @@ export function JobDetailView({ data }: JobDetailViewProps) {
         logoText={data.logoText}
         logoUrl={data.logoUrl}
         logoClassName={data.logoClassName}
+        showBookmark={!isRecruiter}
+        isBookmarked={data.isSaved}
         applyAction={
           isRecruiter ? (
             <Button asChild className="h-10 min-w-[180px] rounded-xl">
@@ -59,6 +68,8 @@ export function JobDetailView({ data }: JobDetailViewProps) {
                 logoUrl: data.logoUrl,
                 logoClassName: data.logoClassName,
               }}
+              defaultResumeId={defaultResumeId}
+              defaultPortfolioLinks={defaultPortfolioLinks}
               triggerLabel={data.applyLabel}
               sheetTitle="Form Application"
               uploadLabel="Upload Resume/Curriculum Vitae"

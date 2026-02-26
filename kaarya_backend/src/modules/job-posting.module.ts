@@ -7,10 +7,18 @@ import {
   ApplicationSchemaClass,
 } from 'src/entities/application.schema';
 import {
+  BookmarkSchema,
+  BookmarkSchemaClass,
+} from 'src/entities/bookmark.schema';
+import {
   JobPostingSchema,
   JobPostingSchemaClass,
 } from 'src/entities/job-posting.schema';
 import { ResumeSchema, ResumeSchemaClass } from 'src/entities/resume.schema';
+import {
+  ACBookmarkRepository,
+  BookmarkRepository,
+} from 'src/repositories/bookmark.repository';
 import {
   ACApplicationRepository,
   ApplicationRepository,
@@ -29,16 +37,19 @@ import { JobPostingService } from 'src/services/job-posting.service';
 import { CollegeModule } from './college.module';
 import { CompanyModule } from './company.module';
 import { EmailModule } from './email.module';
+import { GamificationModule } from './gamification.module';
 
 @Module({
   imports: [
     CompanyModule,
     CollegeModule,
     EmailModule,
+    GamificationModule,
     MongooseModule.forFeature([
       { name: JobPostingSchemaClass.name, schema: JobPostingSchema },
       { name: ApplicationSchemaClass.name, schema: ApplicationSchema },
       { name: ResumeSchemaClass.name, schema: ResumeSchema },
+      { name: BookmarkSchemaClass.name, schema: BookmarkSchema },
     ]),
   ],
   controllers: [JobPostingController, JobApplicationController],
@@ -47,11 +58,14 @@ import { EmailModule } from './email.module';
     JobApplicationService,
     CloudinaryService,
     JobPostingRepository,
+    BookmarkRepository,
     ApplicationRepository,
     ResumeRepository,
     { provide: ACJobPostingRepository, useClass: JobPostingRepository },
+    { provide: ACBookmarkRepository, useClass: BookmarkRepository },
     { provide: ACApplicationRepository, useClass: ApplicationRepository },
     { provide: ACResumeRepository, useClass: ResumeRepository },
   ],
+  exports: [JobPostingService, ACJobPostingRepository],
 })
 export class JobPostingModule {}

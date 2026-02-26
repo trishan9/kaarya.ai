@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { BriefcaseBusiness, Eye, FileClock, Target, Users } from "lucide-react";
 import { DashboardHeader } from "../_components/dashboard-header";
 import { ApplicationsSummaryCard } from "./_components/applications-summary-card";
@@ -98,6 +99,10 @@ export default async function OverviewPage({
 }: OverviewPageProps) {
   const user = await getCurrentUser();
   const params = await searchParams;
+
+  if (user?.role === Role.ADMIN) {
+    redirect("/admin");
+  }
 
   if (user?.role === Role.RECRUITER || user?.role === Role.COLLEGE) {
     const isCollege = user.role === Role.COLLEGE;

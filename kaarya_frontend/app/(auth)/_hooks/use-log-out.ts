@@ -12,12 +12,10 @@ export const useLogOut = () => {
   async function onLogOut() {
     startTransition(async () => {
       try {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
         await logout();
-
-        router.push("/sign-in");
-
         toast.success("Successfully logged out.");
+        router.replace("/sign-in");
+        router.refresh();
       } catch (error: Error | any) {
         const errorMessage =
           error?.response?.data?.message ||

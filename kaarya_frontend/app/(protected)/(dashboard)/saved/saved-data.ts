@@ -1,36 +1,19 @@
+import { getMyBookmarks } from "@/lib/actions/bookmark-actions";
+import { formatRelativeTime } from "@/lib/date/relative-time";
+import type { TInterview, TJob } from "@/lib/definitions";
 import type { JobCardProps } from "../_components/job-card";
 import type { MockInterviewCardProps } from "../interview-hub/_components/mock-interview-card";
 import type { SavedBookmarksBoardProps } from "./_components/saved-bookmarks-board";
 import type { SavedHeroProps } from "./_components/saved-hero";
 
 type SavedJobRecord = {
-  id: string;
-  title: string;
-  company: string;
-  location: string;
-  employmentType: string;
-  engagementType: "Remote" | "Hybrid" | "On-site";
-  salaryRange: string;
-  logoText: string;
-  logoClassName?: string;
-  matchScore: number;
-  hiringPriority: "normal" | "urgent";
   savedAt: string;
+  job: TJob;
 };
 
 type SavedInterviewRecord = {
-  id: string;
-  title: string;
-  company: string;
-  categoryLabel: string;
-  ownership: "taken_by_me" | "created_by_me";
-  createdAt: string;
   savedAt: string;
-  takenCount: number;
-  scoreValue?: number;
-  logoText: string;
-  logoClassName?: string;
-  stackTechnologies: MockInterviewCardProps["stackTechnologies"];
+  interview: TInterview & { viewerId?: string };
 };
 
 type TabDefinition<TRecord> = {
@@ -53,6 +36,14 @@ const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
 });
 
+const INTERVIEW_TYPE_LABELS: Record<string, string> = {
+  technical: "Technical",
+  behavioral: "Behavioral",
+  mixed: "Mixed",
+  system_design: "System Design",
+  custom: "Custom",
+};
+
 function toTimestamp(isoDate: string) {
   return new Date(isoDate).getTime();
 }
@@ -61,238 +52,157 @@ function formatDate(isoDate: string) {
   return DATE_FORMATTER.format(new Date(isoDate));
 }
 
-function formatRelativeDays(isoDate: string) {
-  const diffInMs = Date.now() - toTimestamp(isoDate);
-  const days = Math.max(1, Math.floor(diffInMs / (1000 * 60 * 60 * 24)));
-  return `${days}d ago`;
+function companyInitials(companyName?: string | null) {
+  if (!companyName) return "K";
+  const parts = companyName
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+  return parts || companyName.slice(0, 1).toUpperCase();
+}
+
+function statusLabelByJobStatus(status?: string) {
+  if (status === "closed") return "Closed Hiring";
+  if (status === "draft") return "Draft";
+  return "Open Hiring";
+}
+
+function statusToneByJobStatus(status?: string): JobCardProps["statusTone"] {
+  if (status === "closed") return "warning";
+  if (status === "draft") return "info";
+  return "success";
+}
+
+function toInterviewTypeLabel(type: string) {
+  return INTERVIEW_TYPE_LABELS[type] ?? "Mixed";
+}
+
+function withReturnTo(path: string, returnTo: string) {
+  return `${path}${path.includes("?") ? "&" : "?"}returnTo=${encodeURIComponent(returnTo)}`;
 }
 
 function mapSavedJobToCard(record: SavedJobRecord): JobCardProps {
-  const statusLabel =
-    record.matchScore >= 85
-      ? "Top Match"
-      : record.hiringPriority === "urgent"
-        ? "Urgent Hiring"
-        : "Still Hiring";
-
-  const statusTone =
-    record.matchScore >= 85
-      ? "success"
-      : record.hiringPriority === "urgent"
-        ? "warning"
-        : "info";
+  const job = record.job;
+  const companyName = job.company?.name ?? job.college?.name ?? "Organization";
+  const logoUrl = job.company?.logo ?? job.college?.logo ?? undefined;
+  const hasApplied = Boolean(job.hasApplied);
 
   return {
-    id: record.id,
-    title: record.title,
-    company: record.company,
-    statusLabel,
-    statusTone,
-    postedAt: `Saved ${formatRelativeDays(record.savedAt)}`,
-    location: record.location,
-    employmentType: record.employmentType,
-    engagementType: record.engagementType,
-    salaryRange: record.salaryRange,
-    logoText: record.logoText,
-    logoClassName: record.logoClassName,
-    extraTags: [`${record.matchScore}% match`],
-    applyLabel: "Open Job",
-    applyHref: `/jobs/${record.id}`,
+    id: job.id,
+    title: job.title,
+    company: companyName,
+    statusLabel: statusLabelByJobStatus(job.status),
+    statusTone: statusToneByJobStatus(job.status),
+    postedAt: `Saved ${formatRelativeTime(record.savedAt, {
+      style: "compact",
+      fallback: "just now",
+    })}`,
+    location: job.location || "Remote",
+    employmentType: job.employmentType || "Full-Time",
+    engagementType: job.engagementType || "Internship",
+    salaryRange: job.salaryRange || "Compensation not specified",
+    logoText: companyInitials(companyName),
+    logoUrl,
+    extraTags: [`${job.applicationsCount ?? 0} applicants`],
+    applyLabel: hasApplied ? "View Application" : "Open Job",
+    applyHref: hasApplied
+      ? job.myApplicationId
+        ? `/applications?application=${job.myApplicationId}`
+        : "/applications"
+      : `/jobs/${job.id}`,
+    isBookmarked: true,
+    showBookmark: true,
   };
 }
 
-function mapSavedInterviewToCard(record: SavedInterviewRecord): MockInterviewCardProps {
-  const attempted = record.scoreValue !== undefined;
+function mapSavedInterviewToCard(
+  record: SavedInterviewRecord,
+): MockInterviewCardProps {
+  const interview = record.interview;
+  const attempted = Boolean(interview.myLatestSessionId);
+  const scoreValue =
+    typeof interview.myLatestScore === "number" ? interview.myLatestScore : null;
+  const companyName =
+    interview.company?.name ??
+    interview.college?.name ??
+    (interview.source === "candidate" ? "By Candidate" : "Kaarya");
+  const logoUrl =
+    interview.company?.logo ?? interview.college?.logo ?? "/kaarya.svg";
 
   return {
-    id: record.id,
-    title: record.title,
-    company: record.company,
-    categoryLabel: record.categoryLabel,
-    takenCount: record.takenCount,
-    createdAtLabel: `Created on: ${formatDate(record.createdAt)}`,
-    createdAtTimestamp: toTimestamp(record.createdAt),
-    scoreLabel: attempted ? `Your Score: ${record.scoreValue}/100` : "Your Score: -/100",
-    scoreValue: record.scoreValue ?? null,
+    id: interview.id,
+    title: interview.title,
+    company: companyName,
+    categoryLabel: toInterviewTypeLabel(interview.interviewType),
+    takenCount: interview.attemptsCount ?? 0,
+    createdAtLabel: `Created on: ${formatDate(interview.createdAt)}`,
+    createdAtTimestamp: toTimestamp(interview.createdAt),
+    scoreLabel: attempted
+      ? `Your Score: ${scoreValue ?? "-"}/100`
+      : "Your Score: -/100",
+    scoreValue,
     description: attempted
-      ? `Bookmarked ${formatRelativeDays(record.savedAt)}. Revisit this interview to improve your performance even further.`
-      : `Bookmarked ${formatRelativeDays(record.savedAt)}. You can start this interview anytime from your saved list.`,
+      ? `Saved ${formatRelativeTime(record.savedAt, { style: "compact", fallback: "just now" })}. Review your previous attempt or retake to improve.`
+      : `Saved ${formatRelativeTime(record.savedAt, { style: "compact", fallback: "just now" })}. Start this interview whenever you are ready.`,
     attemptStatus: attempted ? "attempted" : "not_attempted",
-    logoText: record.logoText,
-    logoClassName: record.logoClassName,
-    stackTechnologies: record.stackTechnologies,
+    logoText: companyInitials(companyName),
+    logoUrl,
+    stackTechnologies: [],
     primaryActionLabel: attempted ? "Review Results" : "Take Interview",
-    primaryActionHref: `/interview-hub/${record.id}`,
-    secondaryActionLabel:
-      record.ownership === "created_by_me"
-        ? "Edit"
-        : attempted
-          ? "Re-take"
-          : undefined,
-    secondaryActionHref: `/interview-hub/${record.id}`,
+    primaryActionHref: attempted && interview.myLatestSessionId
+      ? withReturnTo(`/interviews/sessions/${interview.myLatestSessionId}/feedback`, "/saved")
+      : withReturnTo(`/interviews/${interview.id}/take`, "/saved"),
+    secondaryActionLabel: attempted ? "Re-take" : undefined,
+    secondaryActionHref: attempted
+      ? withReturnTo(`/interviews/${interview.id}/take`, "/saved")
+      : undefined,
+    isBookmarked: true,
   };
 }
 
-const savedJobs: SavedJobRecord[] = [
-  {
-    id: "saved-job-frontend-platform-openai",
-    title: "Frontend Platform Engineer",
-    company: "OpenAI",
-    location: "San Francisco, CA",
-    employmentType: "Full-Time",
-    engagementType: "Hybrid",
-    salaryRange: "$170k - $230k",
-    logoText: "O",
-    logoClassName: "bg-black",
-    matchScore: 92,
-    hiringPriority: "normal",
-    savedAt: "2026-02-07T09:30:00.000Z",
-  },
-  {
-    id: "saved-job-fullstack-kaarya",
-    title: "Full-Stack Developer",
-    company: "Kaarya Co. Inc.",
-    location: "Kathmandu, Bagmati",
-    employmentType: "Full-Time",
-    engagementType: "Remote",
-    salaryRange: "NPR 18,00,000 - NPR 24,00,000",
-    logoText: "K",
-    logoClassName: "bg-primary",
-    matchScore: 88,
-    hiringPriority: "urgent",
-    savedAt: "2026-02-05T11:00:00.000Z",
-  },
-  {
-    id: "saved-job-react-google",
-    title: "React Engineer",
-    company: "Google",
-    location: "New York, NY",
-    employmentType: "Full-Time",
-    engagementType: "On-site",
-    salaryRange: "$160k - $220k",
-    logoText: "G",
-    logoClassName: "bg-white text-[#4285f4] border border-[#d7e1f4]",
-    matchScore: 79,
-    hiringPriority: "normal",
-    savedAt: "2026-01-29T10:00:00.000Z",
-  },
-  {
-    id: "saved-job-mobile-stripe",
-    title: "Mobile Engineer",
-    company: "Stripe",
-    location: "Dublin, Ireland",
-    employmentType: "Full-Time",
-    engagementType: "Remote",
-    salaryRange: "EUR 95k - EUR 125k",
-    logoText: "S",
-    logoClassName: "bg-[#635bff]",
-    matchScore: 84,
-    hiringPriority: "urgent",
-    savedAt: "2026-01-24T08:00:00.000Z",
-  },
-];
+function normalizeSavedJobs(response: unknown): SavedJobRecord[] {
+  const rows = Array.isArray((response as { data?: { jobs?: unknown } })?.data?.jobs)
+    ? ((response as { data: { jobs: unknown[] } }).data.jobs as Array<{
+        savedAt?: string;
+        job?: TJob;
+      }>)
+    : [];
 
-const savedInterviews: SavedInterviewRecord[] = [
-  {
-    id: "saved-int-react-architecture",
-    title: "React Architecture Interview",
-    company: "OpenAI",
-    categoryLabel: "Technical",
-    ownership: "taken_by_me",
-    createdAt: "2026-01-20T09:00:00.000Z",
-    savedAt: "2026-02-08T15:00:00.000Z",
-    takenCount: 146,
-    scoreValue: 86,
-    logoText: "O",
-    logoClassName: "bg-black",
-    stackTechnologies: [
-      {
-        id: "react",
-        name: "React",
-        iconUrl:
-          "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg",
-      },
-      {
-        id: "typescript",
-        name: "TypeScript",
-        iconUrl:
-          "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg",
-      },
-    ],
-  },
-  {
-    id: "saved-int-system-design",
-    title: "System Design Round for Scale",
-    company: "By You",
-    categoryLabel: "System Design",
-    ownership: "created_by_me",
-    createdAt: "2026-01-12T14:15:00.000Z",
-    savedAt: "2026-02-06T09:00:00.000Z",
-    takenCount: 59,
-    logoText: "Y",
-    logoClassName: "bg-[#14532d]",
-    stackTechnologies: [
-      {
-        id: "aws",
-        name: "AWS",
-        iconUrl:
-          "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-original-wordmark.svg",
-      },
-      {
-        id: "docker",
-        name: "Docker",
-        iconUrl:
-          "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg",
-      },
-    ],
-  },
-  {
-    id: "saved-int-behavioral-meta",
-    title: "Behavioral Interview Preparation",
-    company: "Meta",
-    categoryLabel: "Behavioral",
-    ownership: "taken_by_me",
-    createdAt: "2026-01-27T12:00:00.000Z",
-    savedAt: "2026-02-03T12:20:00.000Z",
-    takenCount: 73,
-    logoText: "M",
-    logoClassName: "bg-[#0866ff]",
-    stackTechnologies: [
-      {
-        id: "notion",
-        name: "Notion",
-        iconUrl:
-          "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/notion/notion-original.svg",
-      },
-    ],
-  },
-  {
-    id: "saved-int-flutter-mock",
-    title: "Flutter Mobile Fundamentals",
-    company: "Kaarya Co. Inc.",
-    categoryLabel: "Mixed",
-    ownership: "taken_by_me",
-    createdAt: "2026-01-30T10:45:00.000Z",
-    savedAt: "2026-01-30T10:50:00.000Z",
-    takenCount: 91,
-    logoText: "K",
-    logoClassName: "bg-primary",
-    stackTechnologies: [
-      {
-        id: "flutter",
-        name: "Flutter",
-        iconUrl:
-          "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flutter/flutter-original.svg",
-      },
-      {
-        id: "firebase",
-        name: "Firebase",
-        iconUrl:
-          "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg",
-      },
-    ],
-  },
-];
+  return rows
+    .map((row) => {
+      const job = row.job;
+      if (!job?.id || !row.savedAt) return null;
+      return {
+        savedAt: row.savedAt,
+        job,
+      };
+    })
+    .filter((row): row is SavedJobRecord => Boolean(row));
+}
+
+function normalizeSavedInterviews(response: unknown): SavedInterviewRecord[] {
+  const rows = Array.isArray(
+    (response as { data?: { interviews?: unknown } })?.data?.interviews,
+  )
+    ? ((response as { data: { interviews: unknown[] } }).data.interviews as Array<{
+        savedAt?: string;
+        interview?: TInterview & { viewerId?: string };
+      }>)
+    : [];
+
+  return rows
+    .map((row) => {
+      const interview = row.interview;
+      if (!interview?.id || !row.savedAt) return null;
+      return {
+        savedAt: row.savedAt,
+        interview,
+      };
+    })
+    .filter((row): row is SavedInterviewRecord => Boolean(row));
+}
 
 const jobTabDefinitions: TabDefinition<SavedJobRecord>[] = [
   { label: "All Saved", matches: () => true },
@@ -300,25 +210,33 @@ const jobTabDefinitions: TabDefinition<SavedJobRecord>[] = [
     label: "Recently Saved",
     matches: (record) => Date.now() - toTimestamp(record.savedAt) <= 1000 * 60 * 60 * 24 * 14,
   },
-  { label: "High Match", matches: (record) => record.matchScore >= 85 },
-  { label: "Remote", matches: (record) => record.engagementType === "Remote" },
+  { label: "Open Roles", matches: (record) => record.job.status === "open" },
+  {
+    label: "Remote",
+    matches: (record) =>
+      record.job.workMode === "remote" ||
+      record.job.engagementType.toLowerCase().includes("remote"),
+  },
 ];
 
-const interviewTabDefinitions: TabDefinition<SavedInterviewRecord>[] = [
-  { label: "All Saved", matches: () => true },
-  {
-    label: "Taken by Me",
-    matches: (record) => record.ownership === "taken_by_me",
-  },
-  {
-    label: "Created by Me",
-    matches: (record) => record.ownership === "created_by_me",
-  },
-  {
-    label: "Not Attempted",
-    matches: (record) => record.scoreValue === undefined,
-  },
-];
+function buildInterviewTabs(viewerId?: string): TabDefinition<SavedInterviewRecord>[] {
+  return [
+    { label: "All Saved", matches: () => true },
+    {
+      label: "Attempted",
+      matches: (record) => Boolean(record.interview.myLatestSessionId),
+    },
+    {
+      label: "Not Attempted",
+      matches: (record) => !record.interview.myLatestSessionId,
+    },
+    {
+      label: "Created by Me",
+      matches: (record) =>
+        Boolean(viewerId) && record.interview.createdBy === viewerId,
+    },
+  ];
+}
 
 function buildJobsByTab(records: SavedJobRecord[]) {
   return Object.fromEntries(
@@ -332,9 +250,12 @@ function buildJobsByTab(records: SavedJobRecord[]) {
   ) as Record<string, JobCardProps[]>;
 }
 
-function buildInterviewsByTab(records: SavedInterviewRecord[]) {
+function buildInterviewsByTab(
+  records: SavedInterviewRecord[],
+  tabs: TabDefinition<SavedInterviewRecord>[],
+) {
   return Object.fromEntries(
-    interviewTabDefinitions.map((tab) => [
+    tabs.map((tab) => [
       tab.label,
       records
         .filter(tab.matches)
@@ -347,17 +268,26 @@ function buildInterviewsByTab(records: SavedInterviewRecord[]) {
 function buildHeroData(
   jobRecords: SavedJobRecord[],
   interviewRecords: SavedInterviewRecord[],
+  lastSavedAt?: string | null,
 ): SavedHeroProps {
   const totalSaved = jobRecords.length + interviewRecords.length;
-  const latestSavedTimestamp = [...jobRecords, ...interviewRecords]
-    .map((record) => toTimestamp(record.savedAt))
-    .reduce((max, timestamp) => Math.max(max, timestamp), 0);
+  const latestSavedTimestamp = lastSavedAt
+    ? toTimestamp(lastSavedAt)
+    : [...jobRecords, ...interviewRecords]
+        .map((record) => toTimestamp(record.savedAt))
+        .reduce((max, timestamp) => Math.max(max, timestamp), 0);
+  const attemptedInterviews = interviewRecords.filter((record) =>
+    Boolean(record.interview.myLatestSessionId),
+  ).length;
 
   return {
-    title: "All your saved opportunities in one place.",
+    title: "Your saved opportunities, neatly organized.",
     description:
-      "Switch between jobs and interviews, review your bookmarked items, and jump back into opportunities that matter most.",
-    lastUpdatedLabel: `Last saved activity: ${formatDate(new Date(latestSavedTimestamp).toISOString())}`,
+      "Switch between jobs and interviews, filter what matters, and jump back in whenever you are ready.",
+    lastUpdatedLabel:
+      latestSavedTimestamp > 0
+        ? `Last saved activity: ${formatDate(new Date(latestSavedTimestamp).toISOString())}`
+        : "Last saved activity: -",
     stats: [
       { id: "total-saved", label: "Total Saved", value: `${totalSaved}` },
       { id: "saved-jobs", label: "Bookmarked Jobs", value: `${jobRecords.length}` },
@@ -366,7 +296,11 @@ function buildHeroData(
         label: "Saved Interviews",
         value: `${interviewRecords.length}`,
       },
-      { id: "top-match-jobs", label: "Top Match Jobs", value: `${jobRecords.filter((job) => job.matchScore >= 85).length}` },
+      {
+        id: "attempted-interviews",
+        label: "Attempted Saved Interviews",
+        value: `${attemptedInterviews}`,
+      },
     ],
   };
 }
@@ -375,18 +309,18 @@ function buildBoardData(
   jobRecords: SavedJobRecord[],
   interviewRecords: SavedInterviewRecord[],
 ): SavedBoardData {
+  const viewerId = interviewRecords.find((record) => record.interview.viewerId)
+    ?.interview.viewerId;
+  const interviewTabs = buildInterviewTabs(viewerId);
+
   return {
     title: "Saved Bookmarks",
     description:
-      "Select a category to browse your bookmarked jobs or interviews. Search and refine by tabs, sort, and filters.",
+      "Browse your saved jobs and interviews, refine by tabs and filters, and remove items anytime.",
     searchPlaceholder: "Search saved jobs or interviews...",
     typeOptions: [
       { value: "jobs", label: "Jobs", count: jobRecords.length },
-      {
-        value: "interviews",
-        label: "Interviews",
-        count: interviewRecords.length,
-      },
+      { value: "interviews", label: "Interviews", count: interviewRecords.length },
     ],
     defaultType: "jobs",
     jobsSection: {
@@ -402,10 +336,10 @@ function buildBoardData(
       gridClassName: "md:grid-cols-2 xl:grid-cols-3",
     },
     interviewsSection: {
-      title: "Bookmarked Mock Interviews",
-      tabs: interviewTabDefinitions.map((tab) => tab.label),
+      title: "Saved Mock Interviews",
+      tabs: interviewTabs.map((tab) => tab.label),
       activeTab: "All Saved",
-      interviewsByTab: buildInterviewsByTab(interviewRecords),
+      interviewsByTab: buildInterviewsByTab(interviewRecords, interviewTabs),
       showToolbar: true,
       sortLabel: "Sort By",
       filterLabel: "Filter",
@@ -416,8 +350,18 @@ function buildBoardData(
 }
 
 export async function getSavedPageData(): Promise<SavedPageData> {
+  const response = await getMyBookmarks({
+    type: "all",
+    sortBy: "saved_at_desc",
+  });
+
+  const savedJobs = normalizeSavedJobs(response);
+  const savedInterviews = normalizeSavedInterviews(response);
+  const lastSavedAt =
+    typeof response?.data?.lastSavedAt === "string" ? response.data.lastSavedAt : null;
+
   return {
-    hero: buildHeroData(savedJobs, savedInterviews),
+    hero: buildHeroData(savedJobs, savedInterviews, lastSavedAt),
     board: buildBoardData(savedJobs, savedInterviews),
   };
 }

@@ -8,8 +8,11 @@ import {
   AdminUsersAnalytics,
   AdminUsersAnalyticsData,
 } from "./_components/user-analytics";
-import { UsersHeader } from "./_components/users-header";
 import { UsersTable } from "./_components/users-table";
+import { DashboardHeader } from "../../(dashboard)/_components/dashboard-header";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Plus } from "lucide-react";
 
 type AdminUsersPageProps = {
   searchParams?: Promise<{ page?: string; size?: string; search?: string }>;
@@ -53,12 +56,30 @@ export default async function AdminUsersPage({
       : (analyticsResponse?.data as AdminUsersAnalyticsData | undefined);
 
   return (
-    <section className="space-y-8">
-      <UsersHeader />
+    <>
+      <DashboardHeader
+        title="Users"
+        actions={
+          <Button asChild className="h-9 rounded-lg text-xs font-semibold">
+            <Link href="/admin/users/create">
+              <Plus className="h-4 w-4" />
+              Create User
+            </Link>
+          </Button>
+        }
+      />
 
-      {analyticsData && <AdminUsersAnalytics data={analyticsData} />}
+      <section className="space-y-6 px-3 pb-6 sm:px-4 sm:pb-8">
+        <div className="rounded-xl border border-[#ececf0] bg-neutral-50 px-4 py-3">
+          <p className="text-sm text-muted-foreground">
+            Manage, filter, and monitor all user accounts and role distribution.
+          </p>
+        </div>
 
-      <UsersTable users={users} meta={meta} errorMessage={errorMessage} />
-    </section>
+        {analyticsData && <AdminUsersAnalytics data={analyticsData} />}
+
+        <UsersTable users={users} meta={meta} errorMessage={errorMessage} />
+      </section>
+    </>
   );
 }

@@ -97,6 +97,7 @@ export type JobRecommendationsCardProps = {
   gridClassName?: string;
   titleClassName?: string;
   className?: string;
+  onJobBookmarkChange?: (jobId: string, saved: boolean) => void;
 };
 
 export function JobRecommendationsCard({
@@ -114,6 +115,7 @@ export function JobRecommendationsCard({
   gridClassName,
   titleClassName = "font-semibold text-base leading-tight",
   className,
+  onJobBookmarkChange,
 }: JobRecommendationsCardProps) {
   const availableTabs = React.useMemo(
     () => (tabs.length > 0 ? tabs : Object.keys(jobsByTab)),
@@ -412,7 +414,13 @@ export function JobRecommendationsCard({
       {visibleJobs.length > 0 ? (
         <div className={cn("grid gap-4 md:grid-cols-2", gridClassName)}>
           {visibleJobs.map((job) => (
-            <JobCard key={job.id} {...job} />
+            <JobCard
+              key={job.id}
+              {...job}
+              onBookmarkChange={(jobId, saved) =>
+                onJobBookmarkChange?.(jobId, saved)
+              }
+            />
           ))}
         </div>
       ) : (

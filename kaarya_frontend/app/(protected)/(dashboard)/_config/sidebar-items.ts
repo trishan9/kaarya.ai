@@ -15,6 +15,10 @@ import {
   BriefcaseBusiness,
   PlusSquare,
   GraduationCap,
+  ClipboardList,
+  Waypoints,
+  Users,
+  Shield,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { Role } from "@/lib/definitions";
@@ -40,7 +44,7 @@ const candidateGroups: SidebarNavGroup[] = [
         href: "/jobs",
         icon: Compass,
       },
-      { label: "Resume Builder AI", href: "/resume", icon: Sparkles },
+      { label: "Resume AI", href: "/resume", icon: Sparkles },
       { label: "AI Interview Hub", href: "/interview-hub", icon: Bot },
       { label: "My Interviews", href: "/interviews", icon: Mic },
       { label: "Leaderboard", href: "/leaderboard", icon: Trophy },
@@ -68,6 +72,7 @@ const recruiterGroups: SidebarNavGroup[] = [
       { label: "Post New Job", href: "/jobs/new", icon: PlusSquare },
       { label: "Interview Management", href: "/interviews", icon: Mic },
       { label: "Create Interview", href: "/interviews/create", icon: PlusSquare },
+      { label: "Leaderboard", href: "/leaderboard", icon: Trophy },
       {
         label: "Company Settings",
         href: "/company-settings",
@@ -112,7 +117,25 @@ const collegeGroups: SidebarNavGroup[] = [
   },
 ];
 
+const adminGroups: SidebarNavGroup[] = [
+  {
+    label: "Admin",
+    items: [
+      { label: "Overview", href: "/admin", icon: Shield },
+      { label: "Leaderboard", href: "/leaderboard", icon: Trophy },
+      { label: "Users", href: "/admin/users", icon: Users },
+      { label: "Companies", href: "/admin/companies", icon: Building2 },
+      { label: "Colleges", href: "/admin/colleges", icon: GraduationCap },
+      { label: "Jobs", href: "/admin/jobs", icon: ClipboardList },
+      { label: "Interviews", href: "/admin/interviews", icon: Waypoints },
+    ],
+  },
+];
+
 export const getSidebarNavGroups = (role?: Role | null): SidebarNavGroup[] => {
+  if (role === Role.ADMIN) {
+    return adminGroups;
+  }
   if (role === Role.RECRUITER) {
     return recruiterGroups;
   }

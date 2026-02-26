@@ -15,12 +15,14 @@ import { CollegeService } from 'src/services/college.service';
 import { LeaderboardService } from 'src/services/leaderboard.service';
 import { StudentService } from 'src/services/student.service';
 import { EmailModule } from './email.module';
+import { GamificationModule } from './gamification.module';
 import { UserModule } from './user.module';
 
 @Module({
   imports: [
     UserModule,
     EmailModule,
+    GamificationModule,
     MongooseModule.forFeature([
       { name: CollegeSchemaClass.name, schema: CollegeSchema },
       { name: StudentSchemaClass.name, schema: StudentSchema },

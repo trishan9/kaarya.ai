@@ -17,6 +17,7 @@ export const API_URLS = {
     PASSWORD_RESET_REQUEST: "/auth/password-reset/request",
     PASSWORD_RESET_VERIFY: "/auth/password-reset/verify",
     PASSWORD_RESET_CONFIRM: "/auth/password-reset/confirm",
+    CERTIFICATION_UPLOAD: "/auth/candidate-profile/certifications/upload",
   },
   ADMIN: {
     USERS: "/admin/users",
@@ -58,6 +59,7 @@ export const API_URLS = {
     MY_APPLICATIONS: "/applications/me",
     MY_APPLICATION_BY_JOB: (jobId: string) => `/applications/job/${jobId}/me`,
     RESUMES_ME: "/applications/resumes/me",
+    RESUME_BY_ID: (resumeId: string) => `/applications/resumes/${resumeId}`,
     APPLICATIONS_BY_JOB: (jobId: string) => `/applications/jobs/${jobId}`,
     APPLICATION_BY_JOB_AND_ID: (jobId: string, applicationId: string) =>
       `/applications/jobs/${jobId}/${applicationId}`,
@@ -66,6 +68,11 @@ export const API_URLS = {
   },
   LEADERBOARD: {
     LIST: "/leaderboard",
+  },
+  BOOKMARK: {
+    ME: "/bookmarks/me",
+    JOB: (jobId: string) => `/bookmarks/jobs/${jobId}`,
+    INTERVIEW: (interviewId: string) => `/bookmarks/interviews/${interviewId}`,
   },
   INTERVIEW: {
     LIST: "/interviews",
@@ -78,5 +85,16 @@ export const API_URLS = {
     SESSION_FEEDBACK: (sessionId: string) =>
       `/interviews/sessions/${sessionId}/feedback`,
     ANALYTICS: (id: string) => `/interviews/${id}/analytics`,
+  },
+  RESUME_BUILDER: {
+    BASE: "/resume-builder",
+    LIST: "/resume-builder/list",
+    BY_ID: (id: string) => `/resume-builder/${id}`,
+    GENERATE_PDF: (id: string) => `/resume-builder/${id}/generate-pdf`,
+    SAVE: (id: string) => `/resume-builder/${id}/save`,
+    AI_SUMMARY: "/resume-builder/ai/summary",
+    AI_EXPERIENCE_BULLETS: "/resume-builder/ai/experience-bullets",
+    AI_SUGGESTIONS: "/resume-builder/ai/suggestions",
+    ATS_SCAN: "/resume-builder/ats-scan",
   },
 };

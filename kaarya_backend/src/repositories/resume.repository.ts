@@ -24,6 +24,10 @@ export abstract class ACResumeRepository {
     resumes: ResumeSchemaDocument[];
     total: number;
   }>;
+  abstract deleteByIdAndStudentId(
+    id: string,
+    studentId: string,
+  ): Promise<boolean>;
 }
 
 @Injectable()
@@ -88,5 +92,21 @@ export class ResumeRepository implements ACResumeRepository {
     ]);
 
     return { resumes, total };
+  }
+
+  async deleteByIdAndStudentId(
+    id: string,
+    studentId: string,
+  ): Promise<boolean> {
+    if (!id || !studentId) return false;
+
+    const deleted = await this.resumeModel
+      .findOneAndDelete({
+        _id: new Types.ObjectId(id),
+        studentId: new Types.ObjectId(studentId),
+      })
+      .exec();
+
+    return Boolean(deleted);
   }
 }

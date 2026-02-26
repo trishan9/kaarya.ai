@@ -7,6 +7,7 @@ import {
 import { getCompanyById } from "@/lib/actions/company-actions";
 import { getCollegeById } from "@/lib/actions/college-actions";
 import type { TJob } from "@/lib/definitions";
+import type { TCandidateProfile } from "@/lib/definitions";
 import type { JobCardProps } from "../_components/job-card";
 import { formatRelativeTime } from "@/lib/date/relative-time";
 
@@ -50,6 +51,7 @@ export type JobDetailPageData = {
   workspaceId?: string | null;
   applicants: JobApplicantRecord[];
   myApplicationId?: string | null;
+  isSaved?: boolean;
 };
 
 export type JobApplicantStatus =
@@ -66,6 +68,7 @@ export type JobApplicantRecord = {
   name: string;
   email: string;
   photo?: string;
+  candidateProfile?: TCandidateProfile | null;
   status: JobApplicantStatus;
   appliedAtLabel: string;
   interviewScheduledAt?: string;
@@ -157,6 +160,7 @@ const buildFallbackJobData = (
     workspaceId: options?.workspaceId ?? null,
     applicants: [],
     myApplicationId: null,
+    isSaved: false,
   };
 };
 
@@ -192,6 +196,11 @@ const asStringArray = (value: unknown) =>
         .map((item) => (typeof item === "string" ? item.trim() : ""))
         .filter(Boolean)
     : [];
+
+const asCandidateProfile = (value: unknown): TCandidateProfile | null => {
+  if (!value || typeof value !== "object") return null;
+  return value as TCandidateProfile;
+};
 
 const normalizeStatus = (value: unknown): JobApplicantStatus => {
   const normalized = asString(value)?.toLowerCase();
@@ -292,6 +301,9 @@ const parseApplications = (response: any): JobApplicantRecord[] => {
         name,
         email,
         photo: asString(candidate?.photo) ?? undefined,
+        candidateProfile:
+          asCandidateProfile(candidate?.candidateProfile) ??
+          asCandidateProfile(raw?.candidateProfile),
         status: normalizeStatus(raw?.status),
         appliedAtLabel: toDateLabel(raw?.createdAt ?? raw?.appliedAt),
         interviewScheduledAt: interviewScheduledAt ?? undefined,
@@ -394,6 +406,7 @@ const mapSimilarJobs = (
             : "/applications"
           : `/jobs/${job.id}`,
       showBookmark: !options?.isRecruiter,
+      isBookmarked: Boolean(job.isSaved),
     }));
 
 export async function getJobDetailPageData(
@@ -533,5 +546,6 @@ export async function getJobDetailPageData(
     workspaceId: options?.workspaceId ?? null,
     applicants: isRecruiter ? parseApplications(applicationsResponse) : [],
     myApplicationId,
+    isSaved: Boolean(job.isSaved),
   };
 }

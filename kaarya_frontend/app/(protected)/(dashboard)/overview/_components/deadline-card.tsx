@@ -1,12 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { Bookmark, MoreHorizontal } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { BookmarkToggleButton } from "@/components/bookmark/bookmark-toggle-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,9 +37,11 @@ import {
 import Image from "next/image";
 
 export type DeadlineCardProps = {
+  jobId?: string;
   heading?: string;
   title: string;
   company: string;
+  isBookmarked?: boolean;
   logoUrl?: string;
   logoAlt?: string;
   reminderText?: string;
@@ -49,9 +52,11 @@ export type DeadlineCardProps = {
 };
 
 export function DeadlineCard({
+  jobId,
   heading = "Deadline Today!",
   title,
   company,
+  isBookmarked = false,
   logoUrl = "https://res.cloudinary.com/dnqet3vq1/image/upload/v1770473353/kaarya/acy5rbpegmme5jgree6w.png",
   logoAlt = "Company logo",
   reminderText = "One of your saved jobs has a deadline today,",
@@ -61,7 +66,6 @@ export function DeadlineCard({
   detailsActionLabel = "Open job",
 }: DeadlineCardProps) {
   const router = useRouter();
-  const [bookmarked, setBookmarked] = React.useState(false);
   const [reminderOn, setReminderOn] = React.useState(true);
   const [detailsOpen, setDetailsOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
@@ -140,30 +144,15 @@ export function DeadlineCard({
           <div className="font-semibold text-foreground break-words">{title}</div>
           <div className="text-sm text-muted-foreground break-words">{company}</div>
         </div>
-        <Button
-          variant="outline"
-          size="icon"
-          className={cn(
-            "h-8 w-8 rounded-lg border-border",
-            bookmarked
-              ? "border-primary bg-primary/10 text-primary"
-              : "text-muted-foreground",
-          )}
-          aria-pressed={bookmarked}
-          onClick={() => setBookmarked((prev) => !prev)}
-        >
-          <Bookmark
-            className={cn(
-              "h-4 w-4",
-              bookmarked
-                ? "fill-primary text-primary"
-                : "text-muted-foreground",
-            )}
+        {jobId ? (
+          <BookmarkToggleButton
+            entityType="job"
+            entityId={jobId}
+            initialSaved={isBookmarked}
+            showSuccessToast
+            className={cn("h-8 w-8 rounded-lg border-border")}
           />
-          <span className="sr-only">
-            {bookmarked ? "Remove bookmark" : "Save job"}
-          </span>
-        </Button>
+        ) : null}
       </div>
 
       <p className="text-sm text-muted-foreground">

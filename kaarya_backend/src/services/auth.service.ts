@@ -22,6 +22,7 @@ import {
   OAuthResultPayload,
 } from 'src/services/auth-oauth.service';
 import { EmailService } from 'src/services/email.service';
+import { GamificationService } from 'src/services/gamification.service';
 import { UserService } from 'src/services/user.service';
 import { AuthProvider } from 'src/types/auth-provider.enum';
 import { OAuthProviderProfile } from 'src/types/oauth-profile.type';
@@ -44,6 +45,7 @@ export class AuthService {
     private readonly logger: PinoLoggerService,
     private readonly authIdentityRepository: ACAuthIdentityRepository,
     private readonly oauthService: AuthOAuthService,
+    private readonly gamificationService: GamificationService,
   ) {}
 
   async signup(payload: TCreateUserDTO) {
@@ -273,6 +275,11 @@ export class AuthService {
         user.photo,
       );
     }
+
+    await this.gamificationService.awardProfileUpdated({
+      userId: user.id,
+      updatedAt: new Date(),
+    });
 
     return sanitizeUser(user);
   }

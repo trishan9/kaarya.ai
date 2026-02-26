@@ -3,6 +3,7 @@ import { AuthConfig } from './auth-config.type';
 import { CloudinaryConfig } from './cloudinary-config.type';
 import { DatabaseConfig } from './database-config.type';
 import { EmailConfig } from './email-config.type';
+import { GeminiConfig } from './gemini-config.type';
 import { RedisConfig } from './redis-config.type';
 
 export type AllConfigType = {
@@ -12,4 +13,5 @@ export type AllConfigType = {
   database: DatabaseConfig;
   email: EmailConfig;
   redis: RedisConfig;
+  gemini: GeminiConfig;
 };

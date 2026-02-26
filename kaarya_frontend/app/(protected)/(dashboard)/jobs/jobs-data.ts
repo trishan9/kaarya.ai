@@ -147,6 +147,7 @@ const toJobCards = (
           : "/applications"
         : `/jobs/${job.id}`,
     showBookmark: !options?.isRecruiter,
+    isBookmarked: Boolean(job.isSaved),
   }));
 
 const extractJobs = (response: any): TJob[] => {

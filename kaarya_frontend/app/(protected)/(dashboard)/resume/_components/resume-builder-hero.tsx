@@ -21,32 +21,34 @@ export function ResumeBuilderHero({
       <div className="pointer-events-none absolute right-0 top-0 h-12 w-48 rounded-bl-2xl rounded-tr-2xl bg-white/10" />
       <div className="pointer-events-none absolute right-0 top-0 h-22 w-32 rounded-tr-2xl rounded-bl-2xl bg-white/10" />
 
-      <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-        <div className="max-w-3xl space-y-2">
-          <h2 className="text-2xl font-semibold leading-tight">{title}</h2>
-          <p className="max-w-3xl text-sm text-white/90">{description}</p>
+      <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="max-w-2xl space-y-1.5">
+          <h2 className="text-2xl font-semibold leading-tight text-white">
+            {title}
+          </h2>
+          <p className="max-w-2xl text-sm text-white/90">{description}</p>
         </div>
 
-        <div className="hidden lg:flex lg:items-end lg:gap-3">
+        <div className="hidden shrink-0 lg:flex lg:gap-2">
           {previews.map((preview, index) => (
             <div
               key={preview.id}
-              className="w-28 rounded-xl border border-white/20 bg-white p-2 text-[#1f2937] shadow-lg"
+              className="flex w-24 flex-col rounded-lg border border-[#e5e7eb] bg-white px-2.5 py-2 shadow-sm"
               style={{
-                transform: `translateY(${index % 2 === 0 ? "0px" : "8px"})`,
+                transform: `translateY(${index % 2 === 0 ? "0" : "6px"})`,
               }}
             >
-              <div className="mb-2 h-1.5 w-16 rounded bg-[#0b67c2]" />
+              <div className="mb-1.5 h-1 w-12 rounded-sm bg-primary/80" />
               <div className="space-y-1">
-                <div className="h-1.5 w-full rounded bg-[#dce6f4]" />
-                <div className="h-1.5 w-4/5 rounded bg-[#dce6f4]" />
-                <div className="h-1.5 w-2/3 rounded bg-[#dce6f4]" />
+                <div className="h-1 w-full rounded-sm bg-neutral-200" />
+                <div className="h-1 w-4/5 rounded-sm bg-neutral-200" />
+                <div className="h-1 w-2/3 rounded-sm bg-neutral-200" />
               </div>
-              <div className="mt-3 h-1.5 w-10 rounded bg-[#0b67c2]/70" />
-              <p className="mt-2 truncate text-[9px] font-semibold">
+              <div className="mt-2 h-1 w-8 rounded-sm bg-primary/50" />
+              <p className="mt-1.5 truncate text-[10px] font-medium text-foreground">
                 {preview.title}
               </p>
-              <p className="truncate text-[8px] text-muted-foreground">
+              <p className="truncate text-[9px] text-muted-foreground">
                 {preview.subtitle}
               </p>
             </div>

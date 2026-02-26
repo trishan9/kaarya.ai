@@ -3,11 +3,12 @@
 import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Bookmark, CircleAlert, Gauge } from "lucide-react";
+import { CircleAlert, Gauge } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { BookmarkToggleButton } from "@/components/bookmark/bookmark-toggle-button";
 
 export type InterviewStackTechnology = {
   id: string;
@@ -36,9 +37,12 @@ export type MockInterviewCardProps = {
   primaryActionHref?: string;
   secondaryActionLabel?: string;
   secondaryActionHref?: string;
+  isBookmarked?: boolean;
+  onBookmarkChange?: (interviewId: string, saved: boolean) => void;
 };
 
 export function MockInterviewCard({
+  id,
   title,
   company,
   categoryLabel,
@@ -55,8 +59,9 @@ export function MockInterviewCard({
   primaryActionHref = "/interview-hub",
   secondaryActionLabel,
   secondaryActionHref = "/interview-hub",
+  isBookmarked = false,
+  onBookmarkChange,
 }: MockInterviewCardProps) {
-  const [bookmarked, setBookmarked] = React.useState(false);
   const [logoFailed, setLogoFailed] = React.useState(false);
   const participationText = takenCountLabel ?? `${takenCount} people took this!`;
   const showLogoImage = Boolean(logoUrl) && !logoFailed;
@@ -161,29 +166,12 @@ export function MockInterviewCard({
             </Button>
           ) : null}
 
-          <Button
-            variant="outline"
-            size="icon"
-            className={cn(
-              "h-9 w-9 cursor-pointer rounded-[10px] border-muted-foreground bg-white",
-              bookmarked
-                ? "bg-primary/10 text-primary border-primary"
-                : "text-muted-foreground",
-            )}
-            aria-pressed={bookmarked}
-            type="button"
-            onClick={() => setBookmarked((prev) => !prev)}
-          >
-            <Bookmark
-              className={cn(
-                "h-4 w-4",
-                bookmarked ? "fill-primary text-primary" : "text-muted-foreground",
-              )}
-            />
-            <span className="sr-only">
-              {bookmarked ? "Remove bookmark" : "Save interview"}
-            </span>
-          </Button>
+          <BookmarkToggleButton
+            entityType="interview"
+            entityId={id}
+            initialSaved={isBookmarked}
+            onSavedChange={(saved) => onBookmarkChange?.(id, saved)}
+          />
         </div>
       </div>
     </Card>

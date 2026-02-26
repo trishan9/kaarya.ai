@@ -15,6 +15,7 @@ export const ROUTES = {
     OAUTH_CALLBACK: 'oauth/:provider/callback',
     OAUTH_EXCHANGE: 'oauth/exchange',
     OAUTH_LINK_COMPLETE: 'oauth/link/complete',
+    CERTIFICATION_UPLOAD: 'candidate-profile/certifications/upload',
   },
   ADMIN: {
     BASE: 'admin',
@@ -58,9 +59,9 @@ export const ROUTES = {
     MY_APPLICATIONS: 'me',
     MY_APPLICATION_BY_JOB: 'job/:jobId/me',
     RESUMES_ME: 'resumes/me',
+    RESUME_BY_ID: 'resumes/:resumeId',
     APPLICATION_BY_JOB: 'jobs/:jobId/:applicationId',
-    APPLICATION_RESUME_ACTIVITY:
-      'jobs/:jobId/:applicationId/resume-activity',
+    APPLICATION_RESUME_ACTIVITY: 'jobs/:jobId/:applicationId/resume-activity',
   },
   LEADERBOARD: {
     BASE: 'leaderboard',
@@ -75,5 +76,22 @@ export const ROUTES = {
     MY_SESSIONS: ':id/sessions/me',
     SESSION_FEEDBACK: 'sessions/:sessionId/feedback',
     ANALYTICS: ':id/analytics',
+  },
+  BOOKMARK: {
+    BASE: 'bookmarks',
+    ME: 'me',
+    JOB: 'jobs/:jobId',
+    INTERVIEW: 'interviews/:interviewId',
+  },
+  RESUME_BUILDER: {
+    BASE: 'resume-builder',
+    BY_ID: ':id',
+    LIST: 'list',
+    GENERATE_PDF: ':id/generate-pdf',
+    SAVE: ':id/save',
+    AI_SUMMARY: 'ai/summary',
+    AI_EXPERIENCE_BULLETS: 'ai/experience-bullets',
+    AI_SUGGESTIONS: 'ai/suggestions',
+    ATS_SCAN: 'ats-scan',
   },
 } as const;

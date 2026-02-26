@@ -17,6 +17,74 @@ export type TLinkedAccount = {
   lastLoginAt?: string | null;
 };
 
+export type TCandidateWorkMode = "remote" | "onsite" | "hybrid";
+export type TCandidateSalaryPeriod = "yearly" | "monthly" | "hourly";
+
+export type TCandidateSalaryExpectation = {
+  currency?: string | null;
+  minAmount?: number | null;
+  maxAmount?: number | null;
+  period?: TCandidateSalaryPeriod | null;
+  isNegotiable?: boolean;
+};
+
+export type TCandidateExperienceItem = {
+  id: string;
+  jobTitle: string;
+  companyName: string;
+  location?: string | null;
+  employmentType?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  currentlyWorking?: boolean;
+  description?: string | null;
+};
+
+export type TCandidateEducationItem = {
+  id: string;
+  institution: string;
+  degree: string;
+  fieldOfStudy?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  grade?: string | null;
+  description?: string | null;
+};
+
+export type TCandidateCertificationItem = {
+  id: string;
+  name: string;
+  issuer: string;
+  issueDate?: string | null;
+  expiryDate?: string | null;
+  credentialId?: string | null;
+  credentialUrl?: string | null;
+  mediaUrl?: string | null;
+  mediaMimeType?: string | null;
+  noExpiry?: boolean;
+};
+
+export type TCandidateProfile = {
+  headline?: string | null;
+  phone?: string | null;
+  location?: string | null;
+  summary?: string | null;
+  portfolioUrl?: string | null;
+  linkedinUrl?: string | null;
+  githubUrl?: string | null;
+  preferredRoles?: string[];
+  preferredLocations?: string[];
+  preferredWorkModes?: TCandidateWorkMode[];
+  skills?: string[];
+  education?: TCandidateEducationItem[];
+  experience?: TCandidateExperienceItem[];
+  certifications?: TCandidateCertificationItem[];
+  salary?: TCandidateSalaryExpectation;
+  defaultResumeId?: string | null;
+  portfolioLinks?: string[];
+  openToWork?: boolean;
+};
+
 export type TUser = {
   id: string;
   name: string;
@@ -27,6 +95,7 @@ export type TUser = {
   linkedProviders?: AuthProvider[];
   photo?: string | null;
   socialId?: string | null;
+  candidateProfile?: TCandidateProfile | null;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -172,6 +241,7 @@ export type TJob = {
   hasApplied?: boolean;
   myApplicationId?: string | null;
   myApplicationStatus?: string | null;
+  isSaved?: boolean;
 };
 
 export type TJobFeed =
@@ -186,10 +256,32 @@ export type TLeaderboardScope = "global" | "college";
 
 export type TLeaderboardRow = {
   rank: number;
+  total: number;
+  xp: number;
   score: number;
+  level: number;
   applications: number;
   interviewScheduled: number;
   accepted: number;
+  shortlisted: number;
+  rejected: number;
+  profileUpdates: number;
+  jobViews: number;
+  jobsSaved: number;
+  interviewsSaved: number;
+  applicationsSubmitted: number;
+  interviewsTaken: number;
+  interviewsCompleted: number;
+  resumesCreated: number;
+  resumesSaved: number;
+  atsScans: number;
+  bestInterviewScore: number;
+  averageInterviewScore: number;
+  reliableInterviewScore: number;
+  interviewScoreEntries: number;
+  bestAtsScore: number;
+  averageAtsScore: number;
+  atsScoreEntries: number;
   student: {
     id: string;
     name?: string | null;
@@ -206,6 +298,15 @@ export type TLeaderboardData = {
     logo?: string | null;
   } | null;
   rows: TLeaderboardRow[];
+  me?: (TLeaderboardRow & {
+    progress?: {
+      level: number;
+      currentXp: number;
+      xpIntoLevel: number;
+      xpForNextLevel: number;
+      nextLevelAtXp: number;
+    };
+  }) | null;
   meta?: {
     page: number;
     size: number;
@@ -313,4 +414,5 @@ export type TInterview = {
   myLatestEvaluation?: TInterviewEvaluation | null;
   myLatestSessionId?: string | null;
   myLatestScore?: number | null;
+  isSaved?: boolean;
 };

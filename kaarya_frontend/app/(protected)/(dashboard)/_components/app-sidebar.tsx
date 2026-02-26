@@ -116,6 +116,9 @@ type AppSidebarProps = {
   collegeWorkspaces?: TCollegeWorkspace[];
 };
 
+const EMPTY_RECRUITER_WORKSPACES: TRecruiterWorkspace[] = [];
+const EMPTY_COLLEGE_WORKSPACES: TCollegeWorkspace[] = [];
+
 const workspaceScopedPrefixes = [
   "/overview",
   "/jobs",
@@ -156,8 +159,8 @@ const routeMatches = (pathname: string, href: string) =>
 
 export function AppSidebar({
   user,
-  recruiterWorkspaces = [],
-  collegeWorkspaces = [],
+  recruiterWorkspaces = EMPTY_RECRUITER_WORKSPACES,
+  collegeWorkspaces = EMPTY_COLLEGE_WORKSPACES,
 }: AppSidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -183,6 +186,7 @@ export function AppSidebar({
     TRecruiterWorkspace[]
   >(safeRecruiterWorkspaces);
 
+  const isAdmin = user?.role === Role.ADMIN;
   const isRecruiter = user?.role === Role.RECRUITER;
   const isCollegeUser = user?.role === Role.COLLEGE;
   const canUseCollegeWorkspaces =
@@ -255,8 +259,11 @@ export function AppSidebar({
   const handleSearch = React.useCallback(() => {
     const query = searchQuery.trim();
     if (!query) return;
-    router.push(withWorkspace(`/jobs?search=${encodeURIComponent(query)}`));
-  }, [router, searchQuery, withWorkspace]);
+    const destination = isAdmin
+      ? `/admin/jobs?search=${encodeURIComponent(query)}`
+      : `/jobs?search=${encodeURIComponent(query)}`;
+    router.push(withWorkspace(destination));
+  }, [isAdmin, router, searchQuery, withWorkspace]);
 
   const handleGroupToggle = React.useCallback((label: string) => {
     setGroupOpen((prev) => ({ ...prev, [label]: !prev[label] }));
@@ -472,7 +479,9 @@ export function AppSidebar({
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder={
-                  isRecruiter
+                  isAdmin
+                    ? "Search admin records..."
+                    : isRecruiter
                     ? "Search company jobs..."
                     : isCollegeUser
                       ? "Search college jobs..."
@@ -851,7 +860,9 @@ export function AppSidebar({
               >
                 {isRecruiter
                   ? "Recruiter"
-                  : isCollegeUser
+                  : isAdmin
+                    ? "Admin"
+                    : isCollegeUser
                     ? "College"
                     : "Candidate"}
               </Badge>

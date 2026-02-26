@@ -53,7 +53,7 @@ export type OverviewAnalyticsData = {
   invitationMix: InvitationMixPoint[];
 };
 
-type OverviewAnalyticsVariant = "candidate" | "recruiter";
+type OverviewAnalyticsVariant = "candidate" | "recruiter" | "admin";
 
 const DEFAULT_ANALYTICS_DATA: OverviewAnalyticsData = {
   summary: {
@@ -156,6 +156,19 @@ const analyticsCopy: Record<
     mixTitle: "Role Status Mix",
     mixDescription: "Open, draft, and closed role distribution.",
     mixFooter: (total) => `Calculated from ${total} tracked roles this week.`,
+  },
+  admin: {
+    momentumTitle: "Platform Activity Trend",
+    momentumDescription:
+      "System-wide onboarding velocity and interview activity over time.",
+    primaryLabel: "New Users (Period)",
+    secondaryLabel: "Interview/User Ratio",
+    pipelineTitle: "Operational Pipeline",
+    pipelineDescription:
+      "Entity flow snapshot from user base to active recruiting assets.",
+    mixTitle: "Job Status Mix",
+    mixDescription: "Distribution of jobs currently open, draft, and closed.",
+    mixFooter: (total) => `Computed from ${total} job postings in the system.`,
   },
 };
 

@@ -15,30 +15,33 @@ const optionalDate = z.preprocess((value) => {
   return value;
 }, z.coerce.date().optional());
 
-const optionalStringArray = z.preprocess((value) => {
-  if (value === undefined || value === null || value === '') {
-    return undefined;
-  }
+const optionalStringArray = z.preprocess(
+  (value) => {
+    if (value === undefined || value === null || value === '') {
+      return undefined;
+    }
 
-  if (Array.isArray(value)) {
-    return value;
-  }
+    if (Array.isArray(value)) {
+      return value;
+    }
 
-  if (typeof value === 'string') {
-    try {
-      const parsed = JSON.parse(value);
-      if (Array.isArray(parsed)) {
-        return parsed;
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
+      } catch {
+        return [value];
       }
-    } catch {
+
       return [value];
     }
 
-    return [value];
-  }
-
-  return value;
-}, z.array(z.string().trim().min(1)).max(10).optional());
+    return value;
+  },
+  z.array(z.string().trim().min(1)).max(10).optional(),
+);
 
 export const JobApplicationsQueryDTO = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -68,6 +71,14 @@ export const CreateJobApplicationDTO = z.object({
   resumeFileSize: z.coerce.number().int().positive().optional(),
 });
 
+export const UploadMyResumeDTO = z.object({
+  resumeFileName: optionalTrimmedText,
+  resumeUrl: optionalTrimmedText,
+  resumePublicId: optionalTrimmedText,
+  resumeMimeType: optionalTrimmedText,
+  resumeFileSize: z.coerce.number().int().positive().optional(),
+});
+
 export const UpdateJobApplicationDTO = z
   .object({
     status: z.nativeEnum(ApplicationStatus).optional(),
@@ -83,8 +94,11 @@ export const UpdateResumeActivityDTO = z.object({
 });
 
 export type TJobApplicationsQueryDTO = z.infer<typeof JobApplicationsQueryDTO>;
-export type TMyJobApplicationsQueryDTO = z.infer<typeof MyJobApplicationsQueryDTO>;
+export type TMyJobApplicationsQueryDTO = z.infer<
+  typeof MyJobApplicationsQueryDTO
+>;
 export type TMyResumesQueryDTO = z.infer<typeof MyResumesQueryDTO>;
 export type TCreateJobApplicationDTO = z.infer<typeof CreateJobApplicationDTO>;
+export type TUploadMyResumeDTO = z.infer<typeof UploadMyResumeDTO>;
 export type TUpdateJobApplicationDTO = z.infer<typeof UpdateJobApplicationDTO>;
 export type TUpdateResumeActivityDTO = z.infer<typeof UpdateResumeActivityDTO>;

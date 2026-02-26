@@ -5,6 +5,7 @@ import { isValidObjectId, Types } from 'mongoose';
 import { ApiError } from 'src/common/errors/api-error';
 import { buildPaginationMeta } from 'src/common/utils/pagination';
 import { sanitizeDocument } from 'src/common/utils/sanitize-document';
+import { resolveReliableAverageScore } from 'src/constants/gamification.constants';
 import { CONFIG_KEYS } from 'src/constants/config.constants';
 import { COLLEGE_MESSAGES } from 'src/constants/messages.constants';
 import {
@@ -18,7 +19,10 @@ import {
 import { ACApplicationRepository } from 'src/repositories/application.repository';
 import { ACCollegeRepository } from 'src/repositories/college.repository';
 import { ACJobPostingRepository } from 'src/repositories/job-posting.repository';
+import { ACGamificationEventRepository } from 'src/repositories/gamification-event.repository';
+import { ACGamificationProfileRepository } from 'src/repositories/gamification-profile.repository';
 import { ACStudentRepository } from 'src/repositories/student.repository';
+import { ACUserRepository } from 'src/repositories/user.repository';
 import { TAuthenticatedUser } from 'src/types/authenticated-user.type';
 import { AllConfigType } from 'src/types/config.type';
 import { JobPostingStatus } from 'src/types/job-posting-status.enum';
@@ -35,6 +39,9 @@ export class CollegeService {
     private readonly collegeRepository: ACCollegeRepository,
     private readonly jobPostingRepository: ACJobPostingRepository,
     private readonly applicationRepository: ACApplicationRepository,
+    private readonly userRepository: ACUserRepository,
+    private readonly gamificationEventRepository: ACGamificationEventRepository,
+    private readonly gamificationProfileRepository: ACGamificationProfileRepository,
     private readonly studentRepository: ACStudentRepository,
     private readonly studentService: StudentService,
     private readonly userService: UserService,
@@ -462,7 +469,7 @@ export class CollegeService {
     const studentIds = await this.studentService.listCollegeStudentIds(collegeId);
     const studentCount = studentIds.length;
 
-    const [applicationsCount, statusCounts, collegeJobsResult, leaderboard] =
+    const [applicationsCount, statusCounts, collegeJobsResult, topUsers] =
       await Promise.all([
         this.applicationRepository.countByStudentIds(studentIds),
         this.applicationRepository.getStatusCountsByStudentIds(studentIds),
@@ -472,10 +479,10 @@ export class CollegeService {
           collegeId,
           visibility: JobVisibility.COLLEGE_ONLY,
         }),
-        this.applicationRepository.getLeaderboardRows({
+        this.userRepository.findCandidateLeaderboardRows({
           page: 1,
           size: 10,
-          studentIds,
+          candidateIds: studentIds,
         }),
       ]);
 
@@ -490,31 +497,65 @@ export class CollegeService {
       (job) => job.status === JobPostingStatus.DRAFT,
     ).length;
 
-    const topStudents = await Promise.all(
-      leaderboard.rows.map(async (row, index) => {
-        let user: { id: string; name?: string | null; photo?: string | null } | null =
-          null;
-        try {
-          const userRaw = await this.userService.getUserByIdRaw(row.studentId);
-          user = {
-            id: userRaw.id,
-            name: userRaw.name,
-            photo: userRaw.photo ?? null,
-          };
-        } catch {
-          user = { id: row.studentId };
-        }
+    const topUserIds = topUsers.users.map((user) => user.id);
+    const [applicationStatsMap, activityStatsMap, gamificationProfileMap] =
+      await Promise.all([
+        this.applicationRepository.getLeaderboardStatsByStudentIds(topUserIds),
+        this.gamificationEventRepository.getActivityStatsByUserIds({
+          userIds: topUserIds,
+        }),
+        this.gamificationProfileRepository.findByUserIds(topUserIds),
+      ]);
 
-        return {
-          rank: index + 1,
-          score: row.score,
-          applications: row.applications,
-          interviewScheduled: row.interviewScheduled,
-          accepted: row.accepted,
-          student: user,
-        };
-      }),
-    );
+    const topStudents = topUsers.users.map((user, index) => {
+      const applicationStats = applicationStatsMap.get(user.id);
+      const activityStats = activityStatsMap.get(user.id);
+      const gamificationProfile = gamificationProfileMap.get(user.id);
+      const averageInterviewScore = Math.round(
+        activityStats?.averageInterviewScore ?? 0,
+      );
+      const interviewScoreEntries = activityStats?.interviewScoreEntries ?? 0;
+      const reliableInterviewScore = resolveReliableAverageScore({
+        average: averageInterviewScore,
+        count: interviewScoreEntries,
+      });
+      const averageAtsScore = Math.round(activityStats?.averageAtsScore ?? 0);
+
+      return {
+        rank: index + 1,
+        score: Number.isFinite(gamificationProfile?.score)
+          ? (gamificationProfile?.score ?? 0)
+          : 0,
+        xp: Number.isFinite(gamificationProfile?.xp)
+          ? (gamificationProfile?.xp ?? 0)
+          : 0,
+        level: Number.isFinite(gamificationProfile?.level)
+          ? (gamificationProfile?.level ?? 1)
+          : 1,
+        applications: applicationStats?.applications ?? 0,
+        interviewScheduled: applicationStats?.interviewScheduled ?? 0,
+        accepted: applicationStats?.accepted ?? 0,
+        shortlisted: applicationStats?.shortlisted ?? 0,
+        rejected: applicationStats?.rejected ?? 0,
+        interviewsTaken: activityStats?.interviewsTaken ?? 0,
+        interviewsCompleted: activityStats?.interviewsCompleted ?? 0,
+        resumesCreated: activityStats?.resumesCreated ?? 0,
+        resumesSaved: activityStats?.resumesSaved ?? 0,
+        atsScans: activityStats?.atsScans ?? 0,
+        bestInterviewScore: activityStats?.bestInterviewScore ?? 0,
+        averageInterviewScore,
+        reliableInterviewScore,
+        interviewScoreEntries,
+        bestAtsScore: activityStats?.bestAtsScore ?? 0,
+        averageAtsScore,
+        atsScoreEntries: activityStats?.atsScoreEntries ?? 0,
+        student: {
+          id: user.id,
+          name: user.name ?? null,
+          photo: user.photo ?? null,
+        },
+      };
+    });
 
     return {
       workspace: {

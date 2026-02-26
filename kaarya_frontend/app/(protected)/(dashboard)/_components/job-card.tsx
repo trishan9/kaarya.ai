@@ -1,13 +1,12 @@
 "use client";
-
-import * as React from "react";
 import Link from "next/link";
-import { Bookmark, Briefcase, Clock3, MapPin, Wallet } from "lucide-react";
+import { Briefcase, Clock3, MapPin, Wallet } from "lucide-react";
 import Image from "next/image";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { BookmarkToggleButton } from "@/components/bookmark/bookmark-toggle-button";
 
 export type JobCardProps = {
   id: string;
@@ -27,6 +26,8 @@ export type JobCardProps = {
   applyLabel?: string;
   applyHref?: string;
   showBookmark?: boolean;
+  isBookmarked?: boolean;
+  onBookmarkChange?: (jobId: string, saved: boolean) => void;
 };
 
 export function JobCard({
@@ -47,8 +48,9 @@ export function JobCard({
   applyLabel = "Apply",
   applyHref,
   showBookmark = true,
+  isBookmarked = false,
+  onBookmarkChange,
 }: JobCardProps) {
-  const [bookmarked, setBookmarked] = React.useState(false);
   const resolvedApplyHref =
     applyHref && applyHref !== "/jobs" ? applyHref : `/jobs/${id}`;
 
@@ -143,31 +145,12 @@ export function JobCard({
           <Link href={resolvedApplyHref}>{applyLabel}</Link>
         </Button>
         {showBookmark ? (
-          <Button
-            variant="outline"
-            size="icon"
-            className={cn(
-              "h-9 w-9 rounded-[10px] border-muted-foreground bg-white cursor-pointer",
-              bookmarked
-                ? "bg-primary/10 text-primary border-primary"
-                : "text-muted-foreground",
-            )}
-            aria-pressed={bookmarked}
-            type="button"
-            onClick={() => setBookmarked((prev) => !prev)}
-          >
-            <Bookmark
-              className={cn(
-                "h-4 w-4",
-                bookmarked
-                  ? "fill-primary text-primary"
-                  : "text-muted-foreground",
-              )}
-            />
-            <span className="sr-only">
-              {bookmarked ? "Remove bookmark" : "Save job"}
-            </span>
-          </Button>
+          <BookmarkToggleButton
+            entityType="job"
+            entityId={id}
+            initialSaved={isBookmarked}
+            onSavedChange={(saved) => onBookmarkChange?.(id, saved)}
+          />
         ) : null}
       </div>
     </Card>
