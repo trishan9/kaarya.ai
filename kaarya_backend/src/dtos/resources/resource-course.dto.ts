@@ -23,25 +23,6 @@ const optionalBoolean = z.preprocess((value) => {
   return value;
 }, z.boolean().optional());
 
-const optionalStringArray = z.preprocess((value) => {
-  if (value === undefined || value === null || value === '') {
-    return [];
-  }
-
-  if (Array.isArray(value)) {
-    return value;
-  }
-
-  if (typeof value === 'string') {
-    return value
-      .split(',')
-      .map((item) => item.trim())
-      .filter(Boolean);
-  }
-
-  return value;
-}, z.array(z.string().trim().min(1)).default([]));
-
 const optionalUrlArray = z.preprocess((value) => {
   if (value === undefined || value === null || value === '') {
     return [];
