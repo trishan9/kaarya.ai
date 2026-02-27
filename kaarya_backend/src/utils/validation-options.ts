@@ -7,13 +7,16 @@ import {
 
 function generateErrors(errors: ValidationError[]) {
   return errors.reduce(
-    (accumulator, currentValue) => ({
-      ...accumulator,
-      [currentValue.property]:
-        (currentValue.children?.length ?? 0) > 0
-          ? generateErrors(currentValue.children ?? [])
-          : Object.values(currentValue.constraints ?? {}).join(', '),
-    }),
+    (accumulator, currentValue) => {
+      const children = currentValue.children ?? [];
+      return {
+        ...accumulator,
+        [currentValue.property]:
+          children.length > 0
+            ? generateErrors(children)
+            : Object.values(currentValue.constraints ?? {}).join(', '),
+      };
+    },
     {},
   );
 }
