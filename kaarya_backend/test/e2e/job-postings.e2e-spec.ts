@@ -13,6 +13,7 @@ import { createE2EApp, closeE2EApp, E2EApp } from '../helpers/e2e';
 const authBase = `/api/v1/${ROUTES.AUTH.BASE}`;
 const companyBase = `/api/v1/${ROUTES.COMPANY.BASE}`;
 const jobBase = `/api/v1/${ROUTES.JOB.BASE}`;
+const applicationBase = `/api/v1/${ROUTES.APPLICATION.BASE}`;
 
 describe('Company and Job Posting routes (e2e)', () => {
   let context: E2EApp;
@@ -284,6 +285,25 @@ describe('Company and Job Posting routes (e2e)', () => {
       .expect(403);
   });
 
+  it('should reject non-image company logo uploads on create', async () => {
+    const response = await request(context.app.getHttpServer())
+      .post(companyBase)
+      .set('Authorization', `Bearer ${recruiter1Token}`)
+      .field('name', 'Invalid Logo Company')
+      .attach('logo', Buffer.from('not-an-image'), {
+        filename: 'invalid.txt',
+        contentType: 'text/plain',
+      })
+      .expect(400);
+
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        success: false,
+        message: 'Only image files are allowed.',
+      }),
+    );
+  });
+
   it('should allow recruiter member to update company details and logo', async () => {
     const response = await request(context.app.getHttpServer())
       .patch(`${companyBase}/${recruiter1CompanyId}`)
@@ -304,6 +324,25 @@ describe('Company and Job Posting routes (e2e)', () => {
           location: 'Hybrid',
           logo: 'https://img.test/photo',
         }),
+      }),
+    );
+  });
+
+  it('should reject non-image company logo uploads on update', async () => {
+    const response = await request(context.app.getHttpServer())
+      .patch(`${companyBase}/${recruiter1CompanyId}`)
+      .set('Authorization', `Bearer ${recruiter1Token}`)
+      .field('location', 'Remote')
+      .attach('logo', Buffer.from('not-an-image'), {
+        filename: 'invalid.txt',
+        contentType: 'text/plain',
+      })
+      .expect(400);
+
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        success: false,
+        message: 'Only image files are allowed.',
       }),
     );
   });
@@ -708,9 +747,13 @@ describe('Company and Job Posting routes (e2e)', () => {
       studentId,
       status: ApplicationStatus.APPLIED,
     });
+    const jobApplicationsPath = `${applicationBase}/${ROUTES.APPLICATION.JOB_APPLICATIONS.replace(
+      ':jobId',
+      createdJobId,
+    )}`;
 
     const recruiterView = await request(context.app.getHttpServer())
-      .get(`${jobBase}/${createdJobId}/applications`)
+      .get(jobApplicationsPath)
       .set('Authorization', `Bearer ${recruiter1Token}`)
       .query({ page: 1, size: 10 })
       .expect(200);
@@ -724,7 +767,7 @@ describe('Company and Job Posting routes (e2e)', () => {
     expect(Array.isArray(recruiterView.body.data.applications)).toBe(true);
 
     await request(context.app.getHttpServer())
-      .get(`${jobBase}/${createdJobId}/applications`)
+      .get(jobApplicationsPath)
       .set('Authorization', `Bearer ${recruiter2Token}`)
       .query({ page: 1, size: 10 })
       .expect(403);
