@@ -57,8 +57,48 @@ describe('User DTOs', () => {
     expect(result.success).toBe(true);
     expect(result.data?.candidateProfile?.headline).toBe('Frontend Developer');
     expect(result.data?.candidateProfile?.skills).toEqual([
-      'React',
-      'TypeScript',
+      expect.objectContaining({
+        id: 'migrated-react',
+        name: 'React',
+        category: 'Technical',
+        proficiency: 'intermediate',
+      }),
+      expect.objectContaining({
+        id: 'migrated-typescript',
+        name: 'TypeScript',
+        category: 'Technical',
+        proficiency: 'intermediate',
+      }),
     ]);
+  });
+
+  it('should treat empty candidate profile string as undefined', () => {
+    const result = UpdateMeDTO.safeParse({
+      candidateProfile: '   ',
+      name: 'Updated Name',
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.data?.candidateProfile).toBeUndefined();
+  });
+
+  it('should fail when candidate profile is invalid JSON text', () => {
+    const result = UpdateMeDTO.safeParse({
+      candidateProfile: '{"headline":"Missing quote}',
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it('should accept candidate profile when object payload is already parsed', () => {
+    const result = UpdateMeDTO.safeParse({
+      candidateProfile: {
+        headline: 'Backend Engineer',
+        skills: [],
+        experience: [],
+      },
+    });
+
+    expect(result.success).toBe(true);
   });
 });
