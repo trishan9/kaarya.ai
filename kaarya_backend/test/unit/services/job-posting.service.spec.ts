@@ -399,7 +399,10 @@ describe('JobPostingService', () => {
 
   it('should reject record view for invalid id', async () => {
     await expectApiError(
-      service.recordJobView('invalid'),
+      service.recordJobView(
+        { id: studentId, role: UserRole.STUDENT },
+        'invalid',
+      ),
       HttpStatus.BAD_REQUEST,
       JOB_MESSAGES.INVALID_ID,
     );
