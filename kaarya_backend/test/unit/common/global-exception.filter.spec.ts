@@ -84,6 +84,91 @@ describe('GlobalExceptionFilter', () => {
     );
   });
 
+  it('should handle HttpException with object string message', () => {
+    const filter = new GlobalExceptionFilter();
+    const { host, response } = createHost({ url: '/profile' });
+
+    filter.catch(
+      new HttpException(
+        { message: 'Validation failed.' },
+        HttpStatus.BAD_REQUEST,
+      ),
+      host,
+    );
+
+    expect(response.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+    const payload = response.json.mock.calls[0][0];
+    expect(payload).toEqual(
+      expect.objectContaining({
+        success: RESPONSE_STATUS.ERROR,
+        message: 'Validation failed.',
+        path: '/profile',
+      }),
+    );
+    expect(payload.errors).toBeUndefined();
+  });
+
+  it('should stringify non-string HttpException object message', () => {
+    const filter = new GlobalExceptionFilter();
+    const { host, response } = createHost();
+
+    filter.catch(
+      new HttpException(
+        { message: { code: 'E_VALIDATION' } },
+        HttpStatus.BAD_REQUEST,
+      ),
+      host,
+    );
+
+    expect(response.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+    const payload = response.json.mock.calls[0][0];
+    expect(payload).toEqual(
+      expect.objectContaining({
+        success: RESPONSE_STATUS.ERROR,
+        message: '[object Object]',
+        path: '/test',
+      }),
+    );
+    expect(payload.errors).toBeUndefined();
+  });
+
+  it('should preserve default message for non-string/non-object HttpException response', () => {
+    const filter = new GlobalExceptionFilter();
+    const { host, response } = createHost();
+
+    filter.catch(new HttpException(123 as never, HttpStatus.BAD_REQUEST), host);
+
+    expect(response.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+    const payload = response.json.mock.calls[0][0];
+    expect(payload).toEqual(
+      expect.objectContaining({
+        success: RESPONSE_STATUS.ERROR,
+        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+      }),
+    );
+    expect(payload.errors).toBeUndefined();
+  });
+
+  it('should keep default message when object response has no message field', () => {
+    const filter = new GlobalExceptionFilter();
+    const { host, response } = createHost();
+
+    filter.catch(
+      new HttpException({ errors: { field: 'required' } }, HttpStatus.BAD_REQUEST),
+      host,
+    );
+
+    expect(response.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+    const payload = response.json.mock.calls[0][0];
+    expect(payload).toEqual(
+      expect.objectContaining({
+        success: RESPONSE_STATUS.ERROR,
+        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        errors: { field: 'required' },
+      }),
+    );
+  });
+
   it('should prefer explicit errors payloads', () => {
     const filter = new GlobalExceptionFilter();
     const { host, response } = createHost();

@@ -15,6 +15,10 @@ jest.mock('pino', () => ({
 }));
 
 describe('PinoLoggerService', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should proxy log methods to pino', () => {
     const configService = {
       get: jest.fn((key: string) =>
@@ -46,5 +50,15 @@ describe('PinoLoggerService', () => {
     expect(logger.warn).toHaveBeenCalledWith({ context: 'ctx' }, 'warn');
     expect(logger.debug).toHaveBeenCalledWith({ context: 'ctx' }, 'debug');
     expect(logger.trace).toHaveBeenCalledWith({ context: 'ctx' }, 'trace');
+  });
+
+  it('should fallback to info level when config is missing', () => {
+    const configService = {
+      get: jest.fn(() => undefined),
+    } as unknown as ConfigService;
+
+    const service = new PinoLoggerService(configService);
+    expect(service.getLogger()).toBeDefined();
+    expect(pino).toHaveBeenCalledWith({ level: 'info' });
   });
 });
