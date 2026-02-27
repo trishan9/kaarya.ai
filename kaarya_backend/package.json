@@ -21,7 +21,7 @@
     "test:integration": "jest --config ./test/jest.integration.json",
     "test:all": "jest --config ./test/jest.all.json",
     "test:mocha": "mocha --config ./test/.mocharc.json",
-    "test:all:with-mocha": "npm run test:all"
+    "test:all:with-mocha": "npm run test:all && npm run test:mocha"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.29",
