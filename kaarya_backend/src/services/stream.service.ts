@@ -506,10 +506,6 @@ export class StreamService {
         await this.sleep(attempt * 180);
       }
     }
-
-    if (lastError) {
-      throw lastError;
-    }
   }
 
   private isChannelAlreadyExistsError(error: unknown) {
