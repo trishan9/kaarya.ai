@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTheme } from "next-themes";
 import { toast } from "sonner";
 import {
   Check,
@@ -166,9 +167,9 @@ export function AppSidebar({
   const searchParams = useSearchParams();
   const router = useRouter();
   const { open } = useSidebar();
+  const { resolvedTheme, setTheme } = useTheme();
   const { onLogOut, isLoggingOut } = useLogOut();
   const [searchQuery, setSearchQuery] = React.useState("");
-  const [theme, setTheme] = React.useState<"light" | "dark">("light");
   const [profileOpen, setProfileOpen] = React.useState(false);
   const [logoutOpen, setLogoutOpen] = React.useState(false);
   const [createWorkspaceOpen, setCreateWorkspaceOpen] = React.useState(false);
@@ -195,6 +196,7 @@ export function AppSidebar({
     user?.role === Role.COLLEGE;
   const showCollegeWorkspaceSwitcher =
     canUseCollegeWorkspaces && safeCollegeWorkspaces.length > 0;
+  const theme: "light" | "dark" = resolvedTheme === "light" ? "light" : "dark";
   const sidebarNavGroups = React.useMemo(
     () => getSidebarNavGroups(user?.role),
     [user?.role],
@@ -455,7 +457,7 @@ export function AppSidebar({
   return (
     <Sidebar
       collapsible="icon"
-      className="bg-neutral-100 border-none sticky top-0 left-0"
+      className="sticky left-0 top-0 border-r border-sidebar-border/80 bg-sidebar/95 backdrop-blur"
     >
       <SidebarHeader className="group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-2">
         <div className="flex w-full items-center gap-3 group-data-[state=collapsed]/sidebar:justify-center">
@@ -487,7 +489,7 @@ export function AppSidebar({
                       ? "Search college jobs..."
                       : "Quick search..."
                 }
-                className="h-9 rounded-lg border-sidebar-border bg-white pl-9 text-sm"
+                className="h-9 rounded-lg border-sidebar-border bg-card/80 pl-9 text-sm"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 onKeyDown={(event) => {
@@ -516,7 +518,7 @@ export function AppSidebar({
                       <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                       <Input
                         placeholder="Search dashboard..."
-                        className="h-9 rounded-lg border-sidebar-border bg-white pl-9 text-sm"
+                        className="h-9 rounded-lg border-sidebar-border bg-card/80 pl-9 text-sm"
                         value={searchQuery}
                         onChange={(event) => setSearchQuery(event.target.value)}
                         onKeyDown={(event) => {
@@ -567,7 +569,7 @@ export function AppSidebar({
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="outline"
-                        className="h-10 w-full justify-between rounded-lg border-[#d8dde4] bg-white px-3 text-sm"
+                        className="h-10 w-full justify-between rounded-lg border-sidebar-border bg-card/80 px-3 text-sm"
                       >
                         <span className="flex min-w-0 items-center gap-2">
                           <Avatar className="h-6 w-6 rounded-md">
@@ -664,7 +666,7 @@ export function AppSidebar({
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="outline"
-                        className="h-10 w-full justify-between rounded-lg border-[#d8dde4] bg-white px-3 text-sm"
+                        className="h-10 w-full justify-between rounded-lg border-sidebar-border bg-card/80 px-3 text-sm"
                       >
                         <span className="flex min-w-0 items-center gap-2">
                           <Avatar className="h-6 w-6 rounded-md">
@@ -829,7 +831,7 @@ export function AppSidebar({
       <SidebarFooter className="space-y-3 pt-4 group-data-[state=collapsed]/sidebar:space-y-2">
         {open ? (
           <>
-            <div className="flex items-center gap-3 rounded-xl bg-[#f0f0f0] px-3 py-3">
+            <div className="flex items-center gap-3 rounded-xl border border-sidebar-border/80 bg-sidebar-accent/70 px-3 py-3">
               <Avatar className="h-9 w-9">
                 <AvatarImage
                   src={user?.photo ?? ""}
@@ -902,14 +904,14 @@ export function AppSidebar({
               </Popover>
             </div>
 
-            <div className="flex items-center gap-2 bg-[#f0f0f0] rounded-lg p-1">
+            <div className="flex items-center gap-2 rounded-lg border border-sidebar-border/70 bg-sidebar-accent/60 p-1">
               <Button
                 variant={theme === "light" ? "outline" : "ghost"}
                 size="sm"
                 className={cn(
                   "h-9 flex-1 rounded-lg text-xs font-semibold",
                   theme === "light"
-                    ? "border-sidebar-border bg-white text-foreground"
+                    ? "border-sidebar-border bg-background text-foreground"
                     : "text-muted-foreground",
                 )}
                 aria-pressed={theme === "light"}
@@ -924,7 +926,7 @@ export function AppSidebar({
                 className={cn(
                   "h-9 flex-1 rounded-lg text-xs font-semibold",
                   theme === "dark"
-                    ? "border-sidebar-border bg-white text-foreground"
+                    ? "border-sidebar-border bg-background text-foreground"
                     : "text-muted-foreground",
                 )}
                 aria-pressed={theme === "dark"}
@@ -943,7 +945,7 @@ export function AppSidebar({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-10 w-10 rounded-full p-0 hover:bg-white/70"
+                    className="h-10 w-10 rounded-full p-0 hover:bg-sidebar-accent"
                   >
                     <Avatar className="h-9 w-9">
                       <AvatarImage
@@ -994,10 +996,8 @@ export function AppSidebar({
             <div className="rounded-xl bg-transparent p-0 flex items-center justify-center">
               <Button
                 variant="outline"
-                className="h-9 w-9 justify-center rounded-lg border-sidebar-border bg-white p-0 text-foreground hover:bg-white"
-                onClick={() =>
-                  setTheme((prev) => (prev === "light" ? "dark" : "light"))
-                }
+                className="h-9 w-9 justify-center rounded-lg border-sidebar-border bg-card p-0 text-foreground hover:bg-accent"
+                onClick={() => setTheme(theme === "light" ? "dark" : "light")}
                 aria-pressed={theme === "dark"}
               >
                 {theme === "light" ? (
