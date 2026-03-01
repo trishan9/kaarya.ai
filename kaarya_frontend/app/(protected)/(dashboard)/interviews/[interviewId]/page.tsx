@@ -86,8 +86,8 @@ export default async function InterviewDetailsPage({
   const analytics = analyticsResponse?.success ? analyticsResponse.data : null;
 
   return (
-    <div className="min-h-svh bg-neutral-100 p-2 sm:p-4 lg:pl-0 lg:p-5">
-      <div className="rounded-xl bg-white sm:rounded-2xl">
+    <div className="dashboard-stage">
+      <div className="dashboard-surface">
         <DashboardHeader
           title="Interview Details"
           actions={<OverviewHeaderActions />}
@@ -130,7 +130,7 @@ export default async function InterviewDetailsPage({
             </div>
           </div>
 
-          <section className="rounded-2xl border border-[#ececf0] bg-white p-4 sm:p-5 lg:p-6">
+          <section className="rounded-2xl border border-border bg-card p-4 sm:p-5 lg:p-6">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary">
                 {typeLabelByValue[interview.interviewType] ?? "Mixed"}
@@ -149,21 +149,21 @@ export default async function InterviewDetailsPage({
             </p>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <div className="rounded-xl border border-[#ececf0] p-3">
+              <div className="rounded-xl border border-border p-3">
                 <p className="text-xs text-muted-foreground">Role Focus</p>
                 <p className="text-sm font-medium text-foreground">{interview.role}</p>
               </div>
-              <div className="rounded-xl border border-[#ececf0] p-3">
+              <div className="rounded-xl border border-border p-3">
                 <p className="text-xs text-muted-foreground">Experience Level</p>
                 <p className="text-sm font-medium text-foreground">
                   {interview.level || "-"}
                 </p>
               </div>
-              <div className="rounded-xl border border-[#ececf0] p-3">
+              <div className="rounded-xl border border-border p-3">
                 <p className="text-xs text-muted-foreground">Question Count</p>
                 <p className="text-sm font-medium text-foreground">{interview.questionCount}</p>
               </div>
-              <div className="rounded-xl border border-[#ececf0] p-3">
+              <div className="rounded-xl border border-border p-3">
                 <p className="text-xs text-muted-foreground">Duration</p>
                 <p className="text-sm font-medium text-foreground">
                   {interview.durationMinutes} minutes
@@ -181,7 +181,7 @@ export default async function InterviewDetailsPage({
               </div>
             ) : null}
 
-            <div className="mt-4 rounded-xl border border-[#ececf0] p-3">
+            <div className="mt-4 rounded-xl border border-border p-3">
               <p className="text-xs text-muted-foreground">Interview Questions</p>
               <ul className="mt-2 space-y-2 text-sm text-foreground">
                 {Array.isArray(interview.questions) && interview.questions.length > 0 ? (
@@ -198,7 +198,7 @@ export default async function InterviewDetailsPage({
             </div>
           </section>
 
-          <section className="rounded-2xl border border-[#ececf0] bg-white p-4 sm:p-6">
+          <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
             <div className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-primary" />
               <h3 className="text-lg font-semibold text-foreground">Interview Metrics</h3>
@@ -213,14 +213,14 @@ export default async function InterviewDetailsPage({
                   <MetricCard label="Highest Score" value={`${analytics.summary?.highestScore ?? 0}/100`} />
                 </div>
 
-                <div className="mt-4 rounded-xl border border-[#ececf0] p-3">
+                <div className="mt-4 rounded-xl border border-border p-3">
                   <p className="text-sm font-semibold text-foreground">Recent Participants</p>
                   {Array.isArray(analytics.recentSessions) && analytics.recentSessions.length > 0 ? (
                     <div className="mt-3 space-y-2">
                       {analytics.recentSessions.map((row: any) => (
                         <div
                           key={row.id}
-                          className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#ececf0] p-2.5"
+                          className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-2.5"
                         >
                           <div>
                             <p className="text-sm font-medium text-foreground">
@@ -263,7 +263,7 @@ export default async function InterviewDetailsPage({
             )}
           </section>
 
-          <section className="rounded-2xl border border-[#ececf0] bg-white p-4 sm:p-6">
+          <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
             <div className="flex items-center gap-2">
               <FileText className="h-4 w-4 text-primary" />
               <h3 className="text-lg font-semibold text-foreground">My Attempts</h3>
@@ -281,7 +281,7 @@ export default async function InterviewDetailsPage({
                 {sessions.map((session) => (
                   <div
                     key={session.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#ececf0] p-3"
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border p-3"
                   >
                     <div>
                       <p className="text-sm font-medium text-foreground">
@@ -318,9 +318,11 @@ export default async function InterviewDetailsPage({
 
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-[#ececf0] p-3">
+    <div className="rounded-xl border border-border p-3">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="text-lg font-semibold text-foreground">{value}</p>
     </div>
   );
 }
+
+

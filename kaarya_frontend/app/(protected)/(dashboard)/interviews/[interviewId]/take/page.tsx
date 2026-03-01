@@ -70,8 +70,8 @@ export default async function TakeInterviewPage({
   }
 
   return (
-    <div className="min-h-svh bg-neutral-100 p-2 sm:p-4 lg:pl-0 lg:p-5">
-      <div className="rounded-xl bg-white sm:rounded-2xl">
+    <div className="dashboard-stage">
+      <div className="dashboard-surface">
         <DashboardHeader title="Take Interview" actions={<OverviewHeaderActions />} />
 
         <div className="space-y-4 px-3 pb-6 sm:space-y-5 sm:px-4 sm:pb-8">
@@ -174,3 +174,4 @@ function InfoChip({
     </div>
   );
 }
+
