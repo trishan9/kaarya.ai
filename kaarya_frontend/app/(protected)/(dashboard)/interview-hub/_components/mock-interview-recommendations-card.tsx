@@ -212,7 +212,7 @@ export function MockInterviewRecommendationsCard({
                   "h-9 cursor-pointer rounded-lg border px-3 text-sm transition-colors",
                   isActive
                     ? "border-primary bg-primary font-medium text-white"
-                    : "border-[#d8dde4] bg-white text-[#8f949e] hover:border-primary hover:text-primary",
+                    : "border-border bg-card text-[#8f949e] hover:border-primary hover:text-primary",
                 )}
               >
                 {tab}
@@ -228,7 +228,7 @@ export function MockInterviewRecommendationsCard({
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-9 rounded-lg border-[#d8dde4] bg-white px-3 text-sm font-medium text-muted-foreground hover:bg-white"
+                  className="h-9 rounded-lg border-border bg-card px-3 text-sm font-medium text-muted-foreground hover:bg-accent"
                 >
                   <ArrowDownUp className="h-4 w-4" />
                   {sortLabel}
@@ -264,7 +264,7 @@ export function MockInterviewRecommendationsCard({
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-9 rounded-lg border-[#d8dde4] bg-white px-3 text-sm font-medium text-muted-foreground hover:bg-white"
+                  className="h-9 rounded-lg border-border bg-card px-3 text-sm font-medium text-muted-foreground hover:bg-accent"
                 >
                   <SlidersHorizontal className="h-4 w-4" />
                   {filterLabel}
@@ -352,7 +352,7 @@ export function MockInterviewRecommendationsCard({
               />
             ))
           ) : (
-            <div className="rounded-xl border border-dashed border-[#d8dde4] p-6 text-sm text-muted-foreground md:col-span-2">
+            <div className="rounded-xl border border-dashed border-border p-6 text-sm text-muted-foreground md:col-span-2">
               {emptyMessage}
             </div>
           )}
@@ -365,3 +365,4 @@ export function MockInterviewRecommendationsCard({
     </section>
   );
 }
+
