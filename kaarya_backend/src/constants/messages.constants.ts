@@ -186,12 +186,6 @@ export const BOOKMARK_MESSAGES = {
   FORBIDDEN: 'Only candidate users can manage saved bookmarks.',
 } as const;
 
-export const JOB_MATCH_MESSAGES = {
-  PROCESSING: 'Job matching in progress.',
-  NO_MATCHES: 'No matching candidates found.',
-  NOTIFICATIONS_SENT: 'Match notifications sent successfully.',
-} as const;
-
 export const RESOURCE_MESSAGES = {
   NOT_FOUND: 'Resource course not found.',
   INVALID_ID: 'Invalid resource course id.',
