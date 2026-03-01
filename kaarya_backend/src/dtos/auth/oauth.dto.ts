@@ -27,7 +27,6 @@ export const OAuthCompleteLinkDTO = z.object({
   linkToken: z.string().trim().min(1, 'linkToken is required.'),
 });
 
-export type TOAuthProviderParamDTO = z.infer<typeof OAuthProviderParamDTO>;
 export type TOAuthAuthorizeQueryDTO = z.infer<typeof OAuthAuthorizeQueryDTO>;
 export type TOAuthCallbackQueryDTO = z.infer<typeof OAuthCallbackQueryDTO>;
 export type TOAuthExchangeDTO = z.infer<typeof OAuthExchangeDTO>;

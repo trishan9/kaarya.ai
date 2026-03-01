@@ -99,10 +99,6 @@ export const JobPostingQueryDTO = z.object({
   deadlineTo: optionalDate,
 });
 
-export const JobPostingIdParamDTO = z.object({
-  id: ObjectIdDTO,
-});
-
 export const JobMetricsQueryDTO = z.object({
   syncApplicationsCount: z.preprocess((value) => {
     if (value === undefined || value === null || value === '') {
@@ -118,5 +114,4 @@ export const JobMetricsQueryDTO = z.object({
 export type TCreateJobPostingDTO = z.infer<typeof CreateJobPostingDTO>;
 export type TUpdateJobPostingDTO = z.infer<typeof UpdateJobPostingDTO>;
 export type TJobPostingQueryDTO = z.infer<typeof JobPostingQueryDTO>;
-export type TJobPostingIdParamDTO = z.infer<typeof JobPostingIdParamDTO>;
 export type TJobMetricsQueryDTO = z.infer<typeof JobMetricsQueryDTO>;

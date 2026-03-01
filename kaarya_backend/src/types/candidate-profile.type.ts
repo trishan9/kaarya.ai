@@ -310,8 +310,6 @@ export type TCandidateCertificationItem = z.infer<
   typeof candidateCertificationItemSchema
 >;
 export type TCandidateSkillItem = z.infer<typeof candidateSkillItemSchema>;
-export type TSkillProofItem = z.infer<typeof skillProofItemSchema>;
-export type TSkillProficiency = (typeof skillProficiencyLevels)[number];
 
 export {
   candidateSkillItemSchema,
