@@ -391,30 +391,35 @@ export function ResourcesWorkspace({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-3xl border border-[#0f2f52] bg-linear-to-r from-[#02213d] via-[#06355d] to-[#0f5a91] p-6 text-white">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-2xl font-semibold sm:text-3xl">
-            Learning Resources
-          </h2>
-        </div>
+      <section className="relative overflow-hidden rounded-2xl bg-linear-to-r from-[#00629F]/80 to-[#00629F] px-4 py-8 text-white sm:px-8">
+        <div className="pointer-events-none absolute left-0 bottom-0 h-8 w-72 rounded-tr-2xl bg-white/10" />
+        <div className="pointer-events-none absolute right-0 top-0 h-12 w-48 rounded-bl-2xl rounded-tr-2xl bg-white/10" />
+        <div className="pointer-events-none absolute right-0 top-0 h-22 w-32 rounded-tr-2xl rounded-bl-2xl bg-white/10" />
 
-        <p className="mt-3 max-w-3xl text-sm text-white/90">
-          Build role-aligned learning resources and interview preparation tracks
-          with AI-generated chapter material.
-        </p>
+        <div className="relative z-10 space-y-5">
+          <div className="max-w-3xl space-y-2">
+            <h2 className="text-2xl font-semibold leading-tight">
+              Learning Resources
+            </h2>
+            <p className="max-w-2xl text-sm text-white/90">
+              Build role-aligned learning resources and interview preparation
+              tracks with AI-generated chapter material.
+            </p>
+          </div>
 
-        <div className="mt-4 grid gap-2 sm:grid-cols-3">
-          <StatChip label="My Resources" value={`${myCourses.length}`} />
-          <StatChip
-            label="Public Resources"
-            value={`${publicCourses.length}`}
-          />
-          <StatChip label="Total" value={`${allCourses.length}`} />
+          <div className="grid gap-3 sm:grid-cols-3">
+            <StatChip label="My Resources" value={`${myCourses.length}`} />
+            <StatChip
+              label="Public Resources"
+              value={`${publicCourses.length}`}
+            />
+            <StatChip label="Total" value={`${allCourses.length}`} />
+          </div>
         </div>
       </section>
 
       <div className="space-y-3">
-        <div className="flex flex-col gap-3 rounded-2xl border border-[#e6edf7] bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-2 sm:flex-row">
             <Input
               value={search}
@@ -455,7 +460,7 @@ export function ResourcesWorkspace({
         </TabsList>
 
         <TabsContent value="mine" className="space-y-3">
-          <p className="text-sm font-medium text-[#223f5f]">
+          <p className="text-sm font-medium text-foreground">
             {filteredMine.length} resources
           </p>
           <CourseGrid
@@ -470,7 +475,7 @@ export function ResourcesWorkspace({
         </TabsContent>
 
         <TabsContent value="public" className="space-y-3">
-          <p className="text-sm font-medium text-[#223f5f]">
+          <p className="text-sm font-medium text-foreground">
             {filteredPublic.length} resources
           </p>
           <CourseGrid
@@ -530,7 +535,7 @@ export function ResourcesWorkspace({
                   setGenerationMode(value as typeof generationMode)
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -545,7 +550,7 @@ export function ResourcesWorkspace({
                 value={level}
                 onValueChange={(value) => setLevel(value as typeof level)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -592,7 +597,7 @@ export function ResourcesWorkspace({
                   setVisibility(value as typeof visibility)
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -606,7 +611,7 @@ export function ResourcesWorkspace({
               <div className="space-y-2 sm:col-span-2">
                 <Label>Workspace</Label>
                 <Select value={workspaceId} onValueChange={setWorkspaceId}>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue
                       placeholder={
                         role === Role.RECRUITER
@@ -719,71 +724,74 @@ function CourseGrid({
 }) {
   if (courses.length === 0) {
     return (
-      <Card className="rounded-2xl border border-dashed border-[#d6dde8] bg-white p-6 text-sm text-muted-foreground">
+      <Card className="rounded-2xl border border-dashed border-border bg-card p-6 text-sm text-muted-foreground">
         {emptyMessage}
       </Card>
     );
   }
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid gap-3 lg:grid-cols-2">
       {courses.map((course) => {
         const completion = completionByCourse[course.id] ?? 0;
         return (
           <Card
             key={course.id}
-            className="rounded-2xl border border-[#dce5f1] bg-white p-0"
+            className="rounded-2xl border border-border bg-card dark:bg-[#111824] p-0"
           >
-            <div className="space-y-3 p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#5f7592]">
+            <div className="space-y-2.5 p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                 Learning Resource
               </p>
-              <h3 className="line-clamp-2 text-2xl font-semibold text-foreground">
+              <h3 className="line-clamp-2 text-xl font-semibold leading-tight text-foreground">
                 {course.title}
               </h3>
-              <p className="line-clamp-3 text-base leading-8 text-slate-700">
+              <p className="line-clamp-2 text-sm leading-6 text-foreground">
                 {course.description ||
                   "AI-generated learning material aligned to your role context."}
               </p>
               <div className="flex flex-wrap gap-1.5">
-                <Badge className="border-0 bg-[#eaf4ff] text-[#0d5d9b] hover:bg-[#eaf4ff]">
+                <Badge className="border-0 bg-primary/15 text-xs text-primary hover:bg-primary/15">
                   {course.category}
                 </Badge>
-                <Badge variant="outline" className="capitalize">
+                <Badge variant="outline" className="text-xs capitalize">
                   {course.difficulty}
                 </Badge>
-                <Badge variant="outline" className="capitalize">
+                <Badge variant="outline" className="text-xs capitalize">
                   {course.generationMode === "learn"
                     ? "Learn"
                     : "Interview Prep"}
                 </Badge>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {course.targetRoles.slice(0, 3).map((targetRole) => (
+                {course.targetRoles.slice(0, 2).map((targetRole) => (
                   <Badge
                     key={targetRole}
                     variant="outline"
-                    className="bg-[#f8fbff]"
+                    className="bg-muted/35 text-xs"
                   >
                     {targetRole}
                   </Badge>
                 ))}
+                {course.targetRoles.length > 2 ? (
+                  <Badge variant="outline" className="bg-muted/35 text-xs">
+                    +{course.targetRoles.length - 2}
+                  </Badge>
+                ) : null}
               </div>
             </div>
 
-            <div className="space-y-3 border-t border-[#e4ebf6] bg-[#fbfdff] p-5">
+            <div className="space-y-2.5 border-t border-border bg-muted/30 p-4">
               <div className="flex items-center gap-3">
                 <Progress
                   value={completion}
-                  className="h-2.5 bg-[#dde8f5] [&_[data-slot=progress-indicator]]:bg-[#2de48a]"
+                  className="h-2 bg-muted [&_[data-slot=progress-indicator]]:bg-[#2de48a]"
                 />
-                <span className="text-sm font-medium text-[#355373]">
+                <span className="text-sm font-medium text-muted-foreground">
                   {completion}%
                 </span>
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2 text-sm text-slate-600">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <BookOpen className="h-4 w-4" />
                   {course.chapters.length} chapters
                 </div>
@@ -792,7 +800,7 @@ function CourseGrid({
                     "border-0",
                     course.visibility === "public"
                       ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100"
-                      : "bg-slate-100 text-slate-700 hover:bg-slate-100",
+                      : "bg-muted text-foreground hover:bg-muted",
                   )}
                 >
                   {course.visibility === "public" ? (
@@ -809,7 +817,7 @@ function CourseGrid({
                 <Button
                   asChild
                   variant="outline"
-                  className="h-10 min-w-36 border-[#c7d6e8] bg-white"
+                  className="h-9 min-w-32 border-border bg-card"
                 >
                   <Link href={`/resources/${course.id}`}>View Details</Link>
                 </Button>
@@ -870,9 +878,9 @@ function CourseGrid({
 
 function StatChip({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-white/20 bg-white/10 px-3 py-2">
-      <p className="text-xs text-white/85">{label}</p>
-      <p className="mt-0.5 text-sm font-semibold text-white">{value}</p>
+    <div className="rounded-xl border border-white/20 bg-white/10 px-3 py-2.5 backdrop-blur-sm">
+      <p className="text-xs text-white/80">{label}</p>
+      <p className="text-xl font-semibold leading-tight text-white">{value}</p>
     </div>
   );
 }
@@ -894,10 +902,13 @@ function TagChip({
         "rounded-md px-3 py-2 text-sm transition-colors",
         active
           ? "bg-[#072748] text-white"
-          : "bg-[#eef3fa] text-[#233f5d] hover:bg-[#e5edf8]",
+          : "bg-muted/40 text-foreground hover:bg-accent",
       )}
     >
       {label}
     </button>
   );
 }
+
+
+
