@@ -43,8 +43,8 @@ export default async function CreateInterviewPage() {
   }));
 
   return (
-    <div className="min-h-svh bg-neutral-100 p-2 sm:p-4 lg:pl-0 lg:p-5">
-      <div className="rounded-xl bg-white sm:rounded-2xl">
+    <div className="dashboard-stage">
+      <div className="dashboard-surface">
         <DashboardHeader
           title="Create Interview"
           actions={<OverviewHeaderActions />}
@@ -55,7 +55,7 @@ export default async function CreateInterviewPage() {
                 asChild
                 variant="outline"
                 size="icon"
-                className="h-9 w-9 rounded-md border-border bg-white text-muted-foreground shadow-sm hover:bg-white"
+                className="h-9 w-9 rounded-md border-border bg-card text-muted-foreground shadow-sm hover:bg-accent"
               >
                 <Link href="/interviews">
                   <ArrowLeft className="h-4 w-4" />
@@ -69,10 +69,10 @@ export default async function CreateInterviewPage() {
         <div className="space-y-4 px-3 pb-6 sm:space-y-5 sm:px-4 sm:pb-8">
           <section className="rounded-3xl bg-gradient-to-br from-[#0d6fae] to-[#084f7f] p-4 text-white shadow-[0_10px_35px_rgba(8,79,127,0.35)] sm:p-5 lg:p-6">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className="border-0 bg-white/15 text-white hover:bg-white/15">
+              <Badge className="border-0 bg-card/15 text-white hover:bg-accent/15">
                 AI-Powered Interview Creation
               </Badge>
-              <Badge className="border-0 bg-white/15 text-white hover:bg-white/15">
+              <Badge className="border-0 bg-card/15 text-white hover:bg-accent/15">
                 Voice Workflow
               </Badge>
             </div>
@@ -95,7 +95,7 @@ export default async function CreateInterviewPage() {
             candidatePhoto={currentUser?.photo ?? null}
           />
 
-          <details className="rounded-2xl border border-[#e5e9f0] bg-[#fafbfd] p-4 sm:p-5 lg:p-6">
+          <details className="rounded-2xl border border-border bg-muted/30 p-4 sm:p-5 lg:p-6">
             <summary className="cursor-pointer text-sm font-medium text-foreground sm:text-base">
               Advanced fallback: create interview manually
             </summary>
@@ -124,9 +124,11 @@ function InfoChip({
   value: string;
 }) {
   return (
-    <div className="rounded-xl border border-white/20 bg-white/10 px-3 py-2">
+    <div className="rounded-xl border border-white/20 bg-card/10 px-3 py-2">
       <p className="text-xs text-white/85">{label}</p>
       <p className="mt-0.5 text-sm font-semibold leading-tight text-white">{value}</p>
     </div>
   );
 }
+
+
