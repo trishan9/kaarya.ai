@@ -130,7 +130,7 @@ export function CollegeSettingsPanel({
   return (
     <div className="grid gap-4 xl:grid-cols-[380px_minmax(0,1fr)]">
       <div className="space-y-4">
-        <Card className="gap-4 rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5">
+        <Card className="gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
           <div className="space-y-1">
             <h2 className="text-lg font-semibold">College Profile</h2>
             <p className="text-sm text-muted-foreground">
@@ -142,7 +142,7 @@ export function CollegeSettingsPanel({
             <FieldGroup>
               <Field>
                 <FieldLabel>College Logo</FieldLabel>
-                <div className="flex items-center gap-3 rounded-xl border border-[#ececf0] bg-neutral-50 p-3">
+                <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-3">
                   <Avatar className="h-14 w-14 rounded-xl">
                     <AvatarImage
                       src={logoPreview ?? ""}
@@ -250,7 +250,7 @@ export function CollegeSettingsPanel({
           </form>
         </Card>
 
-        <Card className="gap-4 rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5">
+        <Card className="gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
           <div className="space-y-1">
             <h2 className="text-lg font-semibold">Student Access</h2>
             <p className="text-sm text-muted-foreground">
@@ -258,7 +258,7 @@ export function CollegeSettingsPanel({
             </p>
           </div>
 
-          <div className="rounded-xl border border-dashed border-[#d8dde4] bg-neutral-50 p-3">
+          <div className="rounded-xl border border-dashed border-border bg-muted/40 p-3">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
               Invite Code
             </p>
@@ -380,7 +380,7 @@ export function CollegeSettingsPanel({
       </div>
 
       <div className="space-y-4">
-        <Card className="gap-3 rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5">
+        <Card className="gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
           <div className="flex items-center justify-between gap-2">
             <h3 className="text-lg font-semibold">College Metrics</h3>
             <Badge variant="secondary">
@@ -388,25 +388,25 @@ export function CollegeSettingsPanel({
             </Badge>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-xl border border-[#ececf0] bg-neutral-50 p-3">
+            <div className="rounded-xl border border-border bg-muted/40 p-3">
               <p className="text-xs text-muted-foreground">Applications</p>
               <p className="text-xl font-semibold">
                 {statValue(summary?.applications)}
               </p>
             </div>
-            <div className="rounded-xl border border-[#ececf0] bg-neutral-50 p-3">
+            <div className="rounded-xl border border-border bg-muted/40 p-3">
               <p className="text-xs text-muted-foreground">Interviews</p>
               <p className="text-xl font-semibold">
                 {statValue(summary?.interviewScheduled)}
               </p>
             </div>
-            <div className="rounded-xl border border-[#ececf0] bg-neutral-50 p-3">
+            <div className="rounded-xl border border-border bg-muted/40 p-3">
               <p className="text-xs text-muted-foreground">Accepted</p>
               <p className="text-xl font-semibold">
                 {statValue(summary?.accepted)}
               </p>
             </div>
-            <div className="rounded-xl border border-[#ececf0] bg-neutral-50 p-3">
+            <div className="rounded-xl border border-border bg-muted/40 p-3">
               <p className="text-xs text-muted-foreground">Open Jobs</p>
               <p className="text-xl font-semibold">
                 {statValue(summary?.openCollegeJobs)}
@@ -415,7 +415,7 @@ export function CollegeSettingsPanel({
           </div>
         </Card>
 
-        <Card className="gap-4 rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5">
+        <Card className="gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
           <div className="flex items-center justify-between gap-2">
             <h3 className="text-lg font-semibold">Students</h3>
             <Badge variant="secondary">{members.length}</Badge>
@@ -440,7 +440,7 @@ export function CollegeSettingsPanel({
                 return (
                   <div
                     key={member.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#ececf0] bg-neutral-50 p-3"
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 p-3"
                   >
                     <div className="flex min-w-0 items-center gap-3">
                       <Avatar className="h-10 w-10">
@@ -478,3 +478,4 @@ export function CollegeSettingsPanel({
     </div>
   );
 }
+
