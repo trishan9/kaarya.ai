@@ -32,14 +32,14 @@ export function JobCompanyOverviewCard({
   logoClassName,
 }: JobCompanyOverviewCardProps) {
   return (
-    <Card className="gap-4 rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5">
+    <Card className="gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm dark:bg-[#111824] dark:shadow-none sm:p-5">
       <h3 className="text-2xl font-semibold text-foreground">{title}</h3>
 
       <div className="flex items-center gap-3">
         <div
           className={cn(
             "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-lg font-bold",
-            logoUrl ? "bg-white p-1 text-transparent" : "bg-primary text-white",
+            logoUrl ? "bg-background p-1 text-transparent" : "bg-primary text-white",
             logoClassName,
           )}
         >
@@ -64,10 +64,10 @@ export function JobCompanyOverviewCard({
       </div>
 
       <div className="flex flex-wrap gap-2 text-xs">
-        <span className="rounded-md bg-neutral-100 px-2.5 py-1 font-medium text-foreground">
+        <span className="rounded-md bg-muted px-2.5 py-1 font-medium text-foreground">
           {companyIndustry}
         </span>
-        <span className="rounded-md bg-neutral-100 px-2.5 py-1 font-medium text-foreground">
+        <span className="rounded-md bg-muted px-2.5 py-1 font-medium text-foreground">
           {companySize}
         </span>
       </div>
@@ -77,7 +77,7 @@ export function JobCompanyOverviewCard({
       <Button
         asChild
         variant="outline"
-        className="h-10 rounded-xl border-[#d8dde4] bg-[#e9f2fb] text-sm font-semibold text-primary hover:bg-[#deecfa]"
+        className="h-10 rounded-xl border-border bg-primary/15 text-sm font-semibold text-primary hover:bg-primary/20"
       >
         <Link href={profileHref}>{profileActionLabel}</Link>
       </Button>
