@@ -58,11 +58,11 @@ export default async function NewJobPage({ searchParams }: NewJobPageProps) {
   }
 
   return (
-    <div className="min-h-svh bg-neutral-100 p-2 sm:p-4 lg:pl-0 lg:p-5">
-      <div className="rounded-xl bg-white sm:rounded-2xl">
+    <div className="dashboard-stage">
+      <div className="dashboard-surface">
         <DashboardHeader title="Post New Job" />
         <div className="space-y-5 px-3 pb-6 sm:px-4 sm:pb-8">
-          <section className="rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5">
+          <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
             <div className="mb-4">
               <h2 className="text-lg font-semibold text-foreground">
                 {activeWorkspaceName ?? "Workspace"}
@@ -83,3 +83,5 @@ export default async function NewJobPage({ searchParams }: NewJobPageProps) {
     </div>
   );
 }
+
+
