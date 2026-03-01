@@ -56,7 +56,7 @@ export function OverviewHeaderActions() {
           <Button
             variant="outline"
             size="icon"
-            className="relative h-9 w-9 rounded-lg border-border bg-white text-muted-foreground"
+            className="relative h-9 w-9 rounded-lg border-border bg-card text-muted-foreground hover:bg-accent"
           >
             <Bell className="h-4 w-4" />
             {hasUnread ? (
@@ -86,7 +86,7 @@ export function OverviewHeaderActions() {
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            className="h-9 gap-2 rounded-lg border-border bg-white px-3 text-xs font-semibold text-foreground"
+            className="h-9 gap-2 rounded-lg border-border bg-card px-3 text-xs font-semibold text-foreground hover:bg-accent"
           >
             <CalendarDays className="h-4 w-4 text-muted-foreground" />
             {selectedDate.label}
@@ -128,9 +128,9 @@ export function OverviewHeaderActions() {
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="h-9 gap-2 rounded-lg border-border bg-white px-3 text-xs font-semibold text-foreground"
+            className="h-9 gap-2 rounded-lg border-border bg-card px-3 text-xs font-semibold text-foreground hover:bg-accent"
           >
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#0b67c2] text-[9px] font-semibold text-white">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[9px] font-semibold text-primary-foreground">
               {language.code}
             </span>
             {language.label}
@@ -147,7 +147,7 @@ export function OverviewHeaderActions() {
             >
               {option.label}
               {option.code === language.code ? (
-                <Check className="h-4 w-4 text-[#0b67c2]" />
+                <Check className="h-4 w-4 text-primary" />
               ) : null}
             </DropdownMenuItem>
           ))}

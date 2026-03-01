@@ -60,7 +60,7 @@ export function RatingCard({
 
   if (isHidden) {
     return (
-      <Card className="gap-3 border-border bg-white p-4 shadow-sm sm:p-5">
+      <Card className="gap-3 border-border bg-card p-4 shadow-sm dark:bg-[#111824] dark:shadow-none sm:p-5">
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="text-sm font-semibold text-foreground">
@@ -84,7 +84,7 @@ export function RatingCard({
   }
 
   return (
-    <Card className="min-w-0 gap-4 border-border bg-white p-4 shadow-sm sm:p-5">
+    <Card className="min-w-0 gap-4 border-border bg-card p-4 shadow-sm dark:bg-[#111824] dark:shadow-none sm:p-5">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-semibold text-foreground">{title}</h3>
@@ -113,8 +113,8 @@ export function RatingCard({
 
       <p className="text-xs text-muted-foreground">{description}</p>
 
-      <div className="rounded-xl bg-[#eef5fb] px-4 py-3 text-xs text-muted-foreground">
-        <div className="mb-1 text-sm font-semibold text-[#0b67c2]">
+      <div className="rounded-xl bg-primary/10 px-4 py-3 text-xs text-muted-foreground">
+        <div className="mb-1 text-sm font-semibold text-primary">
           {suggestionTitle}
         </div>
         <p>{suggestionBody}</p>
@@ -123,7 +123,7 @@ export function RatingCard({
       {showAction && actionLabel ? (
         <Button
           variant="outline"
-          className="h-9 w-full rounded-lg border-primary bg-[#E7F2F8] text-sm font-semibold text-primary hover:bg-[#E7F2F8]/90 hover:text-primary cursor-pointer"
+          className="h-9 w-full cursor-pointer rounded-lg border-primary bg-primary/15 text-sm font-semibold text-primary hover:bg-primary/20 hover:text-primary"
           onClick={() => router.push(actionHref)}
         >
           {actionLabel}
