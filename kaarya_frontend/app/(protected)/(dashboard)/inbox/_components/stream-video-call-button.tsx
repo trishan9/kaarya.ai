@@ -36,10 +36,10 @@ export function StreamVideoCallButton({
       size={iconOnly ? "icon" : "sm"}
       className={cn(
         iconOnly && variant === "ghost"
-          ? "h-8 w-8 rounded-full border-transparent text-slate-700 hover:bg-[#f3f5f8] hover:text-slate-900"
+          ? "h-8 w-8 rounded-full border-transparent text-foreground hover:bg-accent hover:text-foreground"
           : iconOnly
-            ? "h-8 w-8 rounded-full border-[#e2e8f0] bg-white hover:bg-primary/5"
-            : "h-8 rounded-full border-[#d7dff0] bg-white px-3 text-xs font-semibold text-slate-700 hover:bg-primary/5",
+            ? "h-8 w-8 rounded-full border-border bg-card hover:bg-primary/5"
+            : "h-8 rounded-full border-border bg-card px-3 text-xs font-semibold text-foreground hover:bg-primary/5",
       )}
       onClick={() => {
         if (!channel?.id) return;
@@ -59,4 +59,5 @@ export function StreamVideoCallButton({
     </Button>
   );
 }
+
 

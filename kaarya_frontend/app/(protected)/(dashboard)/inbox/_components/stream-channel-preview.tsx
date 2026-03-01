@@ -111,37 +111,37 @@ export function StreamChannelPreview({
       className={cn(
         "group mx-2 my-1 w-[calc(100%-1rem)] rounded-xl border px-3 py-2.5 text-left transition-all",
         active
-          ? "border-[#d2e2f9] bg-[#ecf4fe]"
-          : "border-transparent bg-transparent hover:border-[#e8edf4] hover:bg-[#f7f9fc] active:bg-[#ecf4fe]",
+          ? "border-primary/30 bg-primary/15"
+          : "border-transparent bg-transparent hover:border-border hover:bg-accent active:bg-primary/15",
       )}
     >
       <div className="flex items-start gap-3">
         <div className="relative">
-          <Avatar className="h-11 w-11 border border-[#e8edf3]">
+          <Avatar className="h-11 w-11 border border-border">
             <AvatarImage src={displayImage} alt={displayName} />
-            <AvatarFallback className="bg-slate-100 text-xs font-semibold text-slate-700">
+            <AvatarFallback className="bg-muted text-xs font-semibold text-foreground">
               {initialsFromName(displayName) || "CH"}
             </AvatarFallback>
           </Avatar>
           {otherMember?.online ? (
-            <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
+            <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-background" />
           ) : null}
         </div>
 
         <div className="min-w-0 flex-1 pt-0.5">
           <div className="flex items-start justify-between gap-2">
-            <p className="truncate text-[1.04rem] font-semibold leading-tight text-slate-900">
+            <p className="truncate text-[1.04rem] font-semibold leading-tight text-foreground">
               {displayName}
             </p>
-            <span className="shrink-0 text-xs text-slate-400">
+            <span className="shrink-0 text-xs text-muted-foreground">
               {formatTime(latestTimestamp)}
             </span>
           </div>
 
           <div className="mt-0.5 flex items-center justify-between gap-2">
-            <p className="line-clamp-1 text-sm text-slate-400">{preview}</p>
+            <p className="line-clamp-1 text-sm text-muted-foreground">{preview}</p>
             {unreadCount > 0 ? (
-              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#0b7dd7] px-1.5 text-[11px] font-semibold text-white">
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-semibold text-white">
                 {unreadCount > 99 ? "99+" : unreadCount}
               </span>
             ) : null}
@@ -151,3 +151,5 @@ export function StreamChannelPreview({
     </button>
   );
 }
+
+
