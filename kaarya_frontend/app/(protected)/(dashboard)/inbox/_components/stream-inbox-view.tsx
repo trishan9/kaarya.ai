@@ -132,10 +132,10 @@ export function StreamInboxView({
         <div
           className={cn(
             styles.streamInbox,
-            "grid h-full min-h-0 w-full gap-2 rounded-2xl bg-[#f5f5f6] p-2.5 lg:grid-cols-[320px_minmax(0,1fr)]",
+            "grid h-full min-h-0 w-full gap-2 rounded-2xl bg-muted/40 p-2.5 lg:grid-cols-[320px_minmax(0,1fr)]",
           )}
         >
-          <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-[#e7e9ee] bg-white">
+          <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-card dark:bg-[#111824]">
             <div className="px-3.5 pb-3.5 pt-3">
               <div className="grid grid-cols-2 gap-2">
                 <Button
@@ -145,8 +145,8 @@ export function StreamInboxView({
                   className={cn(
                     "h-9 rounded-lg border text-sm font-medium",
                     section === "inbox"
-                      ? "border-[#d8e0ec] bg-[#f7f9fc] text-slate-800"
-                      : "border-[#eceef3] bg-white text-slate-500 hover:bg-[#f7f9fc]",
+                      ? "border-border bg-accent text-foreground"
+                      : "border-border bg-card dark:bg-[#111824] text-muted-foreground hover:bg-accent",
                   )}
                 >
                   <Inbox className="mr-1.5 h-4 w-4" />
@@ -159,8 +159,8 @@ export function StreamInboxView({
                   className={cn(
                     "h-9 rounded-lg border text-sm font-medium",
                     section === "community"
-                      ? "border-[#d8e0ec] bg-[#f7f9fc] text-slate-800"
-                      : "border-[#eceef3] bg-white text-slate-500 hover:bg-[#f7f9fc]",
+                      ? "border-border bg-accent text-foreground"
+                      : "border-border bg-card dark:bg-[#111824] text-muted-foreground hover:bg-accent",
                   )}
                 >
                   <Users2 className="mr-1.5 h-4 w-4" />
@@ -170,19 +170,19 @@ export function StreamInboxView({
 
               <div className="mt-3 flex gap-2">
                 <div className="relative flex-1">
-                  <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
                     placeholder="Find message..."
-                    className="h-10 rounded-lg border-[#dfe4ec] bg-white pl-8 text-sm placeholder:text-slate-400"
+                    className="h-10 rounded-lg border-border bg-card dark:bg-[#111824] pl-8 text-sm placeholder:text-muted-foreground"
                   />
                 </div>
                 <Button
                   type="button"
                   variant="outline"
                   size="icon"
-                  className="h-10 w-10 rounded-lg border-[#dfe4ec] bg-white text-slate-500 hover:bg-[#f7f9fc]"
+                  className="h-10 w-10 rounded-lg border-border bg-card dark:bg-[#111824] text-muted-foreground hover:bg-accent"
                   aria-label="Conversation settings"
                 >
                   <SlidersHorizontal className="h-4 w-4" />
@@ -199,8 +199,8 @@ export function StreamInboxView({
                     className={cn(
                       "h-8 rounded-lg border text-sm font-medium capitalize",
                       conversationFilter === filterKey
-                        ? "border-transparent bg-[#0b7dd7] text-white hover:bg-[#0b7dd7]"
-                        : "border-[#d5dbe5] bg-white text-slate-500 hover:bg-[#f7f9fc]",
+                        ? "border-transparent bg-primary text-white hover:bg-primary"
+                        : "border-border bg-card dark:bg-[#111824] text-muted-foreground hover:bg-accent",
                     )}
                   >
                     {filterKey}
@@ -209,7 +209,7 @@ export function StreamInboxView({
               </div>
             </div>
 
-            <div className="min-h-0 flex-1 border-t border-[#eef1f5]">
+            <div className="min-h-0 flex-1 border-t border-border">
               <ChannelList
                 filters={channelFilters}
                 sort={defaultSort}
@@ -222,7 +222,7 @@ export function StreamInboxView({
               />
             </div>
           </div>
-          <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-[#e7e9ee] bg-white">
+          <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-card dark:bg-[#111824]">
             <ChannelWithVideoHeader
               videoEnabled={videoEnabled}
               videoApiKey={videoApiKey}
@@ -244,3 +244,6 @@ export function StreamInboxView({
     </StreamChatProvider>
   );
 }
+
+
+
