@@ -244,7 +244,7 @@ export function JobRecommendationsCard({
         {seeAllHref ? (
           <Link
             href={seeAllHref}
-            className="flex items-center gap-1 text-xs font-semibold text-[#0b67c2]"
+            className="flex items-center gap-1 text-xs font-semibold text-primary"
           >
             {seeAllLabel ?? "See All"}
             <ChevronRight className="h-4 w-4" />
@@ -267,7 +267,7 @@ export function JobRecommendationsCard({
                   "h-9 rounded-lg border px-3 text-sm transition-colors cursor-pointer",
                   isActive
                     ? "border-primary bg-primary font-medium text-white"
-                    : "border-[#d8dde4] bg-white text-muted-foreground hover:border-primary hover:text-primary",
+                    : "border-border bg-card text-muted-foreground hover:border-primary hover:text-primary",
                 )}
                 aria-pressed={isActive}
                 type="button"
@@ -285,7 +285,7 @@ export function JobRecommendationsCard({
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-9 rounded-lg border-[#d8dde4] bg-white px-3 text-sm font-medium text-muted-foreground hover:bg-white"
+                  className="h-9 rounded-lg border-border bg-card px-3 text-sm font-medium text-muted-foreground hover:bg-accent"
                 >
                   <ArrowUpDown className="h-4 w-4" />
                   {sortLabel}
@@ -323,7 +323,7 @@ export function JobRecommendationsCard({
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-9 rounded-lg border-[#d8dde4] bg-white px-3 text-sm font-medium text-muted-foreground hover:bg-white"
+                  className="h-9 rounded-lg border-border bg-card px-3 text-sm font-medium text-muted-foreground hover:bg-accent"
                 >
                   <SlidersHorizontal className="h-4 w-4" />
                   {filterLabel}
@@ -424,7 +424,7 @@ export function JobRecommendationsCard({
           ))}
         </div>
       ) : (
-        <div className="rounded-xl border border-dashed border-[#d8dde4] p-6 text-sm text-muted-foreground">
+        <div className="rounded-xl border border-dashed border-border/70 p-6 text-sm text-muted-foreground">
           {emptyMessage}
         </div>
       )}
@@ -438,7 +438,7 @@ export function JobRecommendationsCard({
   return (
     <Card
       className={cn(
-        "min-w-0 gap-4 rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5",
+        "min-w-0 gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm dark:bg-[#111824] dark:shadow-none sm:p-5",
         className,
       )}
     >
