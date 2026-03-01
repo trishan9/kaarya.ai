@@ -118,8 +118,8 @@ export default async function LeaderboardPage({
   };
 
   return (
-    <div className="min-h-svh  p-2 sm:p-4 lg:pl-0 lg:p-5">
-      <div className="rounded-xl bg-white/90 backdrop-blur-sm sm:rounded-2xl">
+    <div className="dashboard-stage">
+      <div className="dashboard-surface">
         <DashboardHeader title="Leaderboard" />
 
         <div className="space-y-4 px-3 pb-6 sm:px-4 sm:pb-8">
@@ -145,3 +145,6 @@ export default async function LeaderboardPage({
     </div>
   );
 }
+
+
+
