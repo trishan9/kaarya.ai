@@ -23,6 +23,7 @@ export type BlogArticle = {
   title: string;
   excerpt: string;
   categoryLabel: string;
+  coverImageSrc: string;
   coverGradient: string;
   authorName: string;
   authorAvatarFallback: string;
@@ -162,6 +163,7 @@ const BLOG_ARTICLE_SEEDS: BlogArticle[] = [
     excerpt:
       "Explore the rise of remote jobs and how you can evaluate remote roles with confidence before you apply.",
     categoryLabel: "Job Market Trends",
+    coverImageSrc: "/blog-covers/remote-work-opportunities.svg",
     coverGradient: "linear-gradient(130deg, #113b61 0%, #2b7198 55%, #5ca2c6 100%)",
     authorName: "Marleon Gazali",
     authorAvatarFallback: "MG",
@@ -179,6 +181,7 @@ const BLOG_ARTICLE_SEEDS: BlogArticle[] = [
     excerpt:
       "Considering a career switch? Learn practical ways to transition faster while lowering risk.",
     categoryLabel: "Career Advice",
+    coverImageSrc: "/blog-covers/career-change-transition.svg",
     coverGradient: "linear-gradient(130deg, #5c1212 0%, #9a2d2d 45%, #d96f5a 100%)",
     authorName: "Rheya Kim",
     authorAvatarFallback: "RK",
@@ -196,6 +199,7 @@ const BLOG_ARTICLE_SEEDS: BlogArticle[] = [
     excerpt:
       "Learn about hot technology roles companies are hiring for and the core skills they now expect.",
     categoryLabel: "Industry Insight",
+    coverImageSrc: "/blog-covers/in-demand-tech-jobs.svg",
     coverGradient: "linear-gradient(130deg, #10153a 0%, #153a8a 55%, #4ea4ff 100%)",
     authorName: "Joel Singh",
     authorAvatarFallback: "JS",
@@ -213,6 +217,7 @@ const BLOG_ARTICLE_SEEDS: BlogArticle[] = [
     excerpt:
       "Get practical strategies to differentiate your profile and improve your response rate from recruiters.",
     categoryLabel: "Job Search Tips",
+    coverImageSrc: "/blog-covers/stand-out-job-market.svg",
     coverGradient: "linear-gradient(130deg, #31353a 0%, #557487 55%, #9fb7c3 100%)",
     authorName: "Sophie Borel",
     authorAvatarFallback: "SB",
@@ -230,6 +235,7 @@ const BLOG_ARTICLE_SEEDS: BlogArticle[] = [
     excerpt:
       "Understand how AI is reshaping hiring, screening, and candidate preparation across industries.",
     categoryLabel: "Employment News",
+    coverImageSrc: "/blog-covers/ai-job-hunting-impact.svg",
     coverGradient: "linear-gradient(130deg, #24303f 0%, #4b5f72 55%, #8db4d0 100%)",
     authorName: "Nadia Ortega",
     authorAvatarFallback: "NO",
@@ -247,6 +253,7 @@ const BLOG_ARTICLE_SEEDS: BlogArticle[] = [
     excerpt:
       "Find out which sectors are expanding fastest and where the strongest entry opportunities are emerging.",
     categoryLabel: "Job Market Trends",
+    coverImageSrc: "/blog-covers/high-growth-industries.svg",
     coverGradient: "linear-gradient(130deg, #21414f 0%, #2e6f88 55%, #75b8ce 100%)",
     authorName: "Amelia Raj",
     authorAvatarFallback: "AR",
@@ -264,6 +271,7 @@ const BLOG_ARTICLE_SEEDS: BlogArticle[] = [
     excerpt:
       "Use structure, keywords, and metrics the right way so your resume passes both ATS and recruiter reviews.",
     categoryLabel: "Resume Building",
+    coverImageSrc: "/blog-covers/resume-that-gets-interviews.svg",
     coverGradient: "linear-gradient(130deg, #2f3647 0%, #5a6f95 55%, #a2b3d8 100%)",
     authorName: "Zain Khan",
     authorAvatarFallback: "ZK",
@@ -281,6 +289,7 @@ const BLOG_ARTICLE_SEEDS: BlogArticle[] = [
     excerpt:
       "Create meaningful professional relationships that result in referrals and high-quality opportunities.",
     categoryLabel: "Career Advice",
+    coverImageSrc: "/blog-covers/networking-strategies.svg",
     coverGradient: "linear-gradient(130deg, #49322d 0%, #87574b 55%, #d29d83 100%)",
     authorName: "Isha M.",
     authorAvatarFallback: "IM",
@@ -298,6 +307,7 @@ const BLOG_ARTICLE_SEEDS: BlogArticle[] = [
     excerpt:
       "Avoid common negotiation pitfalls and present compensation expectations with confidence.",
     categoryLabel: "Salary Guide",
+    coverImageSrc: "/blog-covers/salary-negotiation.svg",
     coverGradient: "linear-gradient(130deg, #283026 0%, #4f6e4d 55%, #95bc91 100%)",
     authorName: "Chris Lee",
     authorAvatarFallback: "CL",
@@ -316,6 +326,18 @@ const FALLBACK_GRADIENTS = [
   "linear-gradient(130deg, #493525 0%, #8a6141 55%, #ddb48f 100%)",
   "linear-gradient(130deg, #1e4f4f 0%, #3d8181 55%, #83c7c7 100%)",
   "linear-gradient(130deg, #453568 0%, #7b61b2 55%, #b7a0ea 100%)",
+];
+
+const FALLBACK_COVER_IMAGES = [
+  "/blog-covers/remote-work-opportunities.svg",
+  "/blog-covers/career-change-transition.svg",
+  "/blog-covers/in-demand-tech-jobs.svg",
+  "/blog-covers/stand-out-job-market.svg",
+  "/blog-covers/ai-job-hunting-impact.svg",
+  "/blog-covers/high-growth-industries.svg",
+  "/blog-covers/resume-that-gets-interviews.svg",
+  "/blog-covers/networking-strategies.svg",
+  "/blog-covers/salary-negotiation.svg",
 ];
 
 const FILTER_IDS = new Set<BlogFilterId>(
@@ -430,6 +452,7 @@ function buildFallbackArticle(articleId: string): BlogArticle {
     excerpt:
       "This article is generated from dynamic route data so API integration can replace mock content without changing the UI structure.",
     categoryLabel: "Career Insight",
+    coverImageSrc: FALLBACK_COVER_IMAGES[hash % FALLBACK_COVER_IMAGES.length],
     coverGradient: gradient,
     authorName: "Kaarya Editorial Team",
     authorAvatarFallback: "KE",
@@ -443,67 +466,54 @@ function buildFallbackArticle(articleId: string): BlogArticle {
   };
 }
 
-function findArticleById(articleId: string) {
-  return BLOG_ARTICLE_SEEDS.find((article) => article.id === articleId) ?? null;
-}
-
-function getRelatedArticle(currentArticle: BlogArticle) {
-  const relatedFromSameTag = BLOG_ARTICLE_SEEDS
-    .filter((candidate) => candidate.id !== currentArticle.id)
-    .filter((candidate) =>
-      candidate.tags.some((tag) => currentArticle.tags.includes(tag)),
-    )
-    .sort(compareByViewsDesc)[0];
-
-  if (relatedFromSameTag) {
-    return relatedFromSameTag;
-  }
-
-  return (
-    BLOG_ARTICLE_SEEDS.filter((candidate) => candidate.id !== currentArticle.id).sort(
-      compareByViewsDesc,
-    )[0] ?? BLOG_ARTICLE_SEEDS[0]
-  );
-}
-
 export async function getBlogsPageData({
   query,
   category,
-}: BlogsPageQuery): Promise<BlogsPageData> {
+}: BlogsPageQuery = {}): Promise<BlogsPageData> {
   const searchQuery = normalizeQuery(query);
   const selectedFilterId = resolveFilterId(category);
-
-  const queryMatched = BLOG_ARTICLE_SEEDS.filter((article) =>
+  const searchMatchedArticles = BLOG_ARTICLE_SEEDS.filter((article) =>
     includesQuery(article, searchQuery),
   );
+  const filteredArticles = applyFilter(searchMatchedArticles, selectedFilterId);
+  const categories: BlogCategoryPill[] = BLOG_CATEGORY_FILTERS.map((item) => ({
+    id: item.id,
+    label: item.label,
+    count: categoryCount(searchMatchedArticles, item.id),
+  }));
 
   return {
     hero: {
-      title: "Find the Latest Job Market Insights",
+      title: "Career Blogs & Insightful Articles",
       description:
-        "Search through our extensive collection of articles to discover expert advice, industry trends, and tips for navigating your career journey.",
-      searchPlaceholder: "Search blogs or articles...",
+        "Discover practical advice, market trends, and interview strategies curated for job seekers.",
+      searchPlaceholder: "Search article topic, author, or keyword...",
     },
     searchQuery,
     selectedFilterId,
-    categories: BLOG_CATEGORY_FILTERS.map((item) => ({
-      id: item.id,
-      label: item.label,
-      count: categoryCount(queryMatched, item.id),
-    })),
-    topArticles: [...BLOG_ARTICLE_SEEDS].sort(compareByViewsDesc).slice(0, 3),
-    articles: applyFilter(queryMatched, selectedFilterId),
+    categories,
+    topArticles: filteredArticles.slice(0, 3),
+    articles: filteredArticles,
   };
 }
 
 export async function getBlogDetailPageData(
   articleId: string,
 ): Promise<BlogDetailPageData> {
-  const article = findArticleById(articleId) ?? buildFallbackArticle(articleId);
+  const normalizedId = articleId.trim();
+  const article =
+    BLOG_ARTICLE_SEEDS.find((item) => item.id === normalizedId) ??
+    buildFallbackArticle(normalizedId || "career-growth-guide");
+
+  const relatedArticle =
+    applyFilter(
+      BLOG_ARTICLE_SEEDS.filter((item) => item.id !== article.id),
+      "most-viewed",
+    )[0] ?? article;
 
   return {
     article,
-    trendingTopics: TRENDING_TOPICS,
-    relatedArticle: getRelatedArticle(article),
+    trendingTopics: TRENDING_TOPICS.slice(0, 8),
+    relatedArticle,
   };
 }
