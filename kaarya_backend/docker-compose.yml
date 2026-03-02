@@ -1,54 +1,88 @@
 services:
-  maildev:
-    build:
-      context: .
-      dockerfile: maildev.Dockerfile
-    ports:
-      - ${MAIL_CLIENT_PORT}:1080
-      - ${MAIL_PORT}:1025
-
-  mongo:
-    image: mongo:8.0.15
-    restart: unless-stopped
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${DATABASE_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${DATABASE_PASSWORD}
-    volumes:
-      - mongo-data:/data/db
-    ports:
-      - '${DATABASE_PORT}:27017'
-    networks:
-      - backend
-
-  mongo-express:
-    image: mongo-express
-    restart: unless-stopped
-    ports:
-      - '8081:8081'
-    environment:
-      ME_CONFIG_BASICAUTH_USERNAME: ${DATABASE_USERNAME}
-      ME_CONFIG_BASICAUTH_PASSWORD: ${DATABASE_PASSWORD}
-      ME_CONFIG_MONGODB_URL: mongodb://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@mongo:${DATABASE_PORT}/
-    depends_on:
-      - mongo
-    networks:
-      - backend
-
   api:
     build:
       context: .
-      dockerfile: document.Dockerfile
+      dockerfile: Dockerfile
+    container_name: kaarya-api
     env_file:
       - .env
+    environment:
+      NODE_ENV: production
+      APP_PORT: ${APP_PORT:-3000}
+      OTEL_ENABLED: 'true'
+      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-kaarya-backend}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
     ports:
-      - '${APP_PORT}:${APP_PORT}'
+      - '${APP_PORT:-3000}:${APP_PORT:-3000}'
     depends_on:
-      - mongo
+      otel-collector:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - backend
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.117.0
+    container_name: kaarya-otel-collector
+    command: ['--config=/etc/otelcol-contrib/config.yaml']
+    volumes:
+      - ./observability/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro
+    ports:
+      - '4317:4317'
+      - '4318:4318'
+      - '9464:9464'
+    depends_on:
+      - jaeger
+    restart: unless-stopped
+    networks:
+      - backend
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.65.0
+    container_name: kaarya-jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: 'true'
+    ports:
+      - '16686:16686'
+    restart: unless-stopped
+    networks:
+      - backend
+
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    container_name: kaarya-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - '9090:9090'
+    depends_on:
+      - otel-collector
+    restart: unless-stopped
+    networks:
+      - backend
+
+  grafana:
+    image: grafana/grafana:11.5.2
+    container_name: kaarya-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - '3003:3000'
+    depends_on:
+      - prometheus
+    restart: unless-stopped
     networks:
       - backend
 
 volumes:
-  mongo-data:
+  grafana-data:
 
 networks:
   backend:
