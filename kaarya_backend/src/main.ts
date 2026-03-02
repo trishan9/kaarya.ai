@@ -1,3 +1,4 @@
+import './monitoring/opentelemetry';
 import {
   ClassSerializerInterceptor,
   ValidationPipe,
