@@ -15,6 +15,7 @@ import validationOptions from './utils/validation-options';
 import { ResolvePromisesInterceptor } from './utils/serializer.interceptor';
 import { AllConfigType } from './types/config.type';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
+import { HttpObservabilityInterceptor } from './monitoring/http-observability.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -46,6 +47,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe(validationOptions));
 
   app.useGlobalInterceptors(
+    new HttpObservabilityInterceptor(app.get(PinoLoggerService)),
     // ResolvePromisesInterceptor is used to resolve promises in responses because class-transformer can't do it
     // https://github.com/typestack/class-transformer/issues/549
     new ResolvePromisesInterceptor(),
