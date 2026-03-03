@@ -1,0 +1,78 @@
+services:
+  api:
+    environment:
+      OTEL_ENABLED: 'true'
+      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-kaarya-backend}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+    depends_on:
+      otel-collector:
+        condition: service_started
+    networks:
+      - backend
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.117.0
+    container_name: kaarya-otel-collector
+    command: ['--config=/etc/otelcol-contrib/config.yaml']
+    volumes:
+      - ./observability/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro
+    ports:
+      - '4317:4317'
+      - '4318:4318'
+      - '9464:9464'
+    depends_on:
+      - jaeger
+    restart: unless-stopped
+    networks:
+      - backend
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.65.0
+    container_name: kaarya-jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: 'true'
+    ports:
+      - '16686:16686'
+    restart: unless-stopped
+    networks:
+      - backend
+
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    container_name: kaarya-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - '9090:9090'
+    depends_on:
+      - otel-collector
+    restart: unless-stopped
+    networks:
+      - backend
+
+  grafana:
+    image: grafana/grafana:11.5.2
+    container_name: kaarya-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - '3003:3000'
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - backend
+
+volumes:
+  grafana-data:
+
+networks:
+  backend:
+    driver: bridge
