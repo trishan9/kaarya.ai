@@ -4,6 +4,8 @@ services:
       OTEL_ENABLED: 'true'
       OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-kaarya-backend}
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      OTEL_METRIC_EXPORT_INTERVAL_MS: ${OTEL_METRIC_EXPORT_INTERVAL_MS:-10000}
+      OTEL_DIAG_LOG_LEVEL: ${OTEL_DIAG_LOG_LEVEL:-info}
     depends_on:
       otel-collector:
         condition: service_started
@@ -45,6 +47,7 @@ services:
       - '--storage.tsdb.path=/prometheus'
     volumes:
       - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./observability/prometheus-alerts.yml:/etc/prometheus/alerts.yml:ro
     ports:
       - '9090:9090'
     depends_on:
@@ -62,6 +65,7 @@ services:
     volumes:
       - grafana-data:/var/lib/grafana
       - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/etc/grafana/dashboards:ro
     ports:
       - '3003:3000'
     depends_on:
