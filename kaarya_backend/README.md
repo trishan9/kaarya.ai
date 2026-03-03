@@ -57,53 +57,6 @@ $ bun run test:e2e
 $ bun run test:cov
 ```
 
-## OpenTelemetry monitoring
-
-The backend now includes OpenTelemetry auto-instrumentation (HTTP, Nest, MongoDB, and other Node integrations).
-
-Set these environment variables to enable export:
-
-```bash
-OTEL_ENABLED=true
-OTEL_SERVICE_NAME=kaarya-backend
-OTEL_SERVICE_VERSION=0.0.1
-OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
-# Optional overrides:
-# OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://localhost:4318/v1/traces
-# OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://localhost:4318/v1/metrics
-```
-
-If `OTEL_ENABLED=true` and OTLP endpoints are configured, traces and metrics are exported over OTLP/HTTP.
-
-## Docker deployment + observability
-
-The repository includes:
-
-- `Dockerfile` for production image builds
-- `docker-compose.yml` for full local stack orchestration
-- OpenTelemetry Collector + Jaeger + Prometheus + Grafana
-
-### Run the full stack
-
-```bash
-docker compose up -d --build
-```
-
-### Services
-
-- API: `http://localhost:3000`
-- Jaeger (traces): `http://localhost:16686`
-- Prometheus: `http://localhost:9090`
-- Grafana (metrics): `http://localhost:3003` (default `admin/admin`)
-
-This compose setup assumes you are using cloud MongoDB and cloud Redis from your `.env`.
-
-### Stop everything
-
-```bash
-docker compose down
-```
-
 ## GitHub Actions deploy to Azure VM
 
 Workflow file:
@@ -113,7 +66,7 @@ Workflow file:
 It runs on each push to `main` (for backend changes) and:
 
 1. Copies `kaarya_backend` to your Azure VM over SSH.
-2. Runs `docker compose up -d --build --remove-orphans` on the VM.
+2. Brings up the backend Docker stack on the VM.
 
 Required GitHub repository secrets:
 
