@@ -6,58 +6,40 @@ import { Container } from "./Container";
 export function Hero() {
   return (
     <div className="relative overflow-hidden">
-      {/* Soft ambient gradient */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_60%_at_50%_0%,rgba(99,130,255,0.08)_0%,transparent_100%)]" />
 
-      {/* Left decorative cluster */}
       <div className="pointer-events-none absolute left-0 top-0 hidden w-80 lg:block">
-        {/* Gradient blob */}
         <div className="absolute -left-12 top-20 h-64 w-64 rounded-full bg-primary/[0.04] blur-2xl" />
-        {/* Ring */}
         <div className="absolute -left-16 top-28 h-48 w-48 rounded-full border border-primary/[0.06]" />
-        {/* Small filled dot */}
         <div className="absolute left-32 top-20 h-2.5 w-2.5 rounded-full bg-primary/15" />
-        {/* Dashed circle */}
         <div className="absolute left-14 top-80 h-16 w-16 rounded-full border border-dashed border-slate-200/70" />
-        {/* Dots cluster */}
         <div className="absolute left-44 top-56 h-1.5 w-1.5 rounded-full bg-slate-300/80" />
         <div className="absolute left-48 top-60 h-1 w-1 rounded-full bg-slate-300/50" />
         <div className="absolute left-42 top-62 h-1 w-1 rounded-full bg-slate-300/50" />
-        {/* Curvy line */}
         <svg className="absolute left-2 top-[400px] text-slate-200/80" width="140" height="60" fill="none">
           <path d="M0 30Q35 0 70 30T140 30" stroke="currentColor" strokeWidth="1" />
         </svg>
-        {/* Cross accent */}
         <svg className="absolute left-36 top-[340px] text-primary/10" width="16" height="16" fill="none">
           <path d="M8 0v16M0 8h16" stroke="currentColor" strokeWidth="1.5" />
         </svg>
       </div>
 
-      {/* Right decorative cluster */}
       <div className="pointer-events-none absolute right-0 top-0 hidden w-80 lg:block">
-        {/* Gradient blob */}
         <div className="absolute -right-12 top-32 h-56 w-56 rounded-full bg-blue-400/[0.04] blur-2xl" />
-        {/* Ring */}
         <div className="absolute -right-12 top-36 h-40 w-40 rounded-full border border-blue-400/[0.06]" />
-        {/* Small filled dot */}
         <div className="absolute right-36 top-24 h-3 w-3 rounded-full bg-primary/10" />
-        {/* Dashed circle */}
         <div className="absolute right-20 top-[340px] h-14 w-14 rounded-full border border-dashed border-slate-200/70" />
-        {/* Dots */}
         <div className="absolute right-48 top-64 h-1.5 w-1.5 rounded-full bg-slate-300/80" />
         <div className="absolute right-52 top-68 h-1 w-1 rounded-full bg-slate-300/50" />
-        {/* Curvy line */}
         <svg className="absolute right-2 top-[440px] text-slate-200/80" width="140" height="60" fill="none">
           <path d="M0 30Q35 60 70 30T140 30" stroke="currentColor" strokeWidth="1" />
         </svg>
-        {/* Diamond accent */}
         <svg className="absolute right-40 top-[290px] text-primary/10" width="14" height="14" fill="none">
           <path d="M7 0L14 7L7 14L0 7Z" stroke="currentColor" strokeWidth="1.2" />
         </svg>
       </div>
 
       <Container className="relative pb-24 pt-20 text-center lg:pt-32">
-        {/* Headline */}
         <h1 className="animate-fade-in-up mx-auto max-w-4xl text-4xl font-semibold tracking-tight text-slate-900 sm:text-6xl lg:text-7xl">
           Your career,{" "}
           <span className="relative whitespace-nowrap">
@@ -74,13 +56,12 @@ export function Hero() {
           managed by Kaarya.
         </h1>
 
-        {/* Subtitle */}
         <p className="animate-fade-in-up animation-delay-150 mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-slate-500">
-          From smart resumes to job matching and interview prep — everything you
-          need to land your dream role, in one place.
+          Candidates start free, unlock Pro for unlimited interview practice,
+          and recruiters or colleges get full platform access in their own
+          workspaces.
         </p>
 
-        {/* CTA */}
         <div className="animate-fade-in-up animation-delay-300 mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Button asChild size="lg" className="group px-8 text-base">
             <Link href="/sign-up">
@@ -97,40 +78,37 @@ export function Hero() {
             </Link>
           </Button>
           <Button asChild variant="outline" size="lg" className="text-base">
-            <Link href="#features">See how it works</Link>
+            <Link href="#pricing">See pricing</Link>
           </Button>
         </div>
 
-        {/* Social proof strip */}
         <div className="animate-fade-in animation-delay-500 mx-auto mt-20 flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
           <span className="text-xs font-medium uppercase tracking-widest text-slate-400">
-            Trusted by teams at
+            Trusted by candidates, recruiters, and colleges
           </span>
-          {["Google", "Microsoft", "Amazon", "Infosys", "TCS"].map(
-            (company) => (
-              <span
-                key={company}
-                className="text-base font-semibold text-slate-300 transition-colors duration-200 hover:text-slate-400"
-              >
-                {company}
-              </span>
-            )
-          )}
+          {["Google", "Microsoft", "Amazon", "Infosys", "TCS"].map((company) => (
+            <span
+              key={company}
+              className="text-base font-semibold text-slate-300 transition-colors duration-200 hover:text-slate-400"
+            >
+              {company}
+            </span>
+          ))}
         </div>
 
-        {/* Dashboard preview */}
         <div className="animate-fade-in-up animation-delay-700 relative mx-auto mt-16 max-w-5xl">
           <div className="absolute -inset-x-8 -top-8 bottom-0 rounded-3xl bg-linear-to-b from-primary/6 to-transparent" />
           <div className="relative overflow-hidden rounded-xl border border-slate-200/60 shadow-xl shadow-slate-900/5">
             <Image
               src="/Overview.png"
-              alt="Kaarya Dashboard"
+              alt="Kaarya dashboard overview"
               width={1920}
               height={1080}
+              unoptimized
               className="w-full"
               priority
+              sizes="(max-width: 1280px) 100vw, 1200px"
             />
-            {/* Bottom fade to smooth into next section */}
             <div className="absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-white to-transparent" />
           </div>
         </div>
