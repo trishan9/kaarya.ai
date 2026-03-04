@@ -642,16 +642,18 @@ export function MyInterviewsBoard({
                                 ? `${attempt.score}/100`
                                 : "-/100"}
                             </Badge>
-                            <Button asChild variant="outline" className="h-7 rounded-md px-2 text-xs">
-                              <Link
-                                href={withReturnTo(
-                                  `/interviews/sessions/${attempt.id}/feedback`,
-                                  "/interviews",
-                                )}
-                              >
-                                Feedback
-                              </Link>
-                            </Button>
+                            {typeof attempt.score === "number" ? (
+                              <Button asChild variant="outline" className="h-7 rounded-md px-2 text-xs">
+                                <Link
+                                  href={withReturnTo(
+                                    `/interviews/sessions/${attempt.id}/feedback`,
+                                    "/interviews",
+                                  )}
+                                >
+                                  Feedback
+                                </Link>
+                              </Button>
+                            ) : null}
                           </div>
                         </div>
                       ))}

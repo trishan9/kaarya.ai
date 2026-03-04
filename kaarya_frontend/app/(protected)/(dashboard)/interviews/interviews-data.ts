@@ -102,6 +102,12 @@ const toStackIcons = (techStack: string[]) =>
 const withReturnTo = (path: string, returnTo: string) =>
   `${path}${path.includes("?") ? "&" : "?"}returnTo=${encodeURIComponent(returnTo)}`;
 
+const resolveFeedbackSessionId = (interview: TInterview) => {
+  const evaluationSessionId = interview.myLatestEvaluation?.sessionId?.trim();
+  if (evaluationSessionId) return evaluationSessionId;
+  return null;
+};
+
 const toCreatedByMeCard = (
   interview: TInterview,
   options?: { canTakeInterview?: boolean; returnTo?: string },
@@ -110,29 +116,30 @@ const toCreatedByMeCard = (
   const isDraft = interview.status === "draft";
   const canTakeInterview = options?.canTakeInterview === true;
   const returnTo = options?.returnTo ?? "/interviews";
-  const hasLatestSession = Boolean(interview.myLatestSessionId);
+  const feedbackSessionId = resolveFeedbackSessionId(interview);
+  const hasLatestFeedback = Boolean(feedbackSessionId);
 
   const primaryActionLabel = canTakeInterview
-    ? hasLatestSession
+    ? hasLatestFeedback
       ? "Review Results"
       : "Take Interview"
     : isDraft
       ? "Continue Setup"
       : "View Interview";
   const primaryActionHref = canTakeInterview
-    ? hasLatestSession && interview.myLatestSessionId
-      ? withReturnTo(`/interviews/sessions/${interview.myLatestSessionId}/feedback`, returnTo)
+    ? hasLatestFeedback && feedbackSessionId
+      ? withReturnTo(`/interviews/sessions/${feedbackSessionId}/feedback`, returnTo)
       : withReturnTo(`/interviews/${interview.id}/take`, returnTo)
     : `/interviews/${interview.id}`;
   const secondaryActionLabel = canTakeInterview
-    ? hasLatestSession
+    ? hasLatestFeedback
       ? "Re-take"
       : undefined
     : isDraft
       ? undefined
       : "Edit";
   const secondaryActionHref = canTakeInterview
-    ? hasLatestSession
+    ? hasLatestFeedback
       ? withReturnTo(`/interviews/${interview.id}/take`, returnTo)
       : undefined
     : isDraft
@@ -151,7 +158,7 @@ const toCreatedByMeCard = (
     scoreLabel: "Your Score: -/100",
     scoreValue: null,
     description: canTakeInterview
-      ? hasLatestSession
+      ? hasLatestFeedback
         ? "Created by you and already attempted. Review feedback or retake to improve."
         : "Created by you. Start your own mock to validate question quality and flow."
       : isDraft
@@ -174,6 +181,8 @@ const toTakenByMeCard = (
 ): MockInterviewCardProps => {
   const company = toCompanyLabel(interview);
   const returnTo = options?.returnTo ?? "/interviews";
+  const feedbackSessionId = resolveFeedbackSessionId(interview);
+  const hasLatestFeedback = Boolean(feedbackSessionId);
   const scoreValue =
     typeof interview.myLatestScore === "number" ? interview.myLatestScore : null;
   const scoreLabel =
@@ -196,12 +205,14 @@ const toTakenByMeCard = (
     logoText: toLogoText(company),
     logoUrl: resolveInterviewLogoUrl(interview),
     stackTechnologies: toStackIcons(interview.techStack ?? []),
-    primaryActionLabel: "Review Results",
-    primaryActionHref: interview.myLatestSessionId
-      ? withReturnTo(`/interviews/sessions/${interview.myLatestSessionId}/feedback`, returnTo)
+    primaryActionLabel: hasLatestFeedback ? "Review Results" : "Take Interview",
+    primaryActionHref: feedbackSessionId
+      ? withReturnTo(`/interviews/sessions/${feedbackSessionId}/feedback`, returnTo)
       : withReturnTo(`/interviews/${interview.id}/take`, returnTo),
-    secondaryActionLabel: "Re-take",
-    secondaryActionHref: withReturnTo(`/interviews/${interview.id}/take`, returnTo),
+    secondaryActionLabel: hasLatestFeedback ? "Re-take" : undefined,
+    secondaryActionHref: hasLatestFeedback
+      ? withReturnTo(`/interviews/${interview.id}/take`, returnTo)
+      : undefined,
   };
 };
 
