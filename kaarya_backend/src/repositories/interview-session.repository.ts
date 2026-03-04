@@ -40,6 +40,11 @@ export abstract class ACInterviewSessionRepository {
   ): Promise<{ sessions: InterviewSessionSchemaDocument[]; total: number }>;
   abstract findInterviewIdsByUser(userId: string): Promise<string[]>;
   abstract countDistinctUsersByInterview(interviewId: string): Promise<number>;
+  abstract countByUserAndCreatedBetween(input: {
+    userId: string;
+    start: Date;
+    end: Date;
+  }): Promise<number>;
   abstract findLatestByUserAndInterviewIds(input: {
     userId: string;
     interviewIds: string[];
@@ -158,6 +163,24 @@ export class InterviewSessionRepository implements ACInterviewSessionRepository 
       interviewId: new Types.ObjectId(interviewId),
     });
     return rows.length;
+  }
+
+  async countByUserAndCreatedBetween(input: {
+    userId: string;
+    start: Date;
+    end: Date;
+  }): Promise<number> {
+    if (!input.userId) return 0;
+
+    return await this.interviewSessionModel
+      .countDocuments({
+        userId: new Types.ObjectId(input.userId),
+        createdAt: {
+          $gte: input.start,
+          $lte: input.end,
+        },
+      })
+      .exec();
   }
 
   async findLatestByUserAndInterviewIds(input: {

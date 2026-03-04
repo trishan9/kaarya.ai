@@ -28,12 +28,15 @@ import { InterviewStatus } from 'src/types/interview-status.enum';
 import { InterviewType } from 'src/types/interview-type.enum';
 import { InterviewVisibility } from 'src/types/interview-visibility.enum';
 import { UserRole } from 'src/types/user-role.enum';
+import { UserPlan } from 'src/types/user-plan.enum';
 import { CollegeService } from './college.service';
 import { InterviewAIService } from './interview-ai.service';
 import { RecruiterProfileService } from './recruiter-profile.service';
 import { StudentService } from './student.service';
 import { UserService } from './user.service';
 import { GamificationService } from './gamification.service';
+
+const FREE_MONTHLY_INTERVIEW_LIMIT = 5;
 
 @Injectable()
 export class InterviewService {
@@ -516,6 +519,43 @@ export class InterviewService {
         statusCode: HttpStatus.FORBIDDEN,
         message: INTERVIEW_MESSAGES.SESSION_ROLE_FORBIDDEN,
       });
+    }
+
+    const currentUserDoc = await this.userService.getUserByIdRaw(currentUser.id);
+    if (currentUserDoc.plan !== UserPlan.PRO) {
+      const now = new Date();
+      const monthStart = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        1,
+        0,
+        0,
+        0,
+        0,
+      );
+      const monthEnd = new Date(
+        now.getFullYear(),
+        now.getMonth() + 1,
+        0,
+        23,
+        59,
+        59,
+        999,
+      );
+
+      const monthlySessionCount =
+        await this.interviewSessionRepository.countByUserAndCreatedBetween({
+          userId: currentUser.id,
+          start: monthStart,
+          end: monthEnd,
+        });
+
+      if (monthlySessionCount >= FREE_MONTHLY_INTERVIEW_LIMIT) {
+        throw new ApiError({
+          statusCode: HttpStatus.FORBIDDEN,
+          message: INTERVIEW_MESSAGES.FREE_PLAN_LIMIT_REACHED,
+        });
+      }
     }
 
     const interview = await this.getInterviewByIdRaw(interviewId);
