@@ -139,9 +139,13 @@ const getInterviewRatingMeta = (rating: number) => {
 
 export default async function OverviewPage({
   searchParams,
-}: OverviewPageProps) {
+}: OverviewPageProps = {}) {
   const user = await getCurrentUser();
   const params = await searchParams;
+
+  if (!user) {
+    redirect("/sign-in");
+  }
 
   if (user?.role === Role.ADMIN) {
     redirect("/admin");
