@@ -36,7 +36,7 @@ type LeaderboardPageProps = {
 
 export default async function LeaderboardPage({
   searchParams,
-}: LeaderboardPageProps) {
+}: LeaderboardPageProps = {}) {
   const user = await getCurrentUser();
   if (!user) {
     redirect("/sign-in");
