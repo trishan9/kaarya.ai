@@ -10,6 +10,7 @@ import type {
   TCandidateSkillItem,
 } from 'src/types/candidate-profile.type';
 import { UserRole } from 'src/types/user-role.enum';
+import { UserPlan } from 'src/types/user-plan.enum';
 
 export type UserSchemaDocument = HydratedDocument<UserSchemaClass>;
 
@@ -22,6 +23,27 @@ type TCandidateProfileDocument = Omit<
   certifications?: TCandidateCertificationItem[];
   salary?: TCandidateSalary;
   skills?: TCandidateSkillItem[];
+};
+
+type TUserInvoiceDocument = {
+  id: string;
+  invoiceNumber: string;
+  transactionUuid: string;
+  amountNpr: number;
+  currency: 'NPR';
+  paymentProvider: 'stripe' | 'esewa';
+  status: 'paid' | 'failed' | 'refunded';
+  planFrom: UserPlan;
+  planTo: UserPlan;
+  issuedAt: Date;
+  paidAt: Date | null;
+};
+
+type TUserBillingDocument = {
+  autoRenew: boolean;
+  stripeCustomerId?: string | null;
+  invoices: TUserInvoiceDocument[];
+  updatedAt: Date | null;
 };
 
 @Schema({
@@ -203,6 +225,59 @@ export class UserSchemaClass {
     default: UserRole.USER,
   })
   role: UserRole;
+
+  @Prop({
+    type: String,
+    enum: Object.values(UserPlan),
+    default: UserPlan.FREE,
+    index: true,
+  })
+  plan: UserPlan;
+
+  @Prop({
+    type: {
+      autoRenew: { type: Boolean, default: false },
+      stripeCustomerId: { type: String, default: null },
+      invoices: {
+        type: [
+          {
+            _id: false,
+            id: { type: String, required: true },
+            invoiceNumber: { type: String, required: true },
+            transactionUuid: { type: String, required: true },
+            amountNpr: { type: Number, required: true },
+            currency: { type: String, default: 'NPR' },
+            paymentProvider: {
+              type: String,
+              enum: ['stripe', 'esewa'],
+              default: 'stripe',
+            },
+            status: {
+              type: String,
+              enum: ['paid', 'failed', 'refunded'],
+              default: 'paid',
+            },
+            planFrom: {
+              type: String,
+              enum: Object.values(UserPlan),
+              required: true,
+            },
+            planTo: {
+              type: String,
+              enum: Object.values(UserPlan),
+              required: true,
+            },
+            issuedAt: { type: Date, required: true },
+            paidAt: { type: Date, default: null },
+          },
+        ],
+        default: [],
+      },
+      updatedAt: { type: Date, default: null },
+    },
+    default: {},
+  })
+  billing?: TUserBillingDocument;
 
   @Prop({ default: now })
   createdAt: Date;
