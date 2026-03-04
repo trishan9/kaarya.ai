@@ -16,13 +16,22 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
-      className="toaster group"
+      className="toaster group font-[family-name:var(--font-grotesk)]"
       icons={{
         success: <CircleCheckIcon className="size-4" />,
         info: <InfoIcon className="size-4" />,
         warning: <TriangleAlertIcon className="size-4" />,
         error: <OctagonXIcon className="size-4" />,
         loading: <Loader2Icon className="size-4 animate-spin" />,
+      }}
+      toastOptions={{
+        classNames: {
+          toast: "font-[family-name:var(--font-grotesk)]",
+          title: "font-[family-name:var(--font-grotesk)]",
+          description: "font-[family-name:var(--font-grotesk)]",
+          actionButton: "font-[family-name:var(--font-grotesk)]",
+          cancelButton: "font-[family-name:var(--font-grotesk)]",
+        },
       }}
       style={
         {

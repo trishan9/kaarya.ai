@@ -287,7 +287,20 @@
   }
 
   .dashboard-surface {
-    @apply rounded-xl border border-transparent bg-white shadow-sm sm:rounded-2xl dark:border-[#1e2a38] dark:bg-[#0f141b] dark:shadow-none;
+    @apply rounded-xl border border-[#e2e2e2] bg-white pb-4 sm:rounded-2xl sm:pb-5 dark:border-[#1e2a38] dark:bg-[#0f141b];
+    min-height: calc(100svh - 1rem);
+  }
+
+  @media (min-width: 640px) {
+    .dashboard-surface {
+      min-height: calc(100svh - 2rem);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .dashboard-surface {
+      min-height: calc(100svh - 2.5rem);
+    }
   }
 }
 
