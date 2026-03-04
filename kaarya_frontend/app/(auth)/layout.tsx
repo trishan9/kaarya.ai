@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/dal";
-import kaaryaLogo from "@/assets/kaarya.png";
 import { FeatureCarousel } from "./_components/features-carousel";
 
 export default async function AuthLayout({
@@ -21,11 +20,12 @@ export default async function AuthLayout({
         <div className="flex min-h-full flex-col gap-6 p-4 md:p-10">
           <Link href="/" className="flex items-center gap-4 font-medium">
             <Image
-              src={kaaryaLogo}
-              width={100}
-              height={100}
-              alt="Image"
-              className="h-10 w-10 object-cover dark:brightness-[0.2] dark:grayscale"
+              src="/kaarya.svg"
+              width={40}
+              height={40}
+              alt="Kaarya"
+              unoptimized
+              className="h-10 w-10 object-contain"
             />
 
             <span className="text-3xl font-bold">Kaarya</span>
