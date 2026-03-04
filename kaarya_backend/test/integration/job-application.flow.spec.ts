@@ -24,6 +24,10 @@ describe('Job Application flow (integration)', () => {
   let collegeService: CollegeService;
   let jobPostingService: JobPostingService;
   let jobApplicationService: JobApplicationService;
+  const currentMonthKey = () => {
+    const now = new Date();
+    return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
+  };
 
   const toAuthUser = (
     user: { id: string; email: string | null },
@@ -181,7 +185,7 @@ describe('Job Application flow (integration)', () => {
     const summary = await jobApplicationService.getMyApplicationsSummary(
       studentAuth,
       {
-        month: '2026-02',
+        month: currentMonthKey(),
         statuses: ['applied'],
       } as never,
     );
