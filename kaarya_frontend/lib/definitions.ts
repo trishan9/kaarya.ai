@@ -135,11 +135,56 @@ export type TProfileRatingFull = TProfileRatingSummary & {
   sections: TProfileRatingSection[];
 };
 
+export type TUserPlan = "free" | "pro";
+
+export type TBillingPlanSnapshot = {
+  id: TUserPlan;
+  label: string;
+  monthlyPriceNpr: number;
+  monthlyInterviewLimit: number | null;
+};
+
+export type TBillingInvoice = {
+  id: string;
+  invoiceNumber: string;
+  transactionUuid: string;
+  amountNpr: number;
+  currency: "NPR";
+  paymentProvider: "stripe" | "esewa";
+  status: "paid" | "failed" | "refunded";
+  planFrom: TUserPlan;
+  planTo: TUserPlan;
+  issuedAt: string;
+  paidAt: string | null;
+};
+
+export type TBillingSummary = {
+  currentPlan: TUserPlan;
+  currentPlanLabel: string;
+  currentPlanPriceNpr: number;
+  nextPlan: TUserPlan | null;
+  nextPlanLabel: string | null;
+  nextPlanPriceNpr: number | null;
+  canUpgrade: boolean;
+  currency: "NPR";
+  usage: {
+    month: string;
+    interviewsUsed: number;
+    interviewsRemaining: number | null;
+  };
+  limits: {
+    monthlyInterviewLimit: number | null;
+  };
+  plans: TBillingPlanSnapshot[];
+  invoices: TBillingInvoice[];
+};
+
 export type TUser = {
   id: string;
   name: string;
   email?: string | null;
   role: Role;
+  plan?: TUserPlan;
   provider?: AuthProvider | null;
   linkedAccounts?: TLinkedAccount[];
   linkedProviders?: AuthProvider[];

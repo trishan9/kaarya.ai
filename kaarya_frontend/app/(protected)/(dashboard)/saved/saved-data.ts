@@ -83,6 +83,12 @@ function withReturnTo(path: string, returnTo: string) {
   return `${path}${path.includes("?") ? "&" : "?"}returnTo=${encodeURIComponent(returnTo)}`;
 }
 
+function resolveFeedbackSessionId(interview: TInterview) {
+  const evaluationSessionId = interview.myLatestEvaluation?.sessionId?.trim();
+  if (evaluationSessionId) return evaluationSessionId;
+  return null;
+}
+
 function mapSavedJobToCard(record: SavedJobRecord): JobCardProps {
   const job = record.job;
   const companyName = job.company?.name ?? job.college?.name ?? "Organization";
@@ -122,6 +128,8 @@ function mapSavedInterviewToCard(
 ): MockInterviewCardProps {
   const interview = record.interview;
   const attempted = Boolean(interview.myLatestSessionId);
+  const feedbackSessionId = resolveFeedbackSessionId(interview);
+  const hasFeedback = Boolean(feedbackSessionId);
   const scoreValue =
     typeof interview.myLatestScore === "number" ? interview.myLatestScore : null;
   const companyName =
@@ -143,19 +151,19 @@ function mapSavedInterviewToCard(
       ? `Your Score: ${scoreValue ?? "-"}/100`
       : "Your Score: -/100",
     scoreValue,
-    description: attempted
+    description: attempted && hasFeedback
       ? `Saved ${formatRelativeTime(record.savedAt, { style: "compact", fallback: "just now" })}. Review your previous attempt or retake to improve.`
       : `Saved ${formatRelativeTime(record.savedAt, { style: "compact", fallback: "just now" })}. Start this interview whenever you are ready.`,
     attemptStatus: attempted ? "attempted" : "not_attempted",
     logoText: companyInitials(companyName),
     logoUrl,
     stackTechnologies: [],
-    primaryActionLabel: attempted ? "Review Results" : "Take Interview",
-    primaryActionHref: attempted && interview.myLatestSessionId
-      ? withReturnTo(`/interviews/sessions/${interview.myLatestSessionId}/feedback`, "/saved")
+    primaryActionLabel: attempted && hasFeedback ? "Review Results" : "Take Interview",
+    primaryActionHref: attempted && feedbackSessionId
+      ? withReturnTo(`/interviews/sessions/${feedbackSessionId}/feedback`, "/saved")
       : withReturnTo(`/interviews/${interview.id}/take`, "/saved"),
-    secondaryActionLabel: attempted ? "Re-take" : undefined,
-    secondaryActionHref: attempted
+    secondaryActionLabel: attempted && hasFeedback ? "Re-take" : undefined,
+    secondaryActionHref: attempted && hasFeedback
       ? withReturnTo(`/interviews/${interview.id}/take`, "/saved")
       : undefined,
     isBookmarked: true,
