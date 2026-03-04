@@ -30,7 +30,9 @@ const resolveInitialTab = (value?: string) => {
   return "profile";
 };
 
-export default async function SettingsPage({ searchParams }: SettingsPageProps) {
+export default async function SettingsPage(
+  { searchParams }: SettingsPageProps = {},
+) {
   const query = await searchParams;
   const tab = resolveInitialTab(query?.tab);
   const user = await getCurrentUser();
