@@ -1,17 +1,21 @@
 "use client";
 
 import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { logout } from "@/lib/actions/auth-action";
 
 export const useLogOut = () => {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   async function onLogOut() {
     startTransition(async () => {
       try {
         await logout();
-        window.location.replace("/sign-in");
+        toast.success("Successfully logged out.");
+        router.replace("/sign-in");
+        router.refresh();
       } catch (error: Error | any) {
         const errorMessage =
           error?.response?.data?.message ||
