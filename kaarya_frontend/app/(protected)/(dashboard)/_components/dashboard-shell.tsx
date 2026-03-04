@@ -29,7 +29,9 @@ export function DashboardShell({
           recruiterWorkspaces={recruiterWorkspaces}
           collegeWorkspaces={collegeWorkspaces}
         />
-        <SidebarInset className="min-h-svh">{children}</SidebarInset>
+        <SidebarInset className="min-h-svh">
+          {children}
+        </SidebarInset>
       </div>
     </SidebarProvider>
   );
