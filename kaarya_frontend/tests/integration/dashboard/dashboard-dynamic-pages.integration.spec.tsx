@@ -458,6 +458,20 @@ describe("Dashboard dynamic pages integration", () => {
     );
     expect(screen.getByText("Interview Feedback")).toBeInTheDocument();
 
+    getInterviewSessionFeedbackMock.mockResolvedValueOnce({
+      success: false,
+      message: "Interview feedback not found.",
+    });
+    render(
+      await SessionFeedbackPage({
+        params: Promise.resolve({ sessionId: "session-missing-eval" }),
+        searchParams: Promise.resolve({ returnTo: "/interview-hub" }),
+      }),
+    );
+    expect(
+      screen.getByText("Feedback is not ready for this attempt yet."),
+    ).toBeInTheDocument();
+
     getInterviewSessionFeedbackMock.mockResolvedValueOnce({ success: false });
     await expect(
       SessionFeedbackPage({

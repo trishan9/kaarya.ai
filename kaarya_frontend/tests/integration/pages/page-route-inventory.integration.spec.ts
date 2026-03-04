@@ -41,6 +41,7 @@ const expectedAppRoutes = [
   "/leaderboard",
   "/oauth/callback",
   "/overview",
+  "/payment/checkout",
   "/resources",
   "/resources/[courseId]",
   "/resume",
