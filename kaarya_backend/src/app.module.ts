@@ -23,6 +23,7 @@ import { ResumeBuilderModule } from './modules/resume-builder.module';
 import { JobMatchModule } from './modules/job-match.module';
 import { ResourceCourseModule } from './modules/resource-course.module';
 import { StreamModule } from './modules/stream.module';
+import { PaymentModule } from './modules/payment.module';
 
 export const InfrastructureDatabaseModule = MongoDatabaseModule;
 
@@ -56,6 +57,7 @@ export const InfrastructureDatabaseModule = MongoDatabaseModule;
     JobMatchModule,
     ResourceCourseModule,
     StreamModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [AppService],
