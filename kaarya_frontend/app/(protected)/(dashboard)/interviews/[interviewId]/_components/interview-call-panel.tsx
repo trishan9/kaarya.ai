@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Vapi from "@vapi-ai/web";
@@ -119,6 +120,9 @@ export function InterviewCallPanel({
   const [sessionQuestionBank, setSessionQuestionBank] =
     useState<string[]>(questionBank);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const showUpgradeCta =
+    typeof error === "string" &&
+    error.toLowerCase().includes("monthly interview limit");
 
   useEffect(() => {
     normalizedQuestionBankRef.current = questionBank
@@ -689,7 +693,19 @@ export function InterviewCallPanel({
       {error ? (
         <div className="flex items-start gap-2 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-600">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>{error}</span>
+          <div className="space-y-1">
+            <span>{error}</span>
+            {showUpgradeCta ? (
+              <div>
+                <Link
+                  className="font-medium text-rose-700 underline"
+                  href="/payment/checkout"
+                >
+                  Upgrade Plan
+                </Link>
+              </div>
+            ) : null}
+          </div>
         </div>
       ) : null}
     </section>

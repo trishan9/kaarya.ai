@@ -162,6 +162,46 @@ export default async function SessionFeedbackPage({
   const returnTo = resolveReturnTo(query?.returnTo);
   const feedbackResponse = await getInterviewSessionFeedback(sessionId);
   if (!feedbackResponse?.success) {
+    const feedbackErrorMessage =
+      typeof feedbackResponse?.message === "string"
+        ? feedbackResponse.message.toLowerCase()
+        : "";
+    if (feedbackErrorMessage.includes("feedback not found")) {
+      return (
+        <div className="dashboard-stage">
+          <div className="dashboard-surface">
+            <DashboardHeader
+              title="Interview Feedback"
+              actions={<OverviewHeaderActions />}
+            />
+            <div className="space-y-4 px-3 pb-6 sm:space-y-5 sm:px-4 sm:pb-8">
+              <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
+                <h2 className="text-lg font-semibold text-foreground">
+                  Feedback is not ready for this attempt yet.
+                </h2>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  This attempt does not have an AI evaluation. You can return and
+                  retake the interview to generate fresh feedback.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Button asChild variant="outline" className="h-9 rounded-lg">
+                    <Link href={returnTo ?? "/interview-hub"}>
+                      <ArrowLeft className="h-4 w-4" />
+                      Back
+                    </Link>
+                  </Button>
+                  <Button asChild className="h-9 rounded-lg">
+                    <Link href={returnTo ?? "/interview-hub"}>
+                      Go to Interviews
+                    </Link>
+                  </Button>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      );
+    }
     notFound();
   }
 

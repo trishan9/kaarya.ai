@@ -54,6 +54,12 @@ const toDateTime = (value?: string | null) => {
   }).format(date);
 };
 
+const resolveFeedbackSessionId = (interview: TInterview) => {
+  const evaluationSessionId = interview.myLatestEvaluation?.sessionId?.trim();
+  if (evaluationSessionId) return evaluationSessionId;
+  return null;
+};
+
 export default async function InterviewDetailsPage({
   params,
 }: InterviewDetailsPageProps) {
@@ -75,6 +81,7 @@ export default async function InterviewDetailsPage({
   const canTakeInterview =
     currentUser?.role === Role.USER || currentUser?.role === Role.STUDENT;
   const canDeleteInterview = currentUser?.id === interview.createdBy;
+  const feedbackSessionId = resolveFeedbackSessionId(interview);
 
   const [sessionsResponse, analyticsResponse] = await Promise.all([
     canTakeInterview
@@ -111,15 +118,13 @@ export default async function InterviewDetailsPage({
                       Take Interview
                     </Link>
                   </Button>
-                  {interview.myLatestSessionId ? (
+                  {feedbackSessionId ? (
                     <Button
                       asChild
                       variant="outline"
                       className="h-9 w-full rounded-lg sm:w-auto"
                     >
-                      <Link
-                        href={`/interviews/sessions/${interview.myLatestSessionId}/feedback`}
-                      >
+                      <Link href={`/interviews/sessions/${feedbackSessionId}/feedback`}>
                         View Latest Feedback
                       </Link>
                     </Button>
@@ -238,7 +243,7 @@ export default async function InterviewDetailsPage({
                             {typeof row.score === "number" ? (
                               <Badge variant="secondary">{row.score}/100</Badge>
                             ) : null}
-                            {row.status === "completed" ? (
+                            {row.status === "completed" && typeof row.score === "number" ? (
                               <Button asChild variant="outline" className="h-8 rounded-md px-3 text-xs">
                                 <Link href={`/interviews/sessions/${row.id}/feedback`}>
                                   View Feedback
@@ -294,10 +299,10 @@ export default async function InterviewDetailsPage({
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant="outline">{session.status}</Badge>
-                      {session.evaluation?.totalScore ? (
+                      {typeof session.evaluation?.totalScore === "number" ? (
                         <Badge variant="secondary">{session.evaluation.totalScore}/100</Badge>
                       ) : null}
-                      {session.status === "completed" ? (
+                      {session.status === "completed" && session.evaluation ? (
                         <Button asChild variant="outline" className="h-8 rounded-md px-3 text-xs">
                           <Link href={`/interviews/sessions/${session.id}/feedback`}>
                             View Feedback
