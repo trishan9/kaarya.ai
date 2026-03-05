@@ -16,6 +16,7 @@ export const ROUTES = {
     OAUTH_EXCHANGE: 'oauth/exchange',
     OAUTH_LINK_COMPLETE: 'oauth/link/complete',
     CERTIFICATION_UPLOAD: 'candidate-profile/certifications/upload',
+    CHANGE_PASSWORD: 'change-password',
   },
   ADMIN: {
     BASE: 'admin',
@@ -57,6 +58,7 @@ export const ROUTES = {
     BASE: 'applications',
     JOB_APPLICATIONS: 'jobs/:jobId',
     MY_APPLICATIONS: 'me',
+    MY_APPLICATIONS_SUMMARY: 'me/summary',
     MY_APPLICATION_BY_JOB: 'job/:jobId/me',
     RESUMES_ME: 'resumes/me',
     RESUME_BY_ID: 'resumes/:resumeId',
@@ -83,6 +85,10 @@ export const ROUTES = {
     JOB: 'jobs/:jobId',
     INTERVIEW: 'interviews/:interviewId',
   },
+  JOB_MATCH: {
+    BASE: 'job-match',
+    TRIGGER: 'trigger/:jobId',
+  },
   RESUME_BUILDER: {
     BASE: 'resume-builder',
     BY_ID: ':id',
@@ -93,5 +99,17 @@ export const ROUTES = {
     AI_EXPERIENCE_BULLETS: 'ai/experience-bullets',
     AI_SUGGESTIONS: 'ai/suggestions',
     ATS_SCAN: 'ats-scan',
+  },
+  RESOURCE: {
+    BASE: 'resources',
+    BY_ID: ':id',
+  },
+  STREAM: {
+    BASE: 'stream',
+    CHAT_TOKEN: 'chat-token',
+    VIDEO_TOKEN: 'video-token',
+    CONFIG: 'config',
+    ENSURE_CHANNELS: 'ensure-channels',
+    ENSURE_CHANNEL_WITH: 'ensure-channel-with',
   },
 } as const;

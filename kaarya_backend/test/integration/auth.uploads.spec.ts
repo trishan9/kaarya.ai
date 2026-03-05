@@ -120,4 +120,46 @@ describe('Auth uploads (integration)', () => {
       }),
     );
   });
+
+  it('should upload certification image media for authenticated candidates', async () => {
+    const response = await request(context.app.getHttpServer())
+      .post(`${base}/${ROUTES.AUTH.CERTIFICATION_UPLOAD}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .attach('file', Buffer.from('fake-cert-image'), {
+        filename: 'cert.png',
+        contentType: 'image/png',
+      })
+      .expect(200);
+
+    expect(context.cloudinary.uploadImage).toHaveBeenCalledTimes(1);
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        success: true,
+        data: expect.objectContaining({
+          url: 'https://img.test/photo',
+          mimeType: 'image/png',
+          fileName: 'cert.png',
+        }),
+      }),
+    );
+  });
+
+  it('should reject unsupported certification media mimetypes', async () => {
+    const response = await request(context.app.getHttpServer())
+      .post(`${base}/${ROUTES.AUTH.CERTIFICATION_UPLOAD}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .attach('file', Buffer.from('fake-cert-text'), {
+        filename: 'cert.txt',
+        contentType: 'text/plain',
+      })
+      .expect(400);
+
+    expect(context.cloudinary.uploadImage).not.toHaveBeenCalled();
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        success: false,
+        message: 'Only PDF, JPG, PNG, and WEBP files are allowed.',
+      }),
+    );
+  });
 });

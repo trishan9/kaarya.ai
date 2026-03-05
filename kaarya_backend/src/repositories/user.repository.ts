@@ -25,6 +25,7 @@ export abstract class ACUserRepository {
     signupTrend: Array<{ year: number; month: number; value: number }>;
   }>;
   abstract findById(id: string): Promise<UserSchemaDocument | null>;
+  abstract findByIds(ids: string[]): Promise<UserSchemaDocument[]>;
   abstract findByEmail(
     email: string,
     options?: { includePassword?: boolean },
@@ -188,6 +189,13 @@ export class UserRepository implements ACUserRepository {
   async findById(id: string): Promise<UserSchemaDocument | null> {
     if (!id) return null;
     return await this.userModel.findById(id).exec();
+  }
+
+  async findByIds(ids: string[]): Promise<UserSchemaDocument[]> {
+    if (!ids?.length) return [];
+    const uniqueIds = Array.from(new Set(ids)).filter(Boolean);
+    const objectIds = uniqueIds.map((id) => new Types.ObjectId(id));
+    return await this.userModel.find({ _id: { $in: objectIds } }).exec();
   }
 
   async findByEmail(

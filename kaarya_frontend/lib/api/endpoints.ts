@@ -17,6 +17,7 @@ export const API_URLS = {
     PASSWORD_RESET_REQUEST: "/auth/password-reset/request",
     PASSWORD_RESET_VERIFY: "/auth/password-reset/verify",
     PASSWORD_RESET_CONFIRM: "/auth/password-reset/confirm",
+    CHANGE_PASSWORD: "/auth/change-password",
     CERTIFICATION_UPLOAD: "/auth/candidate-profile/certifications/upload",
   },
   ADMIN: {
@@ -57,6 +58,7 @@ export const API_URLS = {
   },
   APPLICATION: {
     MY_APPLICATIONS: "/applications/me",
+    MY_APPLICATIONS_SUMMARY: "/applications/me/summary",
     MY_APPLICATION_BY_JOB: (jobId: string) => `/applications/job/${jobId}/me`,
     RESUMES_ME: "/applications/resumes/me",
     RESUME_BY_ID: (resumeId: string) => `/applications/resumes/${resumeId}`,
@@ -96,5 +98,16 @@ export const API_URLS = {
     AI_EXPERIENCE_BULLETS: "/resume-builder/ai/experience-bullets",
     AI_SUGGESTIONS: "/resume-builder/ai/suggestions",
     ATS_SCAN: "/resume-builder/ats-scan",
+  },
+  RESOURCE: {
+    LIST: "/resources",
+    BY_ID: (id: string) => `/resources/${id}`,
+  },
+  STREAM: {
+    CHAT_TOKEN: "/stream/chat-token",
+    VIDEO_TOKEN: "/stream/video-token",
+    CONFIG: "/stream/config",
+    ENSURE_CHANNELS: "/stream/ensure-channels",
+    ENSURE_CHANNEL_WITH: "/stream/ensure-channel-with",
   },
 };

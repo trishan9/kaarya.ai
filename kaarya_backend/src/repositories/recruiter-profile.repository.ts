@@ -34,6 +34,7 @@ export abstract class ACRecruiterProfileRepository {
     recruiterProfiles: RecruiterProfileSchemaDocument[];
     total: number;
   }>;
+  abstract findCompanyIdsByRecruiterId(recruiterId: string): Promise<string[]>;
   abstract deleteByRecruiterAndCompany(input: {
     recruiterId: string;
     companyId: string;
@@ -163,6 +164,18 @@ export class RecruiterProfileRepository implements ACRecruiterProfileRepository 
     ]);
 
     return { recruiterProfiles, total };
+  }
+
+  async findCompanyIdsByRecruiterId(recruiterId: string): Promise<string[]> {
+    if (!recruiterId) return [];
+    const rows = await this.recruiterProfileModel
+      .find({ recruiterId: this.toObjectId(recruiterId) })
+      .select('companyId')
+      .lean()
+      .exec();
+    return rows
+      .map((r) => (r.companyId as Types.ObjectId)?.toString?.())
+      .filter((id): id is string => Boolean(id));
   }
 
   async deleteByRecruiterAndCompany(input: {

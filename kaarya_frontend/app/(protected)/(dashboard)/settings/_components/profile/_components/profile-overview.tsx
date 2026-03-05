@@ -17,24 +17,22 @@ interface ProfileOverviewProps {
 }
 
 export function ProfileOverview({ user }: ProfileOverviewProps) {
-  const candidateProfile = user.candidateProfile ?? {};
-  const topSkills = (candidateProfile.skills ?? []).slice(0, 4);
+  const profile = user.candidateProfile ?? {};
+
   const providerLabelMap: Record<string, string> = {
     email: "Email",
     google: "Google",
     github: "GitHub",
   };
-
   const providerOrder = ["email", "google", "github"];
-
   const providers = Array.from(
     new Set(
       user.linkedProviders?.length
         ? user.linkedProviders
         : user.provider
-        ? [user.provider]
-        : []
-    )
+          ? [user.provider]
+          : [],
+    ),
   ).sort((a, b) => providerOrder.indexOf(a) - providerOrder.indexOf(b));
 
   const initials = user.name
@@ -43,73 +41,75 @@ export function ProfileOverview({ user }: ProfileOverviewProps) {
     .join("")
     .toUpperCase();
 
+  const username = user.name?.toLowerCase().replace(/\s+/g, "") ?? "";
+
   return (
-    <Card className="transition-all hover:shadow-md">
+    <Card className="h-full">
       <CardHeader>
         <CardTitle>Profile Overview</CardTitle>
         <CardDescription>Your account information and details</CardDescription>
       </CardHeader>
 
       <CardContent>
-        <div className="flex flex-col sm:flex-row items-start gap-6">
-          <Avatar className="w-20 h-20 sm:w-24 sm:h-24 ring-4 ring-muted">
+        <div className="flex items-start gap-5">
+          <Avatar className="h-20 w-20 shrink-0 ring-4 ring-muted">
             <AvatarImage src={user.photo || undefined} alt={user.name} />
-
-            <AvatarFallback className="text-xl sm:text-2xl font-semibold bg-primary/10 text-primary">
+            <AvatarFallback className="text-xl font-semibold bg-primary/10 text-primary">
               {initials}
             </AvatarFallback>
           </Avatar>
 
-          <div className="flex-1 space-y-3">
+          <div className="min-w-0 flex-1 space-y-3">
             <div>
-              <h3 className="text-xl font-semibold mb-1">{user.name}</h3>
-              {candidateProfile.headline ? (
-                <p className="text-sm text-muted-foreground mb-2">
-                  {candidateProfile.headline}
+              <h3 className="text-xl font-semibold leading-tight">
+                {user.name}
+              </h3>
+              {profile.headline && (
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  {profile.headline}
                 </p>
-              ) : null}
+              )}
+            </div>
 
-              <div className="flex items-center gap-2 flex-wrap">
-                <Badge variant="secondary" className="text-xs">
-                  {user.role}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <Badge variant="secondary" className="text-xs capitalize">
+                {user.role}
+              </Badge>
+              {providers.map((p) => (
+                <Badge
+                  key={p}
+                  variant="outline"
+                  className="text-xs font-normal"
+                >
+                  {providerLabelMap[p] ?? p}
                 </Badge>
-
-                {providers.map((provider) => (
-                  <Badge variant="outline" className="text-xs" key={provider}>
-                    {providerLabelMap[provider] ?? provider}
-                  </Badge>
-                ))}
-              </div>
+              ))}
+              {profile.openToWork && (
+                <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs font-normal">
+                  Open to Work
+                </Badge>
+              )}
             </div>
 
-            <div className="space-y-2 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4" />
-                <span>{user.email}</span>
-              </div>
-
-              {candidateProfile.location ? (
+            <div className="space-y-1.5 text-sm text-muted-foreground">
+              {user.email && (
                 <div className="flex items-center gap-2">
-                  <UserIcon className="w-4 h-4" />
-                  <span>{candidateProfile.location}</span>
+                  <Mail className="h-4 w-4 shrink-0" />
+                  <span>{user.email}</span>
                 </div>
-              ) : null}
-
-              <div className="flex items-center gap-2">
-                <UserIcon className="w-4 h-4" />
-                <span>@{user.name?.toLowerCase().replace(/\s+/g, "")}</span>
-              </div>
+              )}
+              {profile.location ? (
+                <div className="flex items-center gap-2">
+                  <UserIcon className="h-4 w-4 shrink-0" />
+                  <span>{profile.location}</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <UserIcon className="h-4 w-4 shrink-0" />
+                  <span>@{username}</span>
+                </div>
+              )}
             </div>
-
-            {topSkills.length ? (
-              <div className="flex flex-wrap gap-2 pt-1">
-                {topSkills.map((skill) => (
-                  <Badge key={skill} variant="outline" className="text-xs">
-                    {skill}
-                  </Badge>
-                ))}
-              </div>
-            ) : null}
           </div>
         </div>
       </CardContent>

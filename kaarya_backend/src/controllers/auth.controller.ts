@@ -54,10 +54,15 @@ import {
   VerifyPasswordResetOtpDTO,
 } from 'src/dtos/auth/password-reset.dto';
 import {
+  ChangePasswordDTO,
+  TChangePasswordDTO,
+} from 'src/dtos/auth/change-password.dto';
+import {
   RequestPasswordResetSwaggerDTO,
   ResetPasswordSwaggerDTO,
   VerifyPasswordResetOtpSwaggerDTO,
 } from 'src/dtos/swagger/auth/password-reset.swagger.dto';
+import { ChangePasswordSwaggerDTO } from 'src/dtos/swagger/auth/change-password.swagger.dto';
 import {
   OAuthCompleteLinkSwaggerDTO,
   OAuthExchangeSwaggerDTO,
@@ -431,6 +436,44 @@ export class AuthController {
       );
 
       return buildSuccessResponse(user, USER_MESSAGES.UPDATE_SUCCESS);
+    });
+  }
+
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard('jwt'))
+  @Post(ROUTES.AUTH.CHANGE_PASSWORD)
+  @ApiBody({ type: ChangePasswordSwaggerDTO })
+  @ApiOperation({
+    summary: 'Change password',
+    description:
+      'Allows an authenticated user to change their password by providing the current and new password.',
+  })
+  @HttpCode(HttpStatus.OK)
+  async changePassword(
+    @Request() request,
+    @Body() payload: TChangePasswordDTO,
+  ) {
+    return asyncHandler(async () => {
+      const parsedData = ChangePasswordDTO.safeParse(payload);
+
+      if (!parsedData.success) {
+        throw new ApiError({
+          message: z.prettifyError(parsedData.error),
+          statusCode: HttpStatus.BAD_REQUEST,
+        });
+      }
+
+      const data = await this.authService.changePassword(
+        request.user.id,
+        parsedData.data.currentPassword,
+        parsedData.data.newPassword,
+        getRequestMetadata(request),
+      );
+
+      return buildSuccessResponse(
+        data,
+        AUTH_MESSAGES.CHANGE_PASSWORD_SUCCESS,
+      );
     });
   }
 

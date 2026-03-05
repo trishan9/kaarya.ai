@@ -48,6 +48,7 @@ const candidateGroups: SidebarNavGroup[] = [
       { label: "AI Interview Hub", href: "/interview-hub", icon: Bot },
       { label: "My Interviews", href: "/interviews", icon: Mic },
       { label: "Leaderboard", href: "/leaderboard", icon: Trophy },
+
       { label: "My Applications", href: "/applications", icon: Folder },
       { label: "Saved", href: "/saved", icon: Bookmark },
       { label: "Inbox", href: "/inbox", icon: Inbox },
@@ -84,6 +85,7 @@ const recruiterGroups: SidebarNavGroup[] = [
     label: "Others",
     items: [
       { label: "Inbox", href: "/inbox", icon: Inbox },
+      { label: "Resources", href: "/resources", icon: FileText },
       { label: "Blogs & Articles", href: "/blogs", icon: Newspaper },
       { label: "Settings", href: "/settings", icon: Settings },
     ],
@@ -111,6 +113,7 @@ const collegeGroups: SidebarNavGroup[] = [
     label: "Others",
     items: [
       { label: "Inbox", href: "/inbox", icon: Inbox },
+      { label: "Resources", href: "/resources", icon: FileText },
       { label: "Blogs & Articles", href: "/blogs", icon: Newspaper },
       { label: "Settings", href: "/settings", icon: Settings },
     ],

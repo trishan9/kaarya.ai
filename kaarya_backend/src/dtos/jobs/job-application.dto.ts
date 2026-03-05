@@ -53,6 +53,50 @@ export const MyJobApplicationsQueryDTO = z.object({
   page: z.coerce.number().int().min(1).default(1),
   size: z.coerce.number().int().min(1).max(100).default(10),
   status: z.nativeEnum(ApplicationStatus).optional(),
+  fromDate: optionalDate,
+  toDate: optionalDate,
+});
+
+const optionalYearMonth = z.preprocess(
+  (value) => {
+    if (value === undefined || value === null || value === '') {
+      return undefined;
+    }
+    if (typeof value === 'string') {
+      return value.trim();
+    }
+    return value;
+  },
+  z
+    .string()
+    .regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Month must be in YYYY-MM format.')
+    .optional(),
+);
+
+const optionalStatuses = z.preprocess(
+  (value) => {
+    if (value === undefined || value === null || value === '') {
+      return undefined;
+    }
+
+    const toTokenList = (entry: unknown) =>
+      String(entry)
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean);
+
+    if (Array.isArray(value)) {
+      return value.flatMap((entry) => toTokenList(entry));
+    }
+
+    return toTokenList(value);
+  },
+  z.array(z.nativeEnum(ApplicationStatus)).min(1).max(10).optional(),
+);
+
+export const MyApplicationsSummaryQueryDTO = z.object({
+  month: optionalYearMonth,
+  statuses: optionalStatuses,
 });
 
 export const MyResumesQueryDTO = z.object({
@@ -96,6 +140,9 @@ export const UpdateResumeActivityDTO = z.object({
 export type TJobApplicationsQueryDTO = z.infer<typeof JobApplicationsQueryDTO>;
 export type TMyJobApplicationsQueryDTO = z.infer<
   typeof MyJobApplicationsQueryDTO
+>;
+export type TMyApplicationsSummaryQueryDTO = z.infer<
+  typeof MyApplicationsSummaryQueryDTO
 >;
 export type TMyResumesQueryDTO = z.infer<typeof MyResumesQueryDTO>;
 export type TCreateJobApplicationDTO = z.infer<typeof CreateJobApplicationDTO>;

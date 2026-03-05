@@ -259,6 +259,76 @@ describe('Company + Job flow (integration)', () => {
     );
   });
 
+  it('should cover company management lifecycle methods', async () => {
+    const owner = await userService.createUser({
+      name: 'Lifecycle Owner',
+      email: 'lifecycle.owner@example.com',
+      role: UserRole.RECRUITER,
+    });
+    const admin = await userService.createUser({
+      name: 'Lifecycle Admin',
+      email: 'lifecycle.admin@example.com',
+      role: UserRole.ADMIN,
+    });
+
+    const ownerAuth = toAuthUser(owner, UserRole.RECRUITER);
+    const adminAuth = toAuthUser(admin, UserRole.ADMIN);
+
+    const createdCompany = await companyService.createCompany(ownerAuth, {
+      name: 'Lifecycle Workspace',
+      industry: 'Software',
+    });
+    if (!createdCompany) {
+      throw new Error('Expected created company');
+    }
+
+    const companyId = createdCompany.id as string;
+    expect(companyId).toBeTruthy();
+
+    const me = await companyService.getMyCompany(ownerAuth);
+    expect(me.company).toEqual(
+      expect.objectContaining({
+        id: companyId,
+      }),
+    );
+
+    const byId = await companyService.getCompanyById(companyId);
+    expect(byId?.id).toBe(companyId);
+
+    const updated = await companyService.updateCompany(ownerAuth, companyId, {
+      location: 'Remote',
+    });
+    expect(updated).toEqual(
+      expect.objectContaining({
+        id: companyId,
+        location: 'Remote',
+      }),
+    );
+
+    const resetInviteCode = await companyService.resetCompanyInviteCode(
+      ownerAuth,
+      companyId,
+    );
+    expect(resetInviteCode.inviteCode).toMatch(/^KR-/);
+
+    const listed = await companyService.listCompanies({
+      page: 1,
+      size: 10,
+      search: 'Lifecycle Workspace',
+    });
+    const listedIds = listed.companies.map((company) => String(company.id));
+    expect(listedIds).toContain(companyId);
+
+    const deleted = await companyService.deleteCompany(adminAuth, companyId);
+    expect(deleted?.id).toBe(companyId);
+
+    await expectApiError(
+      companyService.getCompanyById(companyId),
+      HttpStatus.NOT_FOUND,
+      COMPANY_MESSAGES.NOT_FOUND,
+    );
+  });
+
   it('should reject metrics and job lookup for invalid ids', async () => {
     await expectApiError(
       jobPostingService.getJobPostingById(

@@ -9,6 +9,8 @@ import { buildCompanyInviteEmail } from 'src/templates/email/company-invite.temp
 import { buildOnboardingWelcomeEmail } from 'src/templates/email/onboarding-welcome.template';
 import { buildPasswordResetEmail } from 'src/templates/email/password-reset.template';
 import { buildPasswordResetSuccessEmail } from 'src/templates/email/password-reset-success.template';
+import { buildPasswordChangedEmail } from 'src/templates/email/password-changed.template';
+import { buildJobMatchEmail } from 'src/templates/email/job-match.template';
 import { AllConfigType } from 'src/types/config.type';
 import { ApplicationStatus } from 'src/types/application-status.enum';
 import { EmailProvider } from 'src/types/email-provider.type';
@@ -152,6 +154,29 @@ export class EmailService {
     await this.sendEmail({ to, subject, html, text });
   }
 
+  async sendPasswordChanged(
+    to: string,
+    options: {
+      userName?: string | null;
+      occurredAt?: Date;
+      ipAddress?: string;
+      userAgent?: string;
+    },
+  ) {
+    const { subject, html, text } = buildPasswordChangedEmail({
+      brandName: this.brandName,
+      userName: options.userName,
+      occurredAt: options.occurredAt,
+      ipAddress: options.ipAddress,
+      userAgent: options.userAgent,
+      supportUrl: this.supportUrl,
+      logoUrl: this.logoUrl,
+      primaryColor: this.primaryColor,
+    });
+
+    await this.sendEmail({ to, subject, html, text });
+  }
+
   async sendOnboardingEmail(
     to: string,
     options: {
@@ -213,6 +238,41 @@ export class EmailService {
       status: options.status,
       candidateName: options.candidateName,
       interviewScheduledAt: options.interviewScheduledAt,
+      supportUrl: this.supportUrl,
+      logoUrl: this.logoUrl,
+      primaryColor: this.primaryColor,
+    });
+
+    await this.sendEmail({ to, subject, html, text });
+  }
+
+  async sendJobMatchNotification(
+    to: string,
+    options: {
+      userName?: string | null;
+      jobTitle: string;
+      companyName: string;
+      companyLogo?: string | null;
+      location?: string | null;
+      workMode?: string | null;
+      salaryRange?: string | null;
+      employmentType?: string | null;
+      matchScore?: number;
+      jobUrl: string;
+    },
+  ) {
+    const { subject, html, text } = buildJobMatchEmail({
+      brandName: this.brandName,
+      userName: options.userName,
+      jobTitle: options.jobTitle,
+      companyName: options.companyName,
+      companyLogo: options.companyLogo,
+      location: options.location,
+      workMode: options.workMode,
+      salaryRange: options.salaryRange,
+      employmentType: options.employmentType,
+      matchScore: options.matchScore,
+      jobUrl: options.jobUrl,
       supportUrl: this.supportUrl,
       logoUrl: this.logoUrl,
       primaryColor: this.primaryColor,

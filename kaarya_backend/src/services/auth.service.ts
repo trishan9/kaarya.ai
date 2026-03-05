@@ -371,6 +371,83 @@ export class AuthService {
     }
   }
 
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+    metadata: { ip?: string; userAgent?: string },
+  ) {
+    const user = await this.userService.getUserByIdRaw(userId);
+    if (!user) {
+      throw new ApiError({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: USER_MESSAGES.NOT_FOUND,
+      });
+    }
+
+    if (!user.email) {
+      throw new ApiError({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: AUTH_MESSAGES.CHANGE_PASSWORD_NO_PASSWORD,
+      });
+    }
+
+    const userWithPassword = await this.userService.getUserByEmail(
+      user.email,
+      { includePassword: true },
+    );
+
+    if (!userWithPassword?.password) {
+      throw new ApiError({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: AUTH_MESSAGES.CHANGE_PASSWORD_NO_PASSWORD,
+      });
+    }
+
+    const isCurrentValid = await argon2.verify(
+      userWithPassword.password,
+      currentPassword,
+    );
+
+    if (!isCurrentValid) {
+      throw new ApiError({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        message: AUTH_MESSAGES.CHANGE_PASSWORD_WRONG_CURRENT,
+      });
+    }
+
+    const hashedNew = await argon2.hash(newPassword, {
+      type: argon2.argon2id,
+    });
+
+    const updated = await this.userService.updatePassword(userId, hashedNew);
+    if (!updated) {
+      throw new ApiError({
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Failed to update password.',
+      });
+    }
+
+    try {
+      await this.emailService.sendPasswordChanged(user.email, {
+        userName: user.name,
+        occurredAt: new Date(),
+        ipAddress: metadata.ip,
+        userAgent: metadata.userAgent,
+      });
+    } catch (error) {
+      this.logger.error(
+        `Password changed email failed for ${userId}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        undefined,
+        AuthService.name,
+      );
+    }
+
+    return { changed: true };
+  }
+
   private normalizeEmail(email: string) {
     return email.trim().toLowerCase();
   }

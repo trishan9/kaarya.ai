@@ -36,9 +36,11 @@ import { ObjectIdDTO } from 'src/dtos/companies/company.dto';
 import {
   CreateJobApplicationDTO,
   JobApplicationsQueryDTO,
+  MyApplicationsSummaryQueryDTO,
   MyJobApplicationsQueryDTO,
   MyResumesQueryDTO,
   TCreateJobApplicationDTO,
+  TMyApplicationsSummaryQueryDTO,
   TJobApplicationsQueryDTO,
   TMyJobApplicationsQueryDTO,
   TMyResumesQueryDTO,
@@ -76,6 +78,37 @@ export class JobApplicationController {
     private readonly jobApplicationService: JobApplicationService,
     private readonly cloudinaryService: CloudinaryService,
   ) {}
+
+  @Roles(UserRole.USER, UserRole.STUDENT)
+  @UseGuards(RolesGuard)
+  @Get(ROUTES.APPLICATION.MY_APPLICATIONS_SUMMARY)
+  @ApiOperation({
+    summary: 'Get current user applications summary',
+    description:
+      'Returns month-wise summary, status distribution, trend, and recent companies for candidate dashboards.',
+  })
+  @HttpCode(HttpStatus.OK)
+  async getMyApplicationsSummary(
+    @Request() request: { user: TAuthenticatedUser },
+    @Query() query: TMyApplicationsSummaryQueryDTO,
+  ) {
+    return asyncHandler(async () => {
+      const parsedQuery = MyApplicationsSummaryQueryDTO.safeParse(query ?? {});
+      if (!parsedQuery.success) {
+        throw new ApiError({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: z.prettifyError(parsedQuery.error),
+        });
+      }
+
+      const data = await this.jobApplicationService.getMyApplicationsSummary(
+        request.user,
+        parsedQuery.data,
+      );
+
+      return buildSuccessResponse(data, 'Application summary fetched successfully.');
+    });
+  }
 
   @Roles(UserRole.USER, UserRole.STUDENT)
   @UseGuards(RolesGuard)

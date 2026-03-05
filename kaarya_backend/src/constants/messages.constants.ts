@@ -28,6 +28,10 @@ export const AUTH_MESSAGES = {
   LOGIN_SUCCESS: 'Login successful.',
   SIGNUP_SUCCESS: 'Signup successful.',
   CURRENT_USER_SUCCESS: 'Current user fetched.',
+  CHANGE_PASSWORD_SUCCESS: 'Password changed successfully.',
+  CHANGE_PASSWORD_WRONG_CURRENT: 'Current password is incorrect.',
+  CHANGE_PASSWORD_NO_PASSWORD:
+    'Cannot change password for social-login-only accounts.',
 } as const;
 
 export const USER_MESSAGES = {
@@ -180,6 +184,29 @@ export const BOOKMARK_MESSAGES = {
   SAVE_INTERVIEW_SUCCESS: 'Interview saved successfully.',
   UNSAVE_INTERVIEW_SUCCESS: 'Interview removed from saved successfully.',
   FORBIDDEN: 'Only candidate users can manage saved bookmarks.',
+} as const;
+
+export const JOB_MATCH_MESSAGES = {
+  PROCESSING: 'Job matching in progress.',
+  NO_MATCHES: 'No matching candidates found.',
+  NOTIFICATIONS_SENT: 'Match notifications sent successfully.',
+} as const;
+
+export const RESOURCE_MESSAGES = {
+  NOT_FOUND: 'Resource course not found.',
+  INVALID_ID: 'Invalid resource course id.',
+  CREATE_SUCCESS: 'Resource course created successfully.',
+  UPDATE_SUCCESS: 'Resource course updated successfully.',
+  DELETE_SUCCESS: 'Resource course deleted successfully.',
+  FETCH_SUCCESS: 'Resource course fetched successfully.',
+  FETCH_ALL_SUCCESS: 'Resource courses fetched successfully.',
+  FORBIDDEN_ACCESS: 'You are not allowed to access this resource course.',
+  FORBIDDEN_MANAGE: 'You are not allowed to manage this resource course.',
+  FORBIDDEN_CREATE: 'You are not allowed to create this type of resource course.',
+  RECRUITER_WORKSPACE_REQUIRED:
+    'Recruiter must be linked to a company workspace before creating resource courses.',
+  COLLEGE_WORKSPACE_REQUIRED:
+    'College user must be linked to a college workspace before creating resource courses.',
 } as const;
 
 export const RESPONSE_MESSAGES = {

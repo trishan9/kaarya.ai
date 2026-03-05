@@ -38,6 +38,7 @@ import { CollegeModule } from './college.module';
 import { CompanyModule } from './company.module';
 import { EmailModule } from './email.module';
 import { GamificationModule } from './gamification.module';
+import { JobMatchModule } from './job-match.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { GamificationModule } from './gamification.module';
     CollegeModule,
     EmailModule,
     GamificationModule,
+    JobMatchModule,
     MongooseModule.forFeature([
       { name: JobPostingSchemaClass.name, schema: JobPostingSchema },
       { name: ApplicationSchemaClass.name, schema: ApplicationSchema },
@@ -66,6 +68,10 @@ import { GamificationModule } from './gamification.module';
     { provide: ACApplicationRepository, useClass: ApplicationRepository },
     { provide: ACResumeRepository, useClass: ResumeRepository },
   ],
-  exports: [JobPostingService, ACJobPostingRepository],
+  exports: [
+    JobPostingService,
+    ACJobPostingRepository,
+    ACApplicationRepository,
+  ],
 })
 export class JobPostingModule {}

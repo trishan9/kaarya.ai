@@ -1,10 +1,19 @@
-import type { ApplicationsSummaryCardProps } from "./_components/applications-summary-card";
+import type {
+  ApplicationsSummaryCardProps,
+  ApplicationsSummaryStatus,
+  ApplicationsSummaryTab,
+} from "./_components/applications-summary-card";
 import type { DeadlineCardProps } from "./_components/deadline-card";
 import type { InvitationCardProps } from "./_components/invitation-card";
-import { getJobs, getMyApplications } from "@/lib/actions/job-actions";
+import {
+  getJobs,
+  getMyApplications,
+  getMyApplicationsSummary,
+} from "@/lib/actions/job-actions";
 import { listInterviews } from "@/lib/actions/interview-actions";
-import type { TJob } from "@/lib/definitions";
+import type { TJob, TUser } from "@/lib/definitions";
 import { formatRelativeTime } from "@/lib/date/relative-time";
+import { computeProfileRating } from "@/lib/compute-profile-rating";
 import type {
   JobRecommendationsCardProps,
 } from "../_components/job-recommendations-card";
@@ -16,12 +25,13 @@ export type OverviewDashboardData = {
     ApplicationsSummaryCardProps,
     | "total"
     | "delta"
+    | "todayCount"
     | "monthLabel"
+    | "monthKey"
     | "monthOptions"
     | "tabs"
     | "activeTab"
-    | "logos"
-    | "extraCount"
+    | "recentCompanies"
   >;
   deadlineCard: Pick<
     DeadlineCardProps,
@@ -69,152 +79,89 @@ const overviewJobTabs = [
   "Remote Opportunities",
 ];
 
-const overviewJobsForYou: JobCardProps[] = [
-  {
-    id: "overview-backend-software-engineer",
-    title: "Backend Software Engineer",
-    company: "Kaarya Co. Inc.",
-    statusLabel: "Suit You Best!",
-    statusTone: "success",
-    postedAt: "3d ago",
-    location: "Kathmandu, Bagmati",
-    employmentType: "Full-Time",
-    engagementType: "Internship",
-    salaryRange: "NPR 10,00,000 - NPR 15,00,000",
-    logoText: "K",
-    extraTags: ["+4"],
-    applyHref: "/jobs",
-  },
-  {
-    id: "overview-frontend-software-engineer",
-    title: "Frontend Software Engineer",
-    company: "Softwarica College of IT & E-commerce",
-    statusLabel: "Suit You Best!",
-    statusTone: "success",
-    postedAt: "2d ago",
-    location: "Kathmandu, Bagmati",
-    employmentType: "Full-Time",
-    engagementType: "Internship",
-    salaryRange: "NPR 10,00,000 - NPR 15,00,000",
-    logoText: "S",
-    logoClassName: "bg-[#003d7c]",
-    extraTags: ["+4"],
-    applyHref: "/jobs",
-  },
-  {
-    id: "overview-ui-ux-designer",
-    title: "UI/UX Designer",
-    company: "Softwarica College of IT & E-commerce",
-    statusLabel: "Still Hiring",
-    statusTone: "warning",
-    postedAt: "1d ago",
-    location: "Kathmandu, Bagmati",
-    employmentType: "Full-Time",
-    engagementType: "Internship",
-    salaryRange: "NPR 8,00,000 - NPR 12,00,000",
-    logoText: "U",
-    logoClassName: "bg-[#2d8574]",
-    extraTags: ["+3"],
-    applyHref: "/jobs",
-  },
-  {
-    id: "overview-product-engineer",
-    title: "Product Engineer",
-    company: "Kaarya Co. Inc.",
-    statusLabel: "New This Week",
-    statusTone: "info",
-    postedAt: "5h ago",
-    location: "Kathmandu, Bagmati",
-    employmentType: "Full-Time",
-    engagementType: "Internship",
-    salaryRange: "NPR 12,00,000 - NPR 18,00,000",
-    logoText: "P",
-    logoClassName: "bg-[#5f4ebf]",
-    extraTags: ["+5"],
-    applyHref: "/jobs",
-  },
-];
-
-function rotateJobs(jobs: JobCardProps[], amount: number) {
-  if (jobs.length === 0) return [];
-  const normalizedAmount = amount % jobs.length;
-  return [...jobs.slice(normalizedAmount), ...jobs.slice(0, normalizedAmount)];
-}
-
 const overviewJobsByTab: Record<string, JobCardProps[]> = {
-  "For You": overviewJobsForYou,
-  "Trending Jobs": rotateJobs(overviewJobsForYou, 1),
-  "New This Week": rotateJobs(overviewJobsForYou, 2),
-  "Urgent Hiring": rotateJobs(overviewJobsForYou, 3),
-  "Remote Opportunities": overviewJobsForYou,
+  "For You": [],
+  "Trending Jobs": [],
+  "New This Week": [],
+  "Urgent Hiring": [],
+  "Remote Opportunities": [],
 };
 
 const OVERVIEW_DEFAULT_DATA: OverviewDashboardData = {
   applicationsSummary: {
-    total: 124,
-    delta: 12,
-    monthLabel: "February, 2026",
-    monthOptions: ["February, 2026", "January, 2026", "December, 2025"],
+    total: 0,
+    delta: 0,
+    todayCount: 0,
+    monthLabel: "Current Month",
+    monthKey: "",
+    monthOptions: [],
     tabs: [
-      "All Applications",
-      "Mock Interviews",
-      "Screening",
-      "Assessments",
-      "Offering",
-      "Acceptance",
-      "Rejected",
+      { key: "all", label: "All Applications", count: 0 },
+      { key: "applied", label: "Applied", count: 0, statuses: ["applied"] },
+      { key: "reviewing", label: "Reviewing", count: 0, statuses: ["reviewing"] },
+      {
+        key: "shortlisted",
+        label: "Shortlisted",
+        count: 0,
+        statuses: ["shortlisted"],
+      },
+      {
+        key: "interview",
+        label: "Interview",
+        count: 0,
+        statuses: ["interview_scheduled"],
+      },
+      { key: "accepted", label: "Accepted", count: 0, statuses: ["accepted"] },
+      {
+        key: "rejected",
+        label: "Rejected",
+        count: 0,
+        statuses: ["rejected", "withdrawn"],
+      },
     ],
-    activeTab: "All Applications",
-    logos: [
-      "https://res.cloudinary.com/dnqet3vq1/image/upload/v1770473342/kaarya/lnzrl9t7liqdt7pmquxt.png",
-      "https://res.cloudinary.com/dnqet3vq1/image/upload/v1770357829/kaarya/tl0x4mtzklebkdsbl50b.png",
-      "https://res.cloudinary.com/dnqet3vq1/image/upload/v1770473353/kaarya/acy5rbpegmme5jgree6w.png",
-      "https://res.cloudinary.com/dnqet3vq1/image/upload/v1770466148/kaarya/xpn5jf1sxap5ialnqzka.webp",
-    ],
-    extraCount: 8,
+    activeTab: "all",
+    recentCompanies: [],
   },
   deadlineCard: {
-    title: "Marketing Manager",
-    company: "Anthropic",
-    logoUrl:
-      "https://res.cloudinary.com/dnqet3vq1/image/upload/v1770473353/kaarya/acy5rbpegmme5jgree6w.png",
-    logoAlt: "Anthropic",
+    title: "No upcoming deadlines",
+    company: "Check saved jobs",
+    logoAlt: "Company",
+    deadlineLabel: "Upcoming",
+    ctaHref: "/jobs",
   },
   invitationCard: {
-    title: "You've got an invitation!",
+    title: "No pending invitations",
     description:
-      "Congratulations! You've got an interview invitation from OpenAI, accept the invitation and be prepared with our AI mock interviews!",
-    eventTitle: "Sunday, February 9, 2026",
-    eventTime: "4:30 PM - 6:30 PM",
-    logoUrl:
-      "https://res.cloudinary.com/dnqet3vq1/image/upload/v1770357829/kaarya/tl0x4mtzklebkdsbl50b.png",
-    logoAlt: "OpenAI",
+      "Interview invitations will appear here once recruiters schedule your next round.",
+    eventTitle: "No interviews scheduled yet",
+    eventTime: "Keep applying to increase interview opportunities",
+    logoAlt: "Company",
     initialStatus: "pending",
   },
   analytics: {
     summary: {
-      applicationsThisWeek: 139,
-      interviewConversion: 43.2,
+      applicationsThisWeek: 0,
+      interviewConversion: 0,
     },
     momentum: [
-      { label: "Mon", applications: 14, interviews: 6 },
-      { label: "Tue", applications: 19, interviews: 8 },
-      { label: "Wed", applications: 16, interviews: 7 },
-      { label: "Thu", applications: 24, interviews: 11 },
-      { label: "Fri", applications: 21, interviews: 10 },
-      { label: "Sat", applications: 18, interviews: 8 },
-      { label: "Sun", applications: 27, interviews: 12 },
+      { label: "Mon", applications: 0, interviews: 0 },
+      { label: "Tue", applications: 0, interviews: 0 },
+      { label: "Wed", applications: 0, interviews: 0 },
+      { label: "Thu", applications: 0, interviews: 0 },
+      { label: "Fri", applications: 0, interviews: 0 },
+      { label: "Sat", applications: 0, interviews: 0 },
+      { label: "Sun", applications: 0, interviews: 0 },
     ],
     pipeline: [
-      { stage: "Applied", thisWeek: 124, lastWeek: 110 },
-      { stage: "Screening", thisWeek: 79, lastWeek: 68 },
-      { stage: "Interview", thisWeek: 42, lastWeek: 34 },
-      { stage: "Offer", thisWeek: 16, lastWeek: 11 },
+      { stage: "Applied", thisWeek: 0, lastWeek: 0 },
+      { stage: "Screening", thisWeek: 0, lastWeek: 0 },
+      { stage: "Interview", thisWeek: 0, lastWeek: 0 },
+      { stage: "Offer", thisWeek: 0, lastWeek: 0 },
     ],
     invitationMix: [
-      { name: "Accepted", value: 58, fill: "#10b981" },
-      { name: "Pending", value: 27, fill: "#f59e0b" },
-      { name: "Declined", value: 15, fill: "#ef4444" },
+      { name: "Accepted", value: 0, fill: "#10b981" },
+      { name: "Pending", value: 0, fill: "#f59e0b" },
+      { name: "Declined", value: 0, fill: "#ef4444" },
     ],
   },
   jobRecommendations: {
@@ -227,13 +174,246 @@ const OVERVIEW_DEFAULT_DATA: OverviewDashboardData = {
     jobsByTab: overviewJobsByTab,
   },
   ratings: {
-    profile: 79,
-    interview: 23,
+    profile: 0,
+    interview: 0,
   },
 };
 
 type OverviewDashboardOptions = {
   enableInterviewMetrics?: boolean;
+  user?: TUser | null;
+  monthKey?: string;
+  tabKey?: string;
+  statuses?: ApplicationsSummaryStatus[];
+};
+
+const CANDIDATE_MONTH_REGEX = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+const CANDIDATE_SUMMARY_TABS: Array<{
+  key: string;
+  label: string;
+  statuses?: ApplicationsSummaryStatus[];
+}> = [
+  { key: "all", label: "All Applications" },
+  { key: "applied", label: "Applied", statuses: ["applied"] },
+  { key: "reviewing", label: "Reviewing", statuses: ["reviewing"] },
+  { key: "shortlisted", label: "Shortlisted", statuses: ["shortlisted"] },
+  { key: "interview", label: "Interview", statuses: ["interview_scheduled"] },
+  { key: "accepted", label: "Accepted", statuses: ["accepted"] },
+  { key: "rejected", label: "Rejected", statuses: ["rejected", "withdrawn"] },
+];
+
+type CandidateStatusCounts = Record<ApplicationsSummaryStatus, number>;
+
+const EMPTY_STATUS_COUNTS: CandidateStatusCounts = {
+  applied: 0,
+  reviewing: 0,
+  shortlisted: 0,
+  interview_scheduled: 0,
+  accepted: 0,
+  rejected: 0,
+  withdrawn: 0,
+};
+
+const monthKeyToDate = (monthKey: string) => {
+  const [yearRaw, monthRaw] = monthKey.split("-");
+  const year = Number.parseInt(yearRaw ?? "", 10);
+  const month = Number.parseInt(monthRaw ?? "", 10);
+  if (Number.isNaN(year) || Number.isNaN(month) || month < 1 || month > 12) {
+    return new Date();
+  }
+  return new Date(Date.UTC(year, month - 1, 1));
+};
+
+const toMonthKey = (date: Date) =>
+  `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
+
+const normalizeMonthKey = (value?: string | null) => {
+  const monthKey = value?.trim() ?? "";
+  if (CANDIDATE_MONTH_REGEX.test(monthKey)) return monthKey;
+  return toMonthKey(new Date());
+};
+
+const buildMonthOptions = (selectedMonthKey: string, count = 6) => {
+  const baseDate = monthKeyToDate(selectedMonthKey);
+  return Array.from({ length: count }).map((_, index) => {
+    const date = new Date(
+      Date.UTC(baseDate.getUTCFullYear(), baseDate.getUTCMonth() - index, 1),
+    );
+
+    return {
+      key: toMonthKey(date),
+      label: date.toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+        timeZone: "UTC",
+      }),
+    };
+  });
+};
+
+const normalizeStatuses = (statuses?: ApplicationsSummaryStatus[]) =>
+  Array.isArray(statuses) ? Array.from(new Set(statuses)) : [];
+
+const areEqualStatuses = (
+  left?: ApplicationsSummaryStatus[],
+  right?: ApplicationsSummaryStatus[],
+) => {
+  const leftValues = normalizeStatuses(left).sort();
+  const rightValues = normalizeStatuses(right).sort();
+  if (leftValues.length !== rightValues.length) return false;
+  return leftValues.every((value, index) => value === rightValues[index]);
+};
+
+const resolveActiveSummaryTab = (
+  tabKey?: string,
+  statuses?: ApplicationsSummaryStatus[],
+) => {
+  if (tabKey) {
+    const tabByKey = CANDIDATE_SUMMARY_TABS.find((tab) => tab.key === tabKey);
+    if (tabByKey) return tabByKey;
+  }
+
+  if (statuses?.length) {
+    const tabByStatuses = CANDIDATE_SUMMARY_TABS.find((tab) =>
+      areEqualStatuses(tab.statuses, statuses),
+    );
+    if (tabByStatuses) return tabByStatuses;
+  }
+
+  return CANDIDATE_SUMMARY_TABS[0];
+};
+
+const parseSummaryStatusCounts = (value: any): CandidateStatusCounts => ({
+  applied:
+    typeof value?.statusCounts?.applied === "number"
+      ? value.statusCounts.applied
+      : 0,
+  reviewing:
+    typeof value?.statusCounts?.reviewing === "number"
+      ? value.statusCounts.reviewing
+      : 0,
+  shortlisted:
+    typeof value?.statusCounts?.shortlisted === "number"
+      ? value.statusCounts.shortlisted
+      : 0,
+  interview_scheduled:
+    typeof value?.statusCounts?.interviewScheduled === "number"
+      ? value.statusCounts.interviewScheduled
+      : 0,
+  accepted:
+    typeof value?.statusCounts?.accepted === "number"
+      ? value.statusCounts.accepted
+      : 0,
+  rejected:
+    typeof value?.statusCounts?.rejected === "number"
+      ? value.statusCounts.rejected
+      : 0,
+  withdrawn:
+    typeof value?.statusCounts?.withdrawn === "number"
+      ? value.statusCounts.withdrawn
+      : 0,
+});
+
+const sumStatuses = (
+  statusCounts: CandidateStatusCounts,
+  statuses?: ApplicationsSummaryStatus[],
+) => {
+  if (!statuses?.length) {
+    return Object.values(statusCounts).reduce((sum, count) => sum + count, 0);
+  }
+  return statuses.reduce((sum, status) => sum + (statusCounts[status] ?? 0), 0);
+};
+
+const parseSummaryTabs = (statusCounts: CandidateStatusCounts): ApplicationsSummaryTab[] =>
+  CANDIDATE_SUMMARY_TABS.map((tab) => ({
+    key: tab.key,
+    label: tab.label,
+    statuses: tab.statuses,
+    count: sumStatuses(statusCounts, tab.statuses),
+  }));
+
+const parseSummaryRecentCompanies = (value: any) => {
+  const companies = Array.isArray(value?.recentCompanies)
+    ? value.recentCompanies
+    : [];
+
+  return companies
+    .map((company: any) => {
+      const workspaceId =
+        typeof company?.workspaceId === "string" ? company.workspaceId : null;
+      if (!workspaceId || typeof company?.name !== "string") return null;
+      return {
+        workspaceId,
+        workspaceType: company?.workspaceType === "college" ? "college" : "company",
+        name: company.name,
+        logo: typeof company?.logo === "string" ? company.logo : null,
+        applicationsCount:
+          typeof company?.applicationsCount === "number"
+            ? company.applicationsCount
+            : 0,
+      };
+    })
+    .filter(Boolean) as ApplicationsSummaryCardProps["recentCompanies"];
+};
+
+const parseSummaryAnalytics = (value: any): OverviewAnalyticsData => {
+  const analytics = value?.analytics;
+  if (!analytics || typeof analytics !== "object") {
+    return OVERVIEW_DEFAULT_DATA.analytics;
+  }
+
+  const momentum = Array.isArray(analytics.momentum)
+    ? analytics.momentum
+        .map((item: any) => ({
+          label: typeof item?.label === "string" ? item.label : "",
+          applications:
+            typeof item?.applications === "number" ? item.applications : 0,
+          interviews: typeof item?.interviews === "number" ? item.interviews : 0,
+        }))
+        .filter((item: any) => item.label.length > 0)
+    : [];
+
+  const pipeline = Array.isArray(analytics.pipeline)
+    ? analytics.pipeline
+        .map((item: any) => ({
+          stage: typeof item?.stage === "string" ? item.stage : "",
+          thisWeek: typeof item?.thisWeek === "number" ? item.thisWeek : 0,
+          lastWeek: typeof item?.lastWeek === "number" ? item.lastWeek : 0,
+        }))
+        .filter((item: any) => item.stage.length > 0)
+    : [];
+
+  const invitationMix = Array.isArray(analytics.invitationMix)
+    ? analytics.invitationMix
+        .map((item: any) => ({
+          name: typeof item?.name === "string" ? item.name : "",
+          value: typeof item?.value === "number" ? item.value : 0,
+          fill: typeof item?.fill === "string" ? item.fill : undefined,
+        }))
+        .filter((item: any) => item.name.length > 0)
+    : [];
+
+  return {
+    summary: {
+      applicationsThisWeek:
+        typeof analytics?.summary?.applicationsThisWeek === "number"
+          ? analytics.summary.applicationsThisWeek
+          : 0,
+      interviewConversion:
+        typeof analytics?.summary?.interviewConversion === "number"
+          ? analytics.summary.interviewConversion
+          : 0,
+    },
+    momentum:
+      momentum.length > 0 ? momentum : OVERVIEW_DEFAULT_DATA.analytics.momentum,
+    pipeline:
+      pipeline.length > 0 ? pipeline : OVERVIEW_DEFAULT_DATA.analytics.pipeline,
+    invitationMix:
+      invitationMix.length > 0
+        ? invitationMix
+        : OVERVIEW_DEFAULT_DATA.analytics.invitationMix,
+  };
 };
 
 const companyInitials = (companyName?: string | null) => {
@@ -314,13 +494,22 @@ const findInterviewInvitation = (applicationsResponse: any) => {
     ? applicationsResponse.data.applications
     : [];
 
-  return applications.find((application: any) => {
-    const status =
-      typeof application?.status === "string"
-        ? application.status.toLowerCase()
-        : "";
-    return status === "interview_scheduled";
-  });
+  const now = Date.now();
+  return applications
+    .filter((application: any) => {
+      const status =
+        typeof application?.status === "string"
+          ? application.status.toLowerCase()
+          : "";
+      if (status !== "interview_scheduled") return false;
+      const interviewAt = new Date(application?.interviewScheduledAt).getTime();
+      return Number.isFinite(interviewAt) && interviewAt >= now;
+    })
+    .sort(
+      (left: any, right: any) =>
+        new Date(left.interviewScheduledAt).getTime() -
+        new Date(right.interviewScheduledAt).getTime(),
+    )[0];
 };
 
 const findNearestDeadlineJob = (jobs: TJob[]) => {
@@ -367,13 +556,22 @@ export async function getOverviewDashboardData(
   options?: OverviewDashboardOptions,
 ): Promise<OverviewDashboardData> {
   const enableInterviewMetrics = options?.enableInterviewMetrics !== false;
+  const profileRating = computeProfileRating(options?.user).completion;
+  const selectedMonthKey = normalizeMonthKey(options?.monthKey);
+  const requestedStatuses = normalizeStatuses(options?.statuses);
+  const activeSummaryTab = resolveActiveSummaryTab(
+    options?.tabKey,
+    requestedStatuses,
+  );
+
   try {
     const [
       forYouResponse,
       trendingResponse,
       lastWeekResponse,
       remoteResponse,
-      myApplicationsResponse,
+      applicationsSummaryResponse,
+      interviewInvitesResponse,
       takenInterviewsResponse,
     ] =
       await Promise.all([
@@ -381,7 +579,11 @@ export async function getOverviewDashboardData(
         getJobs({ page: 1, size: 10, feed: "trending" }),
         getJobs({ page: 1, size: 10, feed: "last_week" }),
         getJobs({ page: 1, size: 10, feed: "for_you", remoteOnly: true }),
-        getMyApplications({ page: 1, size: 100 }),
+        getMyApplicationsSummary({
+          month: selectedMonthKey,
+          statuses: activeSummaryTab.statuses,
+        }),
+        getMyApplications({ page: 1, size: 50, status: "interview_scheduled" }),
         enableInterviewMetrics
           ? listInterviews({
               page: 1,
@@ -407,21 +609,46 @@ export async function getOverviewDashboardData(
       trendingJobs.length > 0 ||
       lastWeekJobs.length > 0 ||
       remoteJobs.length > 0;
+    const summaryData = applicationsSummaryResponse?.success
+      ? applicationsSummaryResponse.data
+      : null;
+    const statusCounts = summaryData
+      ? parseSummaryStatusCounts(summaryData)
+      : EMPTY_STATUS_COUNTS;
+    const summaryMonthKey =
+      typeof summaryData?.month?.key === "string"
+        ? summaryData.month.key
+        : selectedMonthKey;
+    const summaryTabs = parseSummaryTabs(statusCounts);
+    const summaryTotal =
+      typeof summaryData?.summary?.total === "number"
+        ? summaryData.summary.total
+        : sumStatuses(statusCounts, activeSummaryTab.statuses);
+    const summaryDelta =
+      typeof summaryData?.summary?.delta === "number"
+        ? summaryData.summary.delta
+        : 0;
+    const summaryTodayCount =
+      typeof summaryData?.summary?.todayCount === "number"
+        ? summaryData.summary.todayCount
+        : 0;
+    const summaryMonthLabel =
+      typeof summaryData?.month?.label === "string"
+        ? summaryData.month.label
+        : buildMonthOptions(summaryMonthKey, 1)[0]?.label ?? "Current Month";
+    const summaryMonthOptions = buildMonthOptions(summaryMonthKey, 6);
+    const summaryRecentCompanies = summaryData
+      ? parseSummaryRecentCompanies(summaryData)
+      : [];
+    const summaryAnalytics = summaryData
+      ? parseSummaryAnalytics(summaryData)
+      : OVERVIEW_DEFAULT_DATA.analytics;
+
     const interviewScores = extractInterviewScores(takenInterviewsResponse);
     const interviewRating = toAverageInterviewScore(interviewScores);
 
-    if (!hasLiveJobs) {
-      return {
-        ...OVERVIEW_DEFAULT_DATA,
-        ratings: {
-          ...OVERVIEW_DEFAULT_DATA.ratings,
-          interview: interviewRating,
-        },
-      };
-    }
-
     const nearestDeadline = findNearestDeadlineJob(forYouRawJobs);
-    const invitation = findInterviewInvitation(myApplicationsResponse);
+    const invitation = findInterviewInvitation(interviewInvitesResponse);
     const invitationJob =
       invitation?.job && typeof invitation.job === "object" ? invitation.job : null;
     const invitationCompany =
@@ -433,11 +660,40 @@ export async function getOverviewDashboardData(
         ? invitation.interviewScheduledAt
         : null,
     );
+    const jobsByTab = hasLiveJobs
+      ? {
+          "For You": forYouJobs,
+          "Trending Jobs": trendingJobs,
+          "New This Week": lastWeekJobs,
+          "Urgent Hiring": forYouJobs.filter((job) =>
+            job.statusLabel.toLowerCase().includes("open"),
+          ),
+          "Remote Opportunities": remoteJobs,
+        }
+      : {
+          "For You": [],
+          "Trending Jobs": [],
+          "New This Week": [],
+          "Urgent Hiring": [],
+          "Remote Opportunities": [],
+        };
 
     return {
       ...OVERVIEW_DEFAULT_DATA,
+      applicationsSummary: {
+        total: summaryTotal,
+        delta: summaryDelta,
+        todayCount: summaryTodayCount,
+        monthLabel: summaryMonthLabel,
+        monthKey: summaryMonthKey,
+        monthOptions: summaryMonthOptions,
+        tabs: summaryTabs,
+        activeTab: activeSummaryTab.key,
+        recentCompanies: summaryRecentCompanies,
+      },
+      analytics: summaryAnalytics,
       ratings: {
-        ...OVERVIEW_DEFAULT_DATA.ratings,
+        profile: profileRating,
         interview: interviewRating,
       },
       deadlineCard: nearestDeadline
@@ -477,22 +733,31 @@ export async function getOverviewDashboardData(
         : OVERVIEW_DEFAULT_DATA.invitationCard,
       jobRecommendations: {
         ...OVERVIEW_DEFAULT_DATA.jobRecommendations,
-        jobsByTab: {
-          "For You": forYouJobs,
-          "Trending Jobs": trendingJobs,
-          "New This Week": lastWeekJobs,
-          "Urgent Hiring": forYouJobs.filter((job) =>
-            job.statusLabel.toLowerCase().includes("open"),
-          ),
-          "Remote Opportunities": remoteJobs,
-        },
+        jobsByTab,
       },
     };
   } catch {
     return {
       ...OVERVIEW_DEFAULT_DATA,
+      applicationsSummary: {
+        ...OVERVIEW_DEFAULT_DATA.applicationsSummary,
+        monthKey: selectedMonthKey,
+        monthLabel: buildMonthOptions(selectedMonthKey, 1)[0]?.label ?? "Current Month",
+        monthOptions: buildMonthOptions(selectedMonthKey, 6),
+        activeTab: activeSummaryTab.key,
+      },
+      jobRecommendations: {
+        ...OVERVIEW_DEFAULT_DATA.jobRecommendations,
+        jobsByTab: {
+          "For You": [],
+          "Trending Jobs": [],
+          "New This Week": [],
+          "Urgent Hiring": [],
+          "Remote Opportunities": [],
+        },
+      },
       ratings: {
-        ...OVERVIEW_DEFAULT_DATA.ratings,
+        profile: profileRating,
         interview: 0,
       },
     };
@@ -535,6 +800,7 @@ type RecruiterOverviewOptions = {
   workspaceId?: string | null;
   workspaceName?: string | null;
   workspaceType?: "company" | "college";
+  rangeDays?: number;
 };
 
 const RECRUITER_EMPTY_OVERVIEW: RecruiterOverviewDashboardData = {
@@ -607,6 +873,12 @@ const isWithinNextDays = (isoDate?: string, days = 14) => {
   const now = Date.now();
   const maxWindow = now + days * 24 * 60 * 60 * 1000;
   return deadlineAt >= now && deadlineAt <= maxWindow;
+};
+
+const toIsoDaysAgo = (days: number) => {
+  const date = new Date();
+  date.setDate(date.getDate() - Math.max(0, Math.floor(days)));
+  return date.toISOString();
 };
 
 const buildMomentumFromJobs = (jobs: TJob[]) => {
@@ -683,6 +955,9 @@ export async function getRecruiterOverviewDashboardData(
   const workspaceName = options?.workspaceName?.trim() || "Selected Workspace";
   const workspaceId = options?.workspaceId?.trim();
   const workspaceType = options?.workspaceType ?? "company";
+  const rangeDays = [7, 30, 90].includes(Number(options?.rangeDays))
+    ? Number(options?.rangeDays)
+    : 30;
 
   if (!workspaceId) {
     return {
@@ -697,7 +972,7 @@ export async function getRecruiterOverviewDashboardData(
         ? { collegeId: workspaceId, visibility: "college_only" as const }
         : { companyId: workspaceId };
 
-    const [allResponse, openResponse, closedResponse, draftResponse] =
+    const [allResponse, openResponse, closedResponse, draftResponse, rangeResponse] =
       await Promise.all([
         getJobs({ page: 1, size: 100, feed: "all", ...workspaceFilter }),
         getJobs({
@@ -721,12 +996,21 @@ export async function getRecruiterOverviewDashboardData(
           ...workspaceFilter,
           status: "draft",
         }),
+        getJobs({
+          page: 1,
+          size: 100,
+          feed: "all",
+          ...workspaceFilter,
+          createdFrom: toIsoDaysAgo(rangeDays),
+        }),
       ]);
 
     const allJobs = extractJobs(allResponse);
     const openJobs = extractJobs(openResponse);
     const closedJobs = extractJobs(closedResponse);
     const draftJobs = extractJobs(draftResponse);
+    const rangeJobs = extractJobs(rangeResponse);
+    const analyticsJobs = rangeJobs.length > 0 ? rangeJobs : allJobs;
 
     const totalApplicants = allJobs.reduce(
       (sum, job) => sum + (job.applicationsCount ?? 0),
@@ -736,17 +1020,21 @@ export async function getRecruiterOverviewDashboardData(
     const closingSoon = openJobs.filter((job) =>
       isWithinNextDays(job.deadline, 14),
     ).length;
-    const momentum = buildMomentumFromJobs(allJobs);
-    const interviewsCount = Math.round(totalApplicants * 0.28);
+    const momentum = buildMomentumFromJobs(analyticsJobs);
+    const applicantsInRange = analyticsJobs.reduce(
+      (sum, job) => sum + (job.applicationsCount ?? 0),
+      0,
+    );
+    const interviewsCount = Math.round(applicantsInRange * 0.28);
     const interviewRate =
-      totalApplicants > 0
-        ? Number(((interviewsCount / totalApplicants) * 100).toFixed(1))
+      applicantsInRange > 0
+        ? Number(((interviewsCount / applicantsInRange) * 100).toFixed(1))
         : 0;
 
-    const pipelineApplied = totalApplicants;
-    const pipelineScreening = Math.round(totalApplicants * 0.57);
+    const pipelineApplied = applicantsInRange;
+    const pipelineScreening = Math.round(applicantsInRange * 0.57);
     const pipelineInterview = interviewsCount;
-    const pipelineOffer = Math.round(totalApplicants * 0.11);
+    const pipelineOffer = Math.round(applicantsInRange * 0.11);
 
     const allRoleCards = mapLiveJobsToCards(allJobs, {
       isRecruiter: true,
@@ -760,21 +1048,22 @@ export async function getRecruiterOverviewDashboardData(
       isRecruiter: true,
       workspaceId,
     });
+    const insightJobs = analyticsJobs.length > 0 ? analyticsJobs : allJobs;
     const workModeDistribution = [
       {
         mode: "Remote",
-        count: allJobs.filter((job) => job.workMode === "remote").length,
+        count: insightJobs.filter((job) => job.workMode === "remote").length,
       },
       {
         mode: "Hybrid",
-        count: allJobs.filter((job) => job.workMode === "hybrid").length,
+        count: insightJobs.filter((job) => job.workMode === "hybrid").length,
       },
       {
         mode: "Onsite",
-        count: allJobs.filter((job) => job.workMode === "onsite").length,
+        count: insightJobs.filter((job) => job.workMode === "onsite").length,
       },
     ];
-    const skillsCounter = allJobs.reduce<Map<string, number>>((acc, job) => {
+    const skillsCounter = insightJobs.reduce<Map<string, number>>((acc, job) => {
       extractSkillsFromJob(job).forEach((skill) => {
         const key = skill.toLowerCase();
         acc.set(key, (acc.get(key) ?? 0) + 1);
@@ -813,7 +1102,7 @@ export async function getRecruiterOverviewDashboardData(
       },
       analytics: {
         summary: {
-          applicationsThisWeek: totalApplicants,
+          applicationsThisWeek: applicantsInRange,
           interviewConversion: interviewRate,
         },
         momentum:

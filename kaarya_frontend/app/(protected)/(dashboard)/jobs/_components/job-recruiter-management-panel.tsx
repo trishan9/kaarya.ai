@@ -9,6 +9,7 @@ import {
   ExternalLink,
   Eye,
   Loader2,
+  MessageCircle,
   UserCheck,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -31,7 +32,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ensureStreamChannelWith } from "@/lib/actions/inbox-actions";
 import {
   updateApplicationResumeActivity,
   updateJobApplication,
@@ -122,7 +128,10 @@ const WORD_MIME_TYPES = new Set([
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ]);
 
-const resolveResumeExtension = (mimeType?: string, fileName?: string | null) => {
+const resolveResumeExtension = (
+  mimeType?: string,
+  fileName?: string | null,
+) => {
   const normalizedMimeType = mimeType?.toLowerCase();
   const trimmedFileName = fileName?.trim();
 
@@ -144,7 +153,10 @@ const resolveResumeExtension = (mimeType?: string, fileName?: string | null) => 
   return trimmedFileName || "resume";
 };
 
-const isWordResume = (resume?: JobApplicantRecord["resume"], fallbackFileName?: string) => {
+const isWordResume = (
+  resume?: JobApplicantRecord["resume"],
+  fallbackFileName?: string,
+) => {
   const mimeType = resume?.mimeType?.toLowerCase();
   if (mimeType && WORD_MIME_TYPES.has(mimeType)) return true;
   const fileName = (resume?.fileName ?? fallbackFileName ?? "").toLowerCase();
@@ -181,7 +193,12 @@ const toInterviewTime = (value: string) => {
 const combineDateAndTime = (date: Date, time: string) => {
   const [hours, minutes] = time.split(":").map((token) => Number(token));
   const combined = new Date(date);
-  combined.setHours(Number.isNaN(hours) ? 9 : hours, Number.isNaN(minutes) ? 0 : minutes, 0, 0);
+  combined.setHours(
+    Number.isNaN(hours) ? 9 : hours,
+    Number.isNaN(minutes) ? 0 : minutes,
+    0,
+    0,
+  );
   const year = combined.getFullYear();
   const month = String(combined.getMonth() + 1).padStart(2, "0");
   const day = String(combined.getDate()).padStart(2, "0");
@@ -199,18 +216,23 @@ export function JobRecruiterManagementPanel({
   const router = useRouter();
   const [jobStatus, setJobStatus] = React.useState(currentStatus);
   const [isSavingJobStatus, setIsSavingJobStatus] = React.useState(false);
-  const [selectedApplicantId, setSelectedApplicantId] = React.useState<string | null>(
-    applicants[0]?.id ?? null,
+  const [selectedApplicantId, setSelectedApplicantId] = React.useState<
+    string | null
+  >(applicants[0]?.id ?? null);
+  const [previewResumeUrl, setPreviewResumeUrl] = React.useState<string | null>(
+    null,
   );
-  const [previewResumeUrl, setPreviewResumeUrl] = React.useState<string | null>(null);
-  const [previewResumeTitle, setPreviewResumeTitle] = React.useState("Resume Preview");
+  const [previewResumeTitle, setPreviewResumeTitle] =
+    React.useState("Resume Preview");
   const [applicantState, setApplicantState] = React.useState<
     Record<string, ApplicantLocalState>
   >(() =>
     applicants.reduce<Record<string, ApplicantLocalState>>((acc, applicant) => {
       acc[applicant.id] = {
         status: applicant.status,
-        interviewScheduledAt: toDateTimeInputValue(applicant.interviewScheduledAt),
+        interviewScheduledAt: toDateTimeInputValue(
+          applicant.interviewScheduledAt,
+        ),
         interviewNote: applicant.interviewNote ?? "",
         isSaving: false,
       };
@@ -224,15 +246,20 @@ export function JobRecruiterManagementPanel({
 
   React.useEffect(() => {
     setApplicantState(
-      applicants.reduce<Record<string, ApplicantLocalState>>((acc, applicant) => {
-        acc[applicant.id] = {
-          status: applicant.status,
-          interviewScheduledAt: toDateTimeInputValue(applicant.interviewScheduledAt),
-          interviewNote: applicant.interviewNote ?? "",
-          isSaving: false,
-        };
-        return acc;
-      }, {}),
+      applicants.reduce<Record<string, ApplicantLocalState>>(
+        (acc, applicant) => {
+          acc[applicant.id] = {
+            status: applicant.status,
+            interviewScheduledAt: toDateTimeInputValue(
+              applicant.interviewScheduledAt,
+            ),
+            interviewNote: applicant.interviewNote ?? "",
+            isSaving: false,
+          };
+          return acc;
+        },
+        {},
+      ),
     );
 
     if (applicants.length === 0) {
@@ -240,7 +267,10 @@ export function JobRecruiterManagementPanel({
       return;
     }
 
-    if (!selectedApplicantId || !applicants.some((item) => item.id === selectedApplicantId)) {
+    if (
+      !selectedApplicantId ||
+      !applicants.some((item) => item.id === selectedApplicantId)
+    ) {
       setSelectedApplicantId(applicants[0].id);
     }
   }, [applicants, selectedApplicantId]);
@@ -248,7 +278,9 @@ export function JobRecruiterManagementPanel({
   const selectedApplicant = applicants.find(
     (applicant) => applicant.id === selectedApplicantId,
   );
-  const selectedState = selectedApplicant ? applicantState[selectedApplicant.id] : null;
+  const selectedState = selectedApplicant
+    ? applicantState[selectedApplicant.id]
+    : null;
   const selectedApplicantProfile = selectedApplicant?.candidateProfile ?? null;
 
   const openResumePreview = async (applicant: JobApplicantRecord) => {
@@ -285,7 +317,9 @@ export function JobRecruiterManagementPanel({
 
   const downloadResume = async (applicant: JobApplicantRecord) => {
     const downloadUrl =
-      applicant.resume?.downloadUrl ?? applicant.resume?.fileUrl ?? applicant.resume?.previewUrl;
+      applicant.resume?.downloadUrl ??
+      applicant.resume?.fileUrl ??
+      applicant.resume?.previewUrl;
     if (!downloadUrl) {
       toast.error("Resume download is unavailable for this applicant.");
       return;
@@ -297,7 +331,9 @@ export function JobRecruiterManagementPanel({
       "downloaded",
     );
     if (!activityResponse?.success) {
-      toast.error(activityResponse?.message || "Failed to track resume download.");
+      toast.error(
+        activityResponse?.message || "Failed to track resume download.",
+      );
     }
 
     const anchor = document.createElement("a");
@@ -356,7 +392,9 @@ export function JobRecruiterManagementPanel({
       });
 
       if (!response?.success) {
-        toast.error(response?.message || "Failed to update application status.");
+        toast.error(
+          response?.message || "Failed to update application status.",
+        );
         return;
       }
 
@@ -379,7 +417,9 @@ export function JobRecruiterManagementPanel({
     try {
       const response = await updateJobApplication(jobId, applicantId, {
         status: "interview_scheduled",
-        interviewScheduledAt: new Date(state.interviewScheduledAt).toISOString(),
+        interviewScheduledAt: new Date(
+          state.interviewScheduledAt,
+        ).toISOString(),
         interviewNote: state.interviewNote,
       });
 
@@ -400,14 +440,19 @@ export function JobRecruiterManagementPanel({
       <Card className="gap-4 rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h3 className="text-lg font-semibold text-foreground">Job Controls</h3>
+            <h3 className="text-lg font-semibold text-foreground">
+              Job Controls
+            </h3>
             <p className="text-sm text-muted-foreground">
-              Control job visibility and open the full edit form with prefilled data.
+              Control job visibility and open the full edit form with prefilled
+              data.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button asChild variant="outline">
-              <Link href={workspaceId ? `/jobs?workspace=${workspaceId}` : "/jobs"}>
+              <Link
+                href={workspaceId ? `/jobs?workspace=${workspaceId}` : "/jobs"}
+              >
                 Back to Jobs
               </Link>
             </Button>
@@ -427,7 +472,9 @@ export function JobRecruiterManagementPanel({
 
         <div className="flex flex-wrap items-end gap-3">
           <div className="w-full max-w-[220px] space-y-1">
-            <p className="text-xs font-medium text-muted-foreground">Job Status</p>
+            <p className="text-xs font-medium text-muted-foreground">
+              Job Status
+            </p>
             <Select
               value={jobStatus}
               onValueChange={(value) =>
@@ -447,7 +494,9 @@ export function JobRecruiterManagementPanel({
             </Select>
           </div>
           <Button onClick={saveJobStatus} disabled={isSavingJobStatus}>
-            {isSavingJobStatus ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            {isSavingJobStatus ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : null}
             Save Status
           </Button>
         </div>
@@ -455,9 +504,12 @@ export function JobRecruiterManagementPanel({
 
       <Card className="gap-4 rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5">
         <div className="space-y-1">
-          <h3 className="text-lg font-semibold text-foreground">Applicants Pipeline</h3>
+          <h3 className="text-lg font-semibold text-foreground">
+            Applicants Pipeline
+          </h3>
           <p className="text-sm text-muted-foreground">
-            Review candidates in a list-detail layout, update status, and send interview invites.
+            Review candidates in a list-detail layout, update status, and send
+            interview invites.
           </p>
         </div>
 
@@ -495,7 +547,9 @@ export function JobRecruiterManagementPanel({
                         </p>
                         <div className="mt-1 flex flex-wrap gap-1">
                           <Badge variant="secondary" className="text-[11px]">
-                            {applicationStatusLabel(state?.status ?? applicant.status)}
+                            {applicationStatusLabel(
+                              state?.status ?? applicant.status,
+                            )}
                           </Badge>
                           <Badge variant="outline" className="text-[11px]">
                             Applied {applicant.appliedAtLabel}
@@ -526,6 +580,38 @@ export function JobRecruiterManagementPanel({
                   </div>
 
                   <div className="flex items-center gap-2">
+                    {selectedApplicant.applicantUserId ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          try {
+                            const res = await ensureStreamChannelWith(
+                              selectedApplicant.applicantUserId!,
+                              jobId,
+                            );
+                            if (res.success) {
+                              router.push(
+                                `/inbox?with=${encodeURIComponent(selectedApplicant.applicantUserId!)}&jobId=${encodeURIComponent(jobId)}`,
+                              );
+                            } else {
+                              toast.error(
+                                res.message ?? "Failed to start chat. Please try again.",
+                              );
+                            }
+                          } catch (err) {
+                            toast.error(
+                              err instanceof Error
+                                ? err.message
+                                : "Something went wrong. Please try again.",
+                            );
+                          }
+                        }}
+                      >
+                        <MessageCircle className="h-3.5 w-3.5" />
+                        Message
+                      </Button>
+                    ) : null}
                     {selectedApplicant.resume?.previewUrl ||
                     selectedApplicant.resume?.fileUrl ? (
                       <Button
@@ -577,8 +663,10 @@ export function JobRecruiterManagementPanel({
                     </p>
                     {selectedApplicant.resumeActivity ? (
                       <p className="mt-1">
-                        Viewed {selectedApplicant.resumeActivity.viewCount ?? 0} times,
-                        downloaded {selectedApplicant.resumeActivity.downloadCount ?? 0} times.
+                        Viewed {selectedApplicant.resumeActivity.viewCount ?? 0}{" "}
+                        times, downloaded{" "}
+                        {selectedApplicant.resumeActivity.downloadCount ?? 0}{" "}
+                        times.
                       </p>
                     ) : null}
                   </div>
@@ -647,7 +735,8 @@ export function JobRecruiterManagementPanel({
                       ) : null}
                       {selectedApplicantProfile.openToWork !== undefined ? (
                         <span className="rounded-md border bg-white px-2 py-1">
-                          Open to work: {selectedApplicantProfile.openToWork ? "Yes" : "No"}
+                          Open to work:{" "}
+                          {selectedApplicantProfile.openToWork ? "Yes" : "No"}
                         </span>
                       ) : null}
                     </div>
@@ -658,15 +747,44 @@ export function JobRecruiterManagementPanel({
                           Skills
                         </p>
                         <div className="flex flex-wrap gap-1.5">
-                          {selectedApplicantProfile.skills.map((skill) => (
-                            <Badge
-                              key={`${selectedApplicant.id}-skill-${skill}`}
-                              variant="outline"
-                              className="text-[11px]"
-                            >
-                              {skill}
-                            </Badge>
-                          ))}
+                          {selectedApplicantProfile.skills.map((skill) => {
+                            if (typeof skill === "string") {
+                              return (
+                                <Badge
+                                  key={`${selectedApplicant.id}-skill-${skill}`}
+                                  variant="outline"
+                                  className="text-[11px]"
+                                >
+                                  {skill}
+                                </Badge>
+                              );
+                            }
+                            const profColor =
+                              skill.proficiency === "expert"
+                                ? "bg-emerald-500"
+                                : skill.proficiency === "advanced"
+                                  ? "bg-violet-500"
+                                  : skill.proficiency === "intermediate"
+                                    ? "bg-blue-500"
+                                    : "bg-zinc-400";
+                            return (
+                              <Badge
+                                key={`${selectedApplicant.id}-skill-${skill.id}`}
+                                variant="outline"
+                                className="text-[11px] gap-1"
+                              >
+                                <span
+                                  className={`inline-block h-1.5 w-1.5 rounded-full ${profColor}`}
+                                />
+                                {skill.name}
+                                {skill.proofs?.length ? (
+                                  <span className="text-[9px] text-muted-foreground">
+                                    ({skill.proofs.length})
+                                  </span>
+                                ) : null}
+                              </Badge>
+                            );
+                          })}
                         </div>
                       </div>
                     ) : null}
@@ -680,17 +798,24 @@ export function JobRecruiterManagementPanel({
                         </p>
                         {selectedApplicantProfile.preferredRoles?.length ? (
                           <p>
-                            Roles: {selectedApplicantProfile.preferredRoles.join(", ")}
+                            Roles:{" "}
+                            {selectedApplicantProfile.preferredRoles.join(", ")}
                           </p>
                         ) : null}
                         {selectedApplicantProfile.preferredLocations?.length ? (
                           <p>
-                            Locations: {selectedApplicantProfile.preferredLocations.join(", ")}
+                            Locations:{" "}
+                            {selectedApplicantProfile.preferredLocations.join(
+                              ", ",
+                            )}
                           </p>
                         ) : null}
                         {selectedApplicantProfile.preferredWorkModes?.length ? (
                           <p>
-                            Work modes: {selectedApplicantProfile.preferredWorkModes.join(", ")}
+                            Work modes:{" "}
+                            {selectedApplicantProfile.preferredWorkModes.join(
+                              ", ",
+                            )}
                           </p>
                         ) : null}
                       </div>
@@ -702,23 +827,25 @@ export function JobRecruiterManagementPanel({
                           Experience
                         </p>
                         <div className="space-y-2">
-                          {selectedApplicantProfile.experience.slice(0, 3).map((item) => (
-                            <div
-                              key={item.id}
-                              className="rounded-md border bg-white p-2 text-xs"
-                            >
-                              <p className="font-medium text-foreground">
-                                {item.jobTitle} - {item.companyName}
-                              </p>
-                              <p className="text-muted-foreground">
-                                {formatProfileDate(item.startDate)} -{" "}
-                                {item.currentlyWorking
-                                  ? "Present"
-                                  : formatProfileDate(item.endDate)}
-                                {item.location ? ` | ${item.location}` : ""}
-                              </p>
-                            </div>
-                          ))}
+                          {selectedApplicantProfile.experience
+                            .slice(0, 3)
+                            .map((item) => (
+                              <div
+                                key={item.id}
+                                className="rounded-md border bg-white p-2 text-xs"
+                              >
+                                <p className="font-medium text-foreground">
+                                  {item.jobTitle} - {item.companyName}
+                                </p>
+                                <p className="text-muted-foreground">
+                                  {formatProfileDate(item.startDate)} -{" "}
+                                  {item.currentlyWorking
+                                    ? "Present"
+                                    : formatProfileDate(item.endDate)}
+                                  {item.location ? ` | ${item.location}` : ""}
+                                </p>
+                              </div>
+                            ))}
                         </div>
                       </div>
                     ) : null}
@@ -729,22 +856,27 @@ export function JobRecruiterManagementPanel({
                           Education
                         </p>
                         <div className="space-y-2">
-                          {selectedApplicantProfile.education.slice(0, 3).map((item) => (
-                            <div
-                              key={item.id}
-                              className="rounded-md border bg-white p-2 text-xs"
-                            >
-                              <p className="font-medium text-foreground">
-                                {item.degree} {item.fieldOfStudy ? `in ${item.fieldOfStudy}` : ""}
-                              </p>
-                              <p className="text-muted-foreground">
-                                {item.institution}
-                                {item.startDate || item.endDate
-                                  ? ` | ${formatProfileDate(item.startDate)} - ${formatProfileDate(item.endDate)}`
-                                  : ""}
-                              </p>
-                            </div>
-                          ))}
+                          {selectedApplicantProfile.education
+                            .slice(0, 3)
+                            .map((item) => (
+                              <div
+                                key={item.id}
+                                className="rounded-md border bg-white p-2 text-xs"
+                              >
+                                <p className="font-medium text-foreground">
+                                  {item.degree}{" "}
+                                  {item.fieldOfStudy
+                                    ? `in ${item.fieldOfStudy}`
+                                    : ""}
+                                </p>
+                                <p className="text-muted-foreground">
+                                  {item.institution}
+                                  {item.startDate || item.endDate
+                                    ? ` | ${formatProfileDate(item.startDate)} - ${formatProfileDate(item.endDate)}`
+                                    : ""}
+                                </p>
+                              </div>
+                            ))}
                         </div>
                       </div>
                     ) : null}
@@ -755,38 +887,40 @@ export function JobRecruiterManagementPanel({
                           Certifications
                         </p>
                         <div className="space-y-2">
-                          {selectedApplicantProfile.certifications.slice(0, 3).map((item) => (
-                            <div
-                              key={item.id}
-                              className="rounded-md border bg-white p-2 text-xs"
-                            >
-                              <p className="font-medium text-foreground">
-                                {item.name} - {item.issuer}
-                              </p>
-                              <div className="mt-1 flex flex-wrap gap-2">
-                                {item.credentialUrl ? (
-                                  <a
-                                    href={item.credentialUrl}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="text-primary underline-offset-2 hover:underline"
-                                  >
-                                    Verification link
-                                  </a>
-                                ) : null}
-                                {item.mediaUrl ? (
-                                  <a
-                                    href={item.mediaUrl}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="text-primary underline-offset-2 hover:underline"
-                                  >
-                                    View certificate file
-                                  </a>
-                                ) : null}
+                          {selectedApplicantProfile.certifications
+                            .slice(0, 3)
+                            .map((item) => (
+                              <div
+                                key={item.id}
+                                className="rounded-md border bg-white p-2 text-xs"
+                              >
+                                <p className="font-medium text-foreground">
+                                  {item.name} - {item.issuer}
+                                </p>
+                                <div className="mt-1 flex flex-wrap gap-2">
+                                  {item.credentialUrl ? (
+                                    <a
+                                      href={item.credentialUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="text-primary underline-offset-2 hover:underline"
+                                    >
+                                      Verification link
+                                    </a>
+                                  ) : null}
+                                  {item.mediaUrl ? (
+                                    <a
+                                      href={item.mediaUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="text-primary underline-offset-2 hover:underline"
+                                    >
+                                      View certificate file
+                                    </a>
+                                  ) : null}
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
                         </div>
                       </div>
                     ) : null}
@@ -835,9 +969,13 @@ export function JobRecruiterManagementPanel({
                           className="justify-start rounded-md border-[#d8dde4] font-normal"
                         >
                           <CalendarDays className="h-4 w-4" />
-                          {toInterviewDate(selectedState.interviewScheduledAt) ? (
+                          {toInterviewDate(
+                            selectedState.interviewScheduledAt,
+                          ) ? (
                             format(
-                              toInterviewDate(selectedState.interviewScheduledAt)!,
+                              toInterviewDate(
+                                selectedState.interviewScheduledAt,
+                              )!,
                               "PPP",
                             )
                           ) : (
@@ -847,12 +985,16 @@ export function JobRecruiterManagementPanel({
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
-                          selected={toInterviewDate(selectedState.interviewScheduledAt)}
+                          selected={toInterviewDate(
+                            selectedState.interviewScheduledAt,
+                          )}
                           onSelect={(date) => {
                             if (!date) return;
                             const nextValue = combineDateAndTime(
                               date,
-                              toInterviewTime(selectedState.interviewScheduledAt),
+                              toInterviewTime(
+                                selectedState.interviewScheduledAt,
+                              ),
                             );
                             updateApplicantField(selectedApplicant.id, {
                               interviewScheduledAt: nextValue,
@@ -863,12 +1005,18 @@ export function JobRecruiterManagementPanel({
                     </Popover>
 
                     <Select
-                      value={toInterviewTime(selectedState.interviewScheduledAt)}
+                      value={toInterviewTime(
+                        selectedState.interviewScheduledAt,
+                      )}
                       onValueChange={(time) => {
                         const baseDate =
-                          toInterviewDate(selectedState.interviewScheduledAt) ?? new Date();
+                          toInterviewDate(selectedState.interviewScheduledAt) ??
+                          new Date();
                         updateApplicantField(selectedApplicant.id, {
-                          interviewScheduledAt: combineDateAndTime(baseDate, time),
+                          interviewScheduledAt: combineDateAndTime(
+                            baseDate,
+                            time,
+                          ),
                         });
                       }}
                     >
@@ -911,7 +1059,10 @@ export function JobRecruiterManagementPanel({
         )}
       </Card>
 
-      <Dialog open={Boolean(previewResumeUrl)} onOpenChange={(open) => !open && setPreviewResumeUrl(null)}>
+      <Dialog
+        open={Boolean(previewResumeUrl)}
+        onOpenChange={(open) => !open && setPreviewResumeUrl(null)}
+      >
         <DialogContent className="sm:max-w-4xl">
           <DialogHeader>
             <DialogTitle>{previewResumeTitle}</DialogTitle>

@@ -417,6 +417,32 @@ export async function updateProfile(formData: FormData) {
   }
 }
 
+export async function changePassword(payload: {
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}) {
+  try {
+    const res = await api.post(API_URLS.AUTH.CHANGE_PASSWORD, payload);
+    return res.data as { success: boolean; message?: string };
+  } catch (error: unknown) {
+    const msg =
+      error &&
+      typeof error === "object" &&
+      "response" in error &&
+      error.response &&
+      typeof error.response === "object" &&
+      "data" in error.response &&
+      error.response.data &&
+      typeof error.response.data === "object" &&
+      "message" in error.response.data &&
+      typeof error.response.data.message === "string"
+        ? error.response.data.message
+        : "Failed to change password.";
+    return { success: false, message: msg };
+  }
+}
+
 export async function uploadCertificationMedia(file: File) {
   try {
     const formData = new FormData();

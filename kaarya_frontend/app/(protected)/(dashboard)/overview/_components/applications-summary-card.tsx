@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-
+import Image from "next/image";
 import { Check, ChevronDown } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -14,51 +15,138 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import Image from "next/image";
+
+export type ApplicationsSummaryStatus =
+  | "applied"
+  | "reviewing"
+  | "shortlisted"
+  | "interview_scheduled"
+  | "accepted"
+  | "rejected"
+  | "withdrawn";
+
+export type ApplicationsSummaryTab = {
+  key: string;
+  label: string;
+  count: number;
+  statuses?: ApplicationsSummaryStatus[];
+};
+
+export type ApplicationsSummaryMonthOption = {
+  key: string;
+  label: string;
+};
+
+export type ApplicationsSummaryCompany = {
+  workspaceId: string;
+  workspaceType: "company" | "college";
+  name: string;
+  logo?: string | null;
+  applicationsCount: number;
+};
 
 export type ApplicationsSummaryCardProps = {
   total: number;
   delta: number;
+  todayCount: number;
   monthLabel: string;
-  monthOptions?: string[];
-  tabs: string[];
+  monthKey: string;
+  monthOptions: ApplicationsSummaryMonthOption[];
+  tabs: ApplicationsSummaryTab[];
   activeTab: string;
-  logos?: string[];
-  extraCount?: number;
+  recentCompanies: ApplicationsSummaryCompany[];
 };
 
 export function ApplicationsSummaryCard({
   total,
   delta,
+  todayCount,
   monthLabel,
+  monthKey,
   monthOptions,
   tabs,
   activeTab,
-  logos = [
-    "https://res.cloudinary.com/dnqet3vq1/image/upload/v1770473342/kaarya/lnzrl9t7liqdt7pmquxt.png",
-    "https://res.cloudinary.com/dnqet3vq1/image/upload/v1770357829/kaarya/tl0x4mtzklebkdsbl50b.png",
-    "https://res.cloudinary.com/dnqet3vq1/image/upload/v1770473353/kaarya/acy5rbpegmme5jgree6w.png",
-    "https://res.cloudinary.com/dnqet3vq1/image/upload/v1770466148/kaarya/xpn5jf1sxap5ialnqzka.webp",
-  ],
-  extraCount = 8,
+  recentCompanies,
 }: ApplicationsSummaryCardProps) {
-  const [currentTab, setCurrentTab] = React.useState(activeTab);
-  const [currentMonth, setCurrentMonth] = React.useState(monthLabel);
-  const availableMonths = React.useMemo(() => {
-    if (monthOptions?.length) {
-      return monthOptions;
-    }
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const safeMonthOptions = React.useMemo(
+    () =>
+      monthOptions.map((option, index) => {
+        const rawOption =
+          option && typeof option === "object"
+            ? (option as {
+                key?: unknown;
+                label?: unknown;
+              })
+            : null;
+        const resolvedKey =
+          typeof rawOption?.key === "string" && rawOption.key.trim().length > 0
+            ? rawOption.key
+            : typeof rawOption?.label === "string" && rawOption.label.trim().length > 0
+              ? rawOption.label
+              : `month-${index + 1}`;
+        const resolvedLabel =
+          typeof rawOption?.label === "string" && rawOption.label.trim().length > 0
+            ? rawOption.label
+            : resolvedKey;
 
-    return [monthLabel];
-  }, [monthLabel, monthOptions]);
+        return {
+          id: `${String(resolvedKey)}-${index}`,
+          key: String(resolvedKey),
+          label: resolvedLabel,
+        };
+      }),
+    [monthOptions],
+  );
+
+  const updateFilters = React.useCallback(
+    (input: { monthKey?: string; tabKey?: string }) => {
+      const nextParams = new URLSearchParams(searchParams?.toString());
+
+      const nextMonthKey = input.monthKey ?? monthKey;
+      const nextTabKey = input.tabKey ?? activeTab;
+      const selectedTab = tabs.find((tab) => tab.key === nextTabKey) ?? tabs[0];
+
+      if (nextMonthKey) {
+        nextParams.set("month", nextMonthKey);
+      } else {
+        nextParams.delete("month");
+      }
+
+      if (selectedTab?.key) {
+        nextParams.set("tab", selectedTab.key);
+      } else {
+        nextParams.delete("tab");
+      }
+
+      if (selectedTab?.statuses?.length) {
+        nextParams.set("statuses", selectedTab.statuses.join(","));
+      } else {
+        nextParams.delete("statuses");
+      }
+
+      const query = nextParams.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname);
+    },
+    [activeTab, monthKey, pathname, router, searchParams, tabs],
+  );
+
+  const deltaLabel = delta >= 0 ? `+${delta}` : `${delta}`;
+  const deltaTone =
+    delta > 0 ? "text-emerald-500" : delta < 0 ? "text-rose-500" : "text-muted-foreground";
 
   return (
     <Card className="min-w-0 gap-4 border-border bg-white p-4 shadow-sm sm:p-5">
       <div className="flex items-start justify-between gap-3">
-        <div>
+        <div className="space-y-0.5">
           <h2 className="text-xl font-semibold text-foreground sm:text-2xl">
             Applications Summary
           </h2>
+          <p className="text-xs text-muted-foreground">
+            Live application pipeline snapshot.
+          </p>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -67,20 +155,20 @@ export function ApplicationsSummaryCard({
               size="sm"
               className="h-8 rounded-lg border-border bg-muted/70 text-xs font-semibold text-foreground"
             >
-              {currentMonth}
+              {monthLabel}
               <ChevronDown className="ml-2 h-3 w-3" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44">
+          <DropdownMenuContent align="end" className="w-52">
             <DropdownMenuLabel>Select month</DropdownMenuLabel>
-            {availableMonths.map((option) => (
+            {safeMonthOptions.map((option) => (
               <DropdownMenuItem
-                key={option}
-                onSelect={() => setCurrentMonth(option)}
+                key={option.id}
+                onSelect={() => updateFilters({ monthKey: option.key })}
                 className="flex items-center justify-between text-xs"
               >
-                {option}
-                {option === currentMonth ? (
+                {option.label}
+                {option.key === monthKey ? (
                   <Check className="h-3 w-3 text-primary" />
                 ) : null}
               </DropdownMenuItem>
@@ -91,57 +179,85 @@ export function ApplicationsSummaryCard({
 
       <div className="flex flex-wrap items-center gap-2">
         {tabs.map((tab) => {
-          const isActive = tab === currentTab;
+          const isActive = tab.key === activeTab;
           return (
             <button
-              key={tab}
-              onClick={() => setCurrentTab(tab)}
+              key={tab.key}
+              onClick={() => updateFilters({ tabKey: tab.key })}
               className={cn(
-                "h-8 rounded-md border border-border px-3 text-xs transition-colors cursor-pointer",
+                "h-8 rounded-md border border-border px-3 text-xs transition-colors",
                 isActive
-                  ? "border-transparent bg-primary text-white font-medium"
+                  ? "border-transparent bg-primary font-medium text-white"
                   : "bg-white text-muted-foreground hover:border-primary hover:text-primary",
               )}
               aria-pressed={isActive}
+              type="button"
             >
-              {tab}
+              {tab.label} ({tab.count})
             </button>
           );
         })}
       </div>
 
-      <div>
+      <div className="space-y-2">
         <div className="mb-1 flex flex-wrap items-end gap-3">
           <div className="text-4xl font-semibold text-foreground sm:text-5xl">
             {total}
           </div>
           <div className="mb-1.5 flex items-center -space-x-2.5">
-            {logos.map((logo: string) => (
+            {recentCompanies.slice(0, 4).map((company) => (
               <span
-                key={logo}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-white bg-white text-xs shadow-sm"
+                key={company.workspaceId}
+                className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white bg-white text-[10px] font-semibold shadow-sm"
               >
-                <Image
-                  src={logo}
-                  alt={logo}
-                  width={32}
-                  height={32}
-                  className="object-cover rounded-full border border-white shadow-sm h-8 w-8"
-                />
+                {company.logo ? (
+                  <Image
+                    src={company.logo}
+                    alt={company.name}
+                    width={32}
+                    height={32}
+                    className="h-8 w-8 rounded-full object-cover"
+                  />
+                ) : (
+                  company.name.slice(0, 1).toUpperCase()
+                )}
               </span>
             ))}
-            <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white bg-[#e9f2fb] text-xs font-semibold text-[#0b67c2] shadow-sm">
-              +{extraCount}
-            </span>
+            {recentCompanies.length > 4 ? (
+              <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white bg-[#e9f2fb] text-xs font-semibold text-[#0b67c2] shadow-sm">
+                +{recentCompanies.length - 4}
+              </span>
+            ) : null}
           </div>
         </div>
 
         <p className="text-sm text-muted-foreground">
-          <span className="font-semibold text-emerald-500">+{delta} </span>
-          applications has been sent to the recruiters today, great work, hope
-          the best for you!
+          <span className={cn("font-semibold", deltaTone)}>{deltaLabel} </span>
+          compared to last month. {todayCount} applications submitted today.
         </p>
       </div>
+
+      {recentCompanies.length > 0 ? (
+        <div className="space-y-1.5 rounded-lg border border-[#ececf0] bg-neutral-50 p-3">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Recently Applied Companies
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {recentCompanies.map((company) => (
+              <span
+                key={`${company.workspaceId}-${company.workspaceType}`}
+                className="rounded-md bg-white px-2 py-1 text-xs text-foreground shadow-sm"
+              >
+                {company.name} ({company.applicationsCount})
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          No applications recorded for this filter yet.
+        </p>
+      )}
     </Card>
   );
 }

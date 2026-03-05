@@ -18,6 +18,8 @@ export type JobListQuery = {
   engagementType?: string;
   workMode?: "remote" | "onsite" | "hybrid";
   remoteOnly?: boolean;
+  createdFrom?: string;
+  createdTo?: string;
 };
 
 export type CreateJobPostingPayload = {
@@ -81,6 +83,21 @@ export type MyApplicationsQuery = {
     | "accepted"
     | "rejected"
     | "withdrawn";
+  fromDate?: string;
+  toDate?: string;
+};
+
+export type MyApplicationsSummaryQuery = {
+  month?: string;
+  statuses?: Array<
+    | "applied"
+    | "reviewing"
+    | "shortlisted"
+    | "interview_scheduled"
+    | "accepted"
+    | "rejected"
+    | "withdrawn"
+  >;
 };
 
 export type MyResumesQuery = {
@@ -110,6 +127,8 @@ export async function getJobs(query?: JobListQuery) {
         engagementType: toTrimmedOrUndefined(query?.engagementType),
         workMode: query?.workMode,
         remoteOnly: query?.remoteOnly,
+        createdFrom: query?.createdFrom,
+        createdTo: query?.createdTo,
       },
     });
     return response.data;
@@ -248,6 +267,8 @@ export async function getMyApplications(params?: MyApplicationsQuery) {
         page: params?.page,
         size: params?.size,
         status: params?.status,
+        fromDate: params?.fromDate,
+        toDate: params?.toDate,
       },
     });
     return response.data;
@@ -256,6 +277,29 @@ export async function getMyApplications(params?: MyApplicationsQuery) {
       error?.response?.data?.message ||
       error.message ||
       "Failed to fetch my applications";
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+}
+
+export async function getMyApplicationsSummary(
+  params?: MyApplicationsSummaryQuery,
+) {
+  try {
+    const response = await api.get(API_URLS.APPLICATION.MY_APPLICATIONS_SUMMARY, {
+      params: {
+        month: params?.month,
+        statuses: params?.statuses?.join(","),
+      },
+    });
+    return response.data;
+  } catch (error: Error | any) {
+    const errorMessage =
+      error?.response?.data?.message ||
+      error.message ||
+      "Failed to fetch applications summary";
     return {
       success: false,
       message: errorMessage,

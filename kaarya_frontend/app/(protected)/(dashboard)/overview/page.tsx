@@ -2,7 +2,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BriefcaseBusiness, Eye, FileClock, Target, Users } from "lucide-react";
 import { DashboardHeader } from "../_components/dashboard-header";
-import { ApplicationsSummaryCard } from "./_components/applications-summary-card";
+import {
+  ApplicationsSummaryCard,
+  type ApplicationsSummaryStatus,
+} from "./_components/applications-summary-card";
 import { DeadlineCard } from "./_components/deadline-card";
 import { InvitationCard } from "./_components/invitation-card";
 import { RatingCard } from "./_components/rating-card";
@@ -19,6 +22,7 @@ import { listCollegeWorkspaces } from "@/lib/actions/college-actions";
 import {
   Role,
 } from "@/lib/definitions";
+import { computeProfileRating } from "@/lib/compute-profile-rating";
 import { listRecruiterWorkspaces } from "@/lib/actions/company-actions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,7 +38,45 @@ import {
 type OverviewPageProps = {
   searchParams?: Promise<{
     workspace?: string;
+    range?: string;
+    month?: string;
+    tab?: string;
+    statuses?: string;
   }>;
+};
+
+const candidateStatuses: ApplicationsSummaryStatus[] = [
+  "applied",
+  "reviewing",
+  "shortlisted",
+  "interview_scheduled",
+  "accepted",
+  "rejected",
+  "withdrawn",
+];
+
+const parseSummaryStatuses = (
+  value: string | undefined,
+): ApplicationsSummaryStatus[] | undefined => {
+  if (typeof value !== "string" || value.trim().length === 0) return undefined;
+  const tokens = value
+    .split(",")
+    .map((token) => token.trim())
+    .filter(Boolean) as ApplicationsSummaryStatus[];
+  if (!tokens.length) return undefined;
+  const filtered = tokens.filter((token) => candidateStatuses.includes(token));
+  if (!filtered.length) return undefined;
+  return Array.from(new Set(filtered));
+};
+
+const buildOverviewHref = (input: { workspace?: string | null; rangeDays?: number }) => {
+  const query = new URLSearchParams();
+  if (input.workspace) query.set("workspace", input.workspace);
+  if (typeof input.rangeDays === "number") {
+    query.set("range", String(input.rangeDays));
+  }
+  const queryString = query.toString();
+  return queryString ? `/overview?${queryString}` : "/overview";
 };
 
 const getInterviewRatingMeta = (rating: number) => {
@@ -129,11 +171,19 @@ export default async function OverviewPage({
     const activeWorkspaceName = isCollege
       ? activeCollegeWorkspace?.college?.name
       : activeRecruiterWorkspace?.company?.name;
+    const requestedRangeValue =
+      typeof params?.range === "string"
+        ? Number.parseInt(params.range, 10)
+        : Number.NaN;
+    const rangeDays = [7, 30, 90].includes(requestedRangeValue)
+      ? requestedRangeValue
+      : 30;
 
     const overviewData = await getRecruiterOverviewDashboardData({
       workspaceId: activeWorkspaceId,
       workspaceName: activeWorkspaceName,
       workspaceType: isCollege ? "college" : "company",
+      rangeDays,
     });
     const createJobHref = activeWorkspaceId
       ? `/jobs/new?workspace=${activeWorkspaceId}`
@@ -189,11 +239,34 @@ export default async function OverviewPage({
           />
 
           <div className="space-y-4 px-3 pb-6 sm:px-4 sm:pb-8">
-            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[#ececf0] bg-neutral-50 px-3 py-2">
-              <span className="text-sm text-muted-foreground">Workspace</span>
-              <Badge variant="secondary">
-                {overviewData.workspaceName || "No workspace selected"}
-              </Badge>
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#ececf0] bg-neutral-50 px-3 py-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm text-muted-foreground">Workspace</span>
+                <Badge variant="secondary">
+                  {overviewData.workspaceName || "No workspace selected"}
+                </Badge>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-muted-foreground">Range</span>
+                {[7, 30, 90].map((days) => (
+                  <Button
+                    key={days}
+                    asChild
+                    size="sm"
+                    variant={rangeDays === days ? "default" : "outline"}
+                    className="h-7 rounded-md px-2 text-[11px]"
+                  >
+                    <Link
+                      href={buildOverviewHref({
+                        workspace: activeWorkspaceId,
+                        rangeDays: days,
+                      })}
+                    >
+                      {days}d
+                    </Link>
+                  </Button>
+                ))}
+              </div>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
@@ -332,10 +405,18 @@ export default async function OverviewPage({
 
   const canTakeInterview =
     user?.role === Role.USER || user?.role === Role.STUDENT;
+  const candidateStatusesFilter = parseSummaryStatuses(
+    typeof params?.statuses === "string" ? params.statuses : undefined,
+  );
   const overviewData = await getOverviewDashboardData({
     enableInterviewMetrics: canTakeInterview,
+    user: user ?? undefined,
+    monthKey: typeof params?.month === "string" ? params.month : undefined,
+    tabKey: typeof params?.tab === "string" ? params.tab : undefined,
+    statuses: candidateStatusesFilter,
   });
   const interviewRatingMeta = getInterviewRatingMeta(overviewData.ratings.interview);
+  const profileRatingMeta = user ? computeProfileRating(user) : null;
 
   return (
     <div className="min-h-svh bg-neutral-100 p-2 sm:p-4 lg:pl-0 lg:p-5">
@@ -359,14 +440,14 @@ export default async function OverviewPage({
               <RatingCard
                 title="Your Profile Rating"
                 rating={overviewData.ratings.profile}
-                badgeLabel="Standard"
-                ratingClassName="text-[#f4b000]"
-                badgeClassName="bg-[#fff3d8] text-[#f4b000]"
-                description="It's already great, but it still needs to be even better to impress the recruiters."
+                badgeLabel={profileRatingMeta?.tierLabel ?? "STARTER"}
+                ratingClassName={profileRatingMeta?.tierColor ?? "text-zinc-600"}
+                badgeClassName={profileRatingMeta?.tierBadgeClass ?? "bg-zinc-500/10 text-zinc-600"}
+                description={profileRatingMeta?.summaryText ?? "Complete your profile to get started."}
                 suggestionTitle="Our Suggestion"
-                suggestionBody="Try enhancing your profile & re-generating your version of an interactive resume with the help of our very own Resume Builder AI."
-                actionLabel="Enhance with AI"
-                actionHref="/resume"
+                suggestionBody={profileRatingMeta?.suggestionBody ?? "Fill out your profile and resume details."}
+                actionLabel="Improve Profile"
+                actionHref="/settings"
                 showAction
               />
 

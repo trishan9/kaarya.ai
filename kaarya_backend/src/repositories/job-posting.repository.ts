@@ -25,6 +25,7 @@ export type TJobPostingListOptions = {
   remoteOnly?: boolean;
   jobIds?: string[];
   createdFrom?: Date;
+  createdTo?: Date;
   sort?: Record<string, 1 | -1>;
   deadlineFrom?: Date;
   deadlineTo?: Date;
@@ -95,6 +96,7 @@ export class JobPostingRepository implements ACJobPostingRepository {
       remoteOnly,
       jobIds,
       createdFrom,
+      createdTo,
       sort,
       deadlineFrom,
       deadlineTo,
@@ -193,8 +195,15 @@ export class JobPostingRepository implements ACJobPostingRepository {
       andClauses.push({ workMode: JobWorkMode.REMOTE });
     }
 
-    if (createdFrom) {
-      andClauses.push({ createdAt: { $gte: createdFrom } });
+    if (createdFrom || createdTo) {
+      const createdAtFilter: Record<string, Date> = {};
+      if (createdFrom) {
+        createdAtFilter.$gte = createdFrom;
+      }
+      if (createdTo) {
+        createdAtFilter.$lt = createdTo;
+      }
+      andClauses.push({ createdAt: createdAtFilter });
     }
 
     if (deadlineFrom || deadlineTo) {

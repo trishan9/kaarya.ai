@@ -1,5 +1,6 @@
 import { HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Types } from 'mongoose';
 import { ApiError } from 'src/common/errors/api-error';
 import { COMPANY_MESSAGES } from 'src/constants/messages.constants';
 import { CompanyService } from 'src/services/company.service';
@@ -381,6 +382,336 @@ describe('CompanyService', () => {
       companyId,
     );
     expect(result).toEqual(expect.objectContaining({ id: companyId }));
+  });
+
+  it('should throw when update/delete/reset target company does not exist', async () => {
+    recruiterProfileService.assertRecruiterMembership.mockResolvedValue(undefined);
+
+    companyRepository.updateById.mockResolvedValue(null);
+    await expectApiError(
+      service.updateCompany(
+        { id: recruiterId, role: UserRole.RECRUITER },
+        companyId,
+        { name: 'Missing' },
+      ),
+      HttpStatus.NOT_FOUND,
+      COMPANY_MESSAGES.NOT_FOUND,
+    );
+
+    companyRepository.deleteById.mockResolvedValue(null);
+    await expectApiError(
+      service.deleteCompany(
+        { id: recruiterId, role: UserRole.RECRUITER },
+        companyId,
+      ),
+      HttpStatus.NOT_FOUND,
+      COMPANY_MESSAGES.NOT_FOUND,
+    );
+
+    companyRepository.findByInviteCode.mockResolvedValue(null);
+    companyRepository.updateById.mockResolvedValue(null);
+    await expectApiError(
+      service.resetCompanyInviteCode(
+        { id: recruiterId, role: UserRole.RECRUITER },
+        companyId,
+      ),
+      HttpStatus.NOT_FOUND,
+      COMPANY_MESSAGES.NOT_FOUND,
+    );
+  });
+
+  it('should validate ids for delete/reset/invite/list-recruiters APIs', async () => {
+    await expectApiError(
+      service.deleteCompany({ id: recruiterId, role: UserRole.ADMIN }, 'bad-id'),
+      HttpStatus.BAD_REQUEST,
+      COMPANY_MESSAGES.INVALID_ID,
+    );
+    await expectApiError(
+      service.resetCompanyInviteCode(
+        { id: recruiterId, role: UserRole.ADMIN },
+        'bad-id',
+      ),
+      HttpStatus.BAD_REQUEST,
+      COMPANY_MESSAGES.INVALID_ID,
+    );
+    await expectApiError(
+      service.inviteRecruiterToCompany(
+        { id: recruiterId, role: UserRole.ADMIN },
+        'bad-id',
+        { email: 'x@y.com' },
+      ),
+      HttpStatus.BAD_REQUEST,
+      COMPANY_MESSAGES.INVALID_ID,
+    );
+    await expectApiError(
+      service.listCompanyRecruiters(
+        { id: recruiterId, role: UserRole.ADMIN },
+        'bad-id',
+        { page: 1, size: 10 },
+      ),
+      HttpStatus.BAD_REQUEST,
+      COMPANY_MESSAGES.INVALID_ID,
+    );
+  });
+
+  it('should list companies and recruiter workspaces', async () => {
+    companyRepository.findAll.mockResolvedValue({
+      companies: [
+        { id: companyId, name: 'Acme', logo: null },
+        null,
+      ],
+      total: 2,
+    } as never);
+    recruiterProfileService.listRecruiterMemberships.mockResolvedValue({
+      recruiterProfiles: [
+        {
+          id: 'm-1',
+          designation: 'TA',
+          createdAt: new Date('2026-01-01T00:00:00.000Z'),
+          companyId: { id: companyId, name: 'Acme', logo: null, inviteCode: 'KR-1' },
+        },
+      ],
+      total: 1,
+    } as never);
+
+    const listedCompanies = await service.listCompanies({
+      page: 1,
+      size: 10,
+      search: 'ac',
+    });
+    expect(listedCompanies.companies).toHaveLength(1);
+
+    const workspaces = await service.listRecruiterWorkspaces(
+      { id: recruiterId, role: UserRole.RECRUITER },
+      { page: 1, size: 10 },
+    );
+    expect(workspaces.workspaces).toEqual([
+      expect.objectContaining({
+        membershipId: 'm-1',
+        company: expect.objectContaining({ id: companyId }),
+      }),
+    ]);
+  });
+
+  it('should list recruiters within a company workspace', async () => {
+    companyRepository.findById
+      .mockResolvedValueOnce({
+        id: companyId,
+        name: 'Acme',
+        logo: null,
+        inviteCode: 'KR-1234',
+      } as never)
+      .mockResolvedValueOnce({
+        id: companyId,
+        name: 'Acme',
+        logo: null,
+        inviteCode: 'KR-1234',
+      } as never);
+    recruiterProfileRepository.findAllByCompanyId.mockResolvedValue({
+      recruiterProfiles: [
+        {
+          id: 'membership-1',
+          recruiterId: recruiter2Id,
+          companyId,
+        },
+      ],
+      total: 1,
+    } as never);
+
+    const result = await service.listCompanyRecruiters(
+      { id: recruiterId, role: UserRole.ADMIN },
+      companyId,
+      { page: 1, size: 10 },
+    );
+
+    expect(result.workspace).toEqual(
+      expect.objectContaining({
+        id: companyId,
+        inviteCode: 'KR-1234',
+      }),
+    );
+    expect(result.members).toEqual([
+      expect.objectContaining({
+        recruiter: { id: recruiter2Id },
+      }),
+    ]);
+  });
+
+  it('should join company by invite code and return membership payload', async () => {
+    companyRepository.findByInviteCode.mockResolvedValue({
+      id: companyId,
+      name: 'Acme',
+      inviteCode: 'KR-ABCD',
+      logo: null,
+    } as never);
+    recruiterProfileService.assignRecruiterToCompany.mockResolvedValue({
+      id: 'm-1',
+      recruiterId,
+      companyId,
+    } as never);
+
+    const result = await service.joinCompanyByInviteCode(
+      { id: recruiterId, role: UserRole.RECRUITER },
+      { inviteCode: 'KR-ABCD', designation: 'TA' },
+    );
+
+    expect(result.workspace).toEqual(
+      expect.objectContaining({
+        id: companyId,
+      }),
+    );
+    expect(result.member).toEqual(expect.objectContaining({ id: 'm-1' }));
+  });
+
+  it('should set emailSent=true when invite email succeeds', async () => {
+    recruiterProfileService.assertRecruiterMembership.mockResolvedValue(undefined);
+    companyRepository.findById.mockResolvedValue({
+      id: companyId,
+      name: 'Acme',
+      inviteCode: 'KR-READY',
+      logo: null,
+    } as never);
+    userService.getUserByEmail.mockResolvedValue(null);
+    userService.getUserByIdRaw.mockResolvedValue({
+      id: recruiterId,
+      name: 'Owner',
+    } as never);
+    emailService.sendCompanyInvite.mockResolvedValue(undefined as never);
+
+    const result = await service.inviteRecruiterToCompany(
+      { id: recruiterId, role: UserRole.RECRUITER },
+      companyId,
+      { email: 'invitee@example.com' },
+    );
+
+    expect(result.emailSent).toBe(true);
+  });
+
+  it('should get company, my company, and admin attach/remove recruiter flows', async () => {
+    companyRepository.findById.mockResolvedValue({
+      id: companyId,
+      name: 'Acme',
+      logo: null,
+      inviteCode: 'KR-ABC',
+    } as never);
+    recruiterProfileService.getRecruiterProfileByUserIdOrThrow.mockResolvedValue({
+      id: 'm-1',
+      recruiterId,
+      companyId: new Types.ObjectId(companyId),
+    } as never);
+    recruiterProfileService.assignRecruiterToCompany.mockResolvedValue({
+      id: 'm-2',
+      recruiterId: recruiter2Id,
+      companyId,
+    } as never);
+    recruiterProfileService.removeRecruiterFromCompany.mockResolvedValue({
+      id: 'm-3',
+      recruiterId: recruiter2Id,
+      companyId,
+    } as never);
+
+    const company = await service.getCompanyById(companyId);
+    expect(company).toEqual(expect.objectContaining({ id: companyId }));
+
+    const myCompany = await service.getMyCompany({
+      id: recruiterId,
+      role: UserRole.RECRUITER,
+    });
+    expect(myCompany.company).toEqual(expect.objectContaining({ id: companyId }));
+
+    const attached = await service.assignRecruiterToCompanyByAdmin({
+      recruiterId: recruiter2Id,
+      companyId,
+      designation: 'Hiring Lead',
+    });
+    expect(attached.recruiterProfile).toEqual(expect.objectContaining({ id: 'm-2' }));
+
+    const removed = await service.removeRecruiterFromCompanyByAdmin({
+      recruiterId: recruiter2Id,
+      companyId,
+    });
+    expect(removed.recruiterProfile).toEqual(expect.objectContaining({ id: 'm-3' }));
+  });
+
+  it('should enforce role guards and company raw lookup failures', async () => {
+    await expectApiError(
+      service.getMyCompany({ id: recruiterId, role: UserRole.STUDENT }),
+      HttpStatus.FORBIDDEN,
+      COMPANY_MESSAGES.FORBIDDEN_COMPANY_ACCESS,
+    );
+    await expectApiError(
+      service.getCompanyByIdRaw('bad-id'),
+      HttpStatus.BAD_REQUEST,
+      COMPANY_MESSAGES.INVALID_ID,
+    );
+    companyRepository.findById.mockResolvedValue(null);
+    await expectApiError(
+      service.getCompanyByIdRaw(companyId),
+      HttpStatus.NOT_FOUND,
+      COMPANY_MESSAGES.NOT_FOUND,
+    );
+    await expectApiError(
+      service.assertCanManageCompany(
+        { id: recruiterId, role: UserRole.STUDENT },
+        companyId,
+      ),
+      HttpStatus.FORBIDDEN,
+      COMPANY_MESSAGES.FORBIDDEN_COMPANY_ACCESS,
+    );
+  });
+
+  it('should cover helper builders and invite link/code helpers', () => {
+    const internal = service as any;
+    expect(internal.buildWorkspaceSwitcherItem(null)).toBeNull();
+    expect(
+      internal.buildWorkspaceSwitcherItem({
+        id: 'm-1',
+        designation: 'TA',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        companyId,
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        company: { id: companyId, name: null, logo: null, inviteCode: null },
+      }),
+    );
+    expect(
+      internal.buildWorkspaceSwitcherItem({
+        id: 'm-obj',
+        designation: 'TA',
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        companyId: { id: companyId, name: 'Acme' },
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        company: { id: companyId, name: 'Acme', logo: null, inviteCode: null },
+      }),
+    );
+    expect(
+      internal.buildWorkspaceSwitcherItem({
+        id: 'm-2',
+      }),
+    ).toBeNull();
+
+    expect(internal.buildRecruiterProfileResponse(null)).toBeNull();
+    expect(
+      internal.buildRecruiterProfileResponse({
+        id: 'rp-1',
+        recruiterId: recruiter2Id,
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        recruiter: { id: recruiter2Id },
+      }),
+    );
+
+    const code = internal.generateInviteCode();
+    expect(code).toMatch(/^KR-[A-F0-9]{8}$/);
+
+    configService.get.mockReturnValueOnce(undefined);
+    const link = internal.buildInviteLink(companyId, 'KR-AAAA1111');
+    expect(link).toContain('http://localhost:3000/company-invites');
+    expect(link).toContain(`companyId=${encodeURIComponent(companyId)}`);
   });
 
   it('should throw when invite code generation cannot find unique value', async () => {

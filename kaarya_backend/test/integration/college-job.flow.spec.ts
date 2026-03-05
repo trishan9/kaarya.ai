@@ -257,4 +257,129 @@ describe('College + Student + Job flow (integration)', () => {
       JOB_MESSAGES.FORBIDDEN_COMPANY_ACCESS,
     );
   });
+
+  it('should cover college management lifecycle methods', async () => {
+    const collegeOwner = await userService.createUser({
+      name: 'Lifecycle College Owner',
+      email: 'lifecycle.college.owner@example.com',
+      role: UserRole.COLLEGE,
+    });
+    const studentOne = await userService.createUser({
+      name: 'Lifecycle Student One',
+      email: 'lifecycle.student.one@example.com',
+      role: UserRole.STUDENT,
+    });
+    const studentTwo = await userService.createUser({
+      name: 'Lifecycle Student Two',
+      email: 'lifecycle.student.two@example.com',
+      role: UserRole.STUDENT,
+    });
+
+    const ownerAuth = toAuthUser(collegeOwner, UserRole.COLLEGE);
+    const studentOneAuth = toAuthUser(studentOne, UserRole.STUDENT);
+
+    const college = await collegeService.createCollege(ownerAuth, {
+      name: 'Lifecycle College Workspace',
+      institutionType: 'Engineering College',
+      location: 'Kathmandu',
+    });
+    if (!college) {
+      throw new Error('Expected college workspace');
+    }
+
+    const collegeId = college.id as string;
+    expect(collegeId).toBeTruthy();
+
+    const myCollege = await collegeService.getMyCollege(ownerAuth);
+    expect(myCollege.college).toEqual(
+      expect.objectContaining({
+        id: collegeId,
+      }),
+    );
+
+    const byId = await collegeService.getCollegeById(collegeId);
+    expect(byId?.id).toBe(collegeId);
+
+    const resetInviteCode = await collegeService.resetCollegeInviteCode(
+      ownerAuth,
+      collegeId,
+    );
+    expect(resetInviteCode.inviteCode).toMatch(/^KC-/);
+
+    await collegeService.joinCollegeByInviteCode(studentOneAuth, {
+      inviteCode: resetInviteCode.inviteCode as string,
+      program: 'BSc CSIT',
+      year: 3,
+    });
+
+    const ownerWorkspaces = await collegeService.listStudentWorkspaces(ownerAuth, {
+      page: 1,
+      size: 10,
+    });
+    expect(ownerWorkspaces.workspaces.length).toBe(1);
+
+    const studentWorkspaces = await collegeService.listStudentWorkspaces(
+      studentOneAuth,
+      {
+        page: 1,
+        size: 10,
+      },
+    );
+    expect(studentWorkspaces.workspaces.length).toBeGreaterThanOrEqual(1);
+
+    const invite = await collegeService.inviteStudentToCollege(
+      ownerAuth,
+      collegeId,
+      {
+        email: studentTwo.email as string,
+        program: 'BBA',
+        year: 2,
+      },
+    );
+    expect(invite).toEqual(
+      expect.objectContaining({
+        inviteeEmail: studentTwo.email,
+        inviteCode: expect.stringMatching(/^KC-/),
+        inviteLink: expect.stringContaining('college-invites?collegeId='),
+      }),
+    );
+
+    await collegeService.joinCollegeByInviteCode(
+      toAuthUser(studentTwo, UserRole.STUDENT),
+      {
+        inviteCode: invite.inviteCode,
+        program: 'BBA',
+        year: 2,
+      },
+    );
+
+    const listedStudents = await collegeService.listCollegeStudents(
+      ownerAuth,
+      collegeId,
+      {
+        page: 1,
+        size: 20,
+      },
+    );
+    expect(listedStudents.members.length).toBeGreaterThanOrEqual(2);
+
+    const removed = await collegeService.removeStudentFromCollege(ownerAuth, {
+      collegeId,
+      studentId: studentTwo.id,
+    });
+    expect(removed.studentProfile).toEqual(
+      expect.objectContaining({
+        studentId: studentTwo.id,
+      }),
+    );
+
+    const deleted = await collegeService.deleteCollege(ownerAuth, collegeId);
+    expect(deleted?.id).toBe(collegeId);
+
+    await expectApiError(
+      collegeService.getCollegeById(collegeId),
+      HttpStatus.NOT_FOUND,
+      COLLEGE_MESSAGES.NOT_FOUND,
+    );
+  });
 });

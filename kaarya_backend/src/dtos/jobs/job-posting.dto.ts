@@ -93,6 +93,8 @@ export const JobPostingQueryDTO = z.object({
     }
     return value;
   }, z.boolean().optional()),
+  createdFrom: optionalDate,
+  createdTo: optionalDate,
   deadlineFrom: optionalDate,
   deadlineTo: optionalDate,
 });

@@ -1,3 +1,5 @@
+import type { TUser } from "@/lib/definitions";
+
 type InboxChannel = "inbox" | "community";
 type ConversationFolder = "active" | "archived";
 type MessageAuthor = "me" | "them" | "system";
@@ -289,6 +291,48 @@ const INBOX_DEFAULT_DATA: InboxPageData = {
   conversations: conversationSeeds.map(buildConversation),
 };
 
-export async function getInboxPageData(): Promise<InboxPageData> {
-  return INBOX_DEFAULT_DATA;
+export type InboxStreamConfig = {
+  chatEnabled: boolean;
+  videoEnabled: boolean;
+  chatApiKey?: string | null;
+  videoApiKey?: string | null;
+};
+
+export type InboxPageDataWithStream = InboxPageData & {
+  streamConfig?: InboxStreamConfig;
+  user?: TUser;
+};
+
+export async function getInboxPageData(): Promise<InboxPageDataWithStream> {
+  const { getCurrentUser } = await import("@/lib/dal");
+  const { getStreamConfig } = await import("@/lib/actions/inbox-actions");
+
+  const [user, streamRes] = await Promise.all([
+    getCurrentUser(),
+    getStreamConfig().catch(() => ({
+      success: false,
+      data: {
+        chatEnabled: false,
+        videoEnabled: false,
+        chatApiKey: null,
+        videoApiKey: null,
+      },
+    })),
+  ]);
+
+  const streamConfig =
+    streamRes?.success && streamRes?.data
+      ? {
+          chatEnabled: streamRes.data.chatEnabled,
+          videoEnabled: streamRes.data.videoEnabled,
+          chatApiKey: streamRes.data.chatApiKey ?? null,
+          videoApiKey: streamRes.data.videoApiKey ?? null,
+        }
+      : undefined;
+
+  return {
+    ...INBOX_DEFAULT_DATA,
+    streamConfig,
+    user: user ?? undefined,
+  };
 }
