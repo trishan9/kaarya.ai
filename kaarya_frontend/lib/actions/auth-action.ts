@@ -443,10 +443,16 @@ export async function changePassword(payload: {
   }
 }
 
-export async function uploadCertificationMedia(file: File) {
+export async function uploadCertificationMedia(input: File | FormData) {
   try {
-    const formData = new FormData();
-    formData.append("file", file);
+    const formData =
+      input instanceof FormData
+        ? input
+        : (() => {
+            const next = new FormData();
+            next.append("file", input);
+            return next;
+          })();
     const response = await api.post(
       API_URLS.AUTH.CERTIFICATION_UPLOAD,
       formData,

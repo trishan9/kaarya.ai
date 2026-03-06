@@ -52,13 +52,6 @@ export type UpdateJobPostingPayload = {
   visibility?: "global" | "college_only";
 };
 
-export type JobApplicationPayload = {
-  resumeFile?: File;
-  resumeId?: string;
-  coverLetter?: string;
-  portfolioLinks?: string[];
-};
-
 export type UpdateJobApplicationPayload = {
   status?:
     | "applied"
@@ -105,9 +98,48 @@ export type MyResumesQuery = {
   size?: number;
 };
 
+export type JobApplicationPayload = {
+  resumeFile?: File;
+  resumeId?: string;
+  coverLetter?: string;
+  portfolioLinks?: string[];
+};
+
 const toTrimmedOrUndefined = (value?: string | null) => {
   const trimmed = value?.trim();
   return trimmed ? trimmed : undefined;
+};
+
+const toResumeUploadFormData = (value: File | FormData) => {
+  if (value instanceof FormData) {
+    return value;
+  }
+
+  const formData = new FormData();
+  formData.append("resume", value);
+  return formData;
+};
+
+const toJobApplicationFormData = (value: JobApplicationPayload | FormData) => {
+  if (value instanceof FormData) {
+    return value;
+  }
+
+  const formData = new FormData();
+  if (value.resumeFile instanceof File) {
+    formData.append("resume", value.resumeFile);
+  }
+  if (typeof value.resumeId === "string" && value.resumeId.trim()) {
+    formData.append("resumeId", value.resumeId.trim());
+  }
+  if (typeof value.coverLetter === "string") {
+    formData.append("coverLetter", value.coverLetter);
+  }
+  for (const link of value.portfolioLinks ?? []) {
+    formData.append("portfolioLinks", link);
+  }
+
+  return formData;
 };
 
 export async function getJobs(query?: JobListQuery) {
@@ -360,10 +392,9 @@ export async function deleteMyResume(resumeId: string) {
   }
 }
 
-export async function uploadMyResume(file: File) {
+export async function uploadMyResume(input: File | FormData) {
   try {
-    const formData = new FormData();
-    formData.append("resume", file);
+    const formData = toResumeUploadFormData(input);
     const response = await api.post(
       API_URLS.APPLICATION.RESUMES_ME,
       formData,
@@ -390,11 +421,17 @@ export async function uploadMyResume(file: File) {
 
 export async function createJobApplication(
   jobId: string,
-  payload: JobApplicationPayload,
+  input: JobApplicationPayload | FormData,
 ) {
   try {
-    const hasResumeFile = payload.resumeFile instanceof File;
-    const hasResumeId = typeof payload.resumeId === "string" && payload.resumeId.trim().length > 0;
+    const formData = toJobApplicationFormData(input);
+    const resumeFile = formData.get("resume");
+    const resumeId =
+      typeof formData.get("resumeId") === "string"
+        ? formData.get("resumeId")?.toString().trim()
+        : "";
+    const hasResumeFile = resumeFile instanceof File;
+    const hasResumeId = resumeId.length > 0;
     if (!hasResumeFile && !hasResumeId) {
       return {
         success: false,
@@ -408,23 +445,23 @@ export async function createJobApplication(
       };
     }
 
-    const coverLetter = toTrimmedOrUndefined(payload.coverLetter);
-    const portfolioLinks = (payload.portfolioLinks ?? [])
-      .map((link) => link.trim())
+    if (hasResumeId && typeof formData.get("resumeId") === "string") {
+      formData.set("resumeId", resumeId);
+    }
+    const coverLetter = formData.get("coverLetter");
+    if (typeof coverLetter === "string") {
+      const normalizedCoverLetter = toTrimmedOrUndefined(coverLetter);
+      if (normalizedCoverLetter) {
+        formData.set("coverLetter", normalizedCoverLetter);
+      } else {
+        formData.delete("coverLetter");
+      }
+    }
+    const portfolioLinks = formData
+      .getAll("portfolioLinks")
+      .map((value) => (typeof value === "string" ? value.trim() : ""))
       .filter(Boolean);
-
-    const formData = new FormData();
-    if (hasResumeFile) {
-      formData.append("resume", payload.resumeFile as File);
-    }
-    if (hasResumeId) {
-      formData.append("resumeId", payload.resumeId!.trim());
-    }
-
-    if (coverLetter) {
-      formData.append("coverLetter", coverLetter);
-    }
-
+    formData.delete("portfolioLinks");
     for (const link of portfolioLinks) {
       formData.append("portfolioLinks", link);
     }

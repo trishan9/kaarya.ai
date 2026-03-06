@@ -336,12 +336,19 @@ export function JobApplicationSheet({
       setErrorMessage(null);
       setIsSubmitting(true);
       try {
-        const response = await createJobApplication(job.id, {
-          resumeFile: selectedFile ?? undefined,
-          resumeId: selectedResumeId || undefined,
-          coverLetter,
-          portfolioLinks: normalizedLinks,
-        });
+        const formData = new FormData();
+        if (selectedFile) {
+          formData.append("resume", selectedFile);
+        }
+        if (selectedResumeId) {
+          formData.append("resumeId", selectedResumeId);
+        }
+        formData.append("coverLetter", coverLetter);
+        for (const link of normalizedLinks) {
+          formData.append("portfolioLinks", link);
+        }
+
+        const response = await createJobApplication(job.id, formData);
 
         if (!response?.success) {
           setErrorMessage(response?.message || "Failed to submit application.");

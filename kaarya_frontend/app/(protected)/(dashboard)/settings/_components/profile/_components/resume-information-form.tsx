@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 import {
   ExternalLink,
@@ -36,7 +36,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { uploadMyResume, deleteMyResume } from "@/lib/actions/job-actions";
 import { ResumeSkillsInput } from "@/app/(protected)/(dashboard)/resume/_components/resume-form-fields";
 import { TUpdateProfileSchemaInput } from "../_schemas";
@@ -109,11 +108,6 @@ export function ResumeInformationForm({
   const portfolioLinks =
     form.watch("candidateProfile.portfolioLinks") ?? [];
 
-  const selectedResume = useMemo(
-    () => resumeLibrary.find((item) => item.id === selectedResumeId),
-    [resumeLibrary, selectedResumeId],
-  );
-
   const handleUploadResume = async (file: File | null) => {
     if (!file) return;
     const validationError = validateResumeFile(file);
@@ -124,7 +118,9 @@ export function ResumeInformationForm({
 
     setIsUploadingResume(true);
     try {
-      const response = await uploadMyResume(file);
+      const formData = new FormData();
+      formData.append("resume", file);
+      const response = await uploadMyResume(formData);
       if (!response?.success || !response?.data) {
         toast.error(response?.message || "Failed to upload resume.");
         return;

@@ -65,7 +65,9 @@ export function CertificationsInformationForm({
       form.getValues(`candidateProfile.certifications.${index}.id`) || `cert-${index}`;
     setUploadingCertificationId(certificationId);
     try {
-      const response = await uploadCertificationMedia(file);
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await uploadCertificationMedia(formData);
       if (!response?.success || !response?.data?.url) {
         toast.error(response?.message || "Failed to upload certification media.");
         return;
