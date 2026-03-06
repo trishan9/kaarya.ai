@@ -426,10 +426,9 @@ export async function createJobApplication(
   try {
     const formData = toJobApplicationFormData(input);
     const resumeFile = formData.get("resume");
+    const resumeIdValue = formData.get("resumeId");
     const resumeId =
-      typeof formData.get("resumeId") === "string"
-        ? formData.get("resumeId")?.toString().trim()
-        : "";
+      typeof resumeIdValue === "string" ? resumeIdValue.trim() : "";
     const hasResumeFile = resumeFile instanceof File;
     const hasResumeId = resumeId.length > 0;
     if (!hasResumeFile && !hasResumeId) {
@@ -445,7 +444,7 @@ export async function createJobApplication(
       };
     }
 
-    if (hasResumeId && typeof formData.get("resumeId") === "string") {
+    if (hasResumeId && typeof resumeIdValue === "string") {
       formData.set("resumeId", resumeId);
     }
     const coverLetter = formData.get("coverLetter");
