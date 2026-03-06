@@ -130,14 +130,18 @@ export default registerAs<AuthConfig>(CONFIG_NAMESPACE.AUTH, () => {
   const envOrDefault = (value: string | undefined, fallback: string) =>
     envOrUndefined(value) ?? fallback;
 
-  const oauthAllowedRedirects = (
-    envOrUndefined(process.env.AUTH_OAUTH_ALLOWED_REDIRECTS) ??
-    envOrUndefined(process.env.FRONTEND_DOMAIN) ??
-    ''
-  )
-    .split(',')
-    .map((entry) => entry.trim())
-    .filter((entry) => entry.length > 0);
+  const parseCsv = (value?: string) =>
+    (envOrUndefined(value) ?? '')
+      .split(',')
+      .map((entry) => entry.trim())
+      .filter((entry) => entry.length > 0);
+
+  const oauthAllowedRedirects = Array.from(
+    new Set([
+      ...parseCsv(process.env.AUTH_OAUTH_ALLOWED_REDIRECTS),
+      ...parseCsv(process.env.FRONTEND_DOMAIN),
+    ]),
+  );
 
   return {
     secret: process.env.AUTH_JWT_SECRET,
