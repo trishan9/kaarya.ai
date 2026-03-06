@@ -130,10 +130,21 @@ export default registerAs<AuthConfig>(CONFIG_NAMESPACE.AUTH, () => {
   const envOrDefault = (value: string | undefined, fallback: string) =>
     envOrUndefined(value) ?? fallback;
 
+  const stripWrappingQuotes = (value: string) => {
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      return value.slice(1, -1).trim();
+    }
+    return value;
+  };
+
   const parseCsv = (value?: string) =>
     (envOrUndefined(value) ?? '')
-      .split(',')
+      .split(/[,\n;]/)
       .map((entry) => entry.trim())
+      .map(stripWrappingQuotes)
       .filter((entry) => entry.length > 0);
 
   const oauthAllowedRedirects = Array.from(
