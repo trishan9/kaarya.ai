@@ -1,4 +1,10 @@
-/node_modules
-/.data
-/dist
-/files
+node_modules
+dist
+coverage
+.git
+.data
+files
+.env
+.env.*
+!.env.example
+npm-debug.log

@@ -317,7 +317,7 @@ export function MyInterviewsBoard({
                   "h-9 cursor-pointer rounded-lg border px-3 text-sm transition-colors",
                   isActive
                     ? "border-primary bg-primary font-medium text-white"
-                    : "border-[#d8dde4] bg-white text-[#8f949e] hover:border-primary hover:text-primary",
+                    : "border-border bg-card text-[#8f949e] hover:border-primary hover:text-primary",
                 )}
               >
                 {tab}
@@ -341,7 +341,7 @@ export function MyInterviewsBoard({
             placeholder="Search interview title, company, or category..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="h-9 rounded-lg border-[#d8dde4] bg-white pl-9"
+            className="h-9 rounded-lg border-border bg-card pl-9"
           />
         </div>
 
@@ -350,7 +350,7 @@ export function MyInterviewsBoard({
             <Button
               type="button"
               variant="outline"
-              className="h-9 rounded-lg border-[#d8dde4] bg-white px-3 text-sm font-medium text-muted-foreground hover:bg-white"
+              className="h-9 rounded-lg border-border bg-card px-3 text-sm font-medium text-muted-foreground hover:bg-accent"
             >
               <ArrowUpDown className="h-4 w-4" />
               {sortLabel}
@@ -381,7 +381,7 @@ export function MyInterviewsBoard({
             <Button
               type="button"
               variant="outline"
-              className="h-9 rounded-lg border-[#d8dde4] bg-white px-3 text-sm font-medium text-muted-foreground hover:bg-white"
+              className="h-9 rounded-lg border-border bg-card px-3 text-sm font-medium text-muted-foreground hover:bg-accent"
             >
               <SlidersHorizontal className="h-4 w-4" />
               {filterLabel}
@@ -435,11 +435,11 @@ export function MyInterviewsBoard({
         </DropdownMenu>
       </div>
 
-      <Card className="min-w-0 gap-0 rounded-2xl border border-[#ececf0] bg-white p-0 shadow-sm">
+      <Card className="min-w-0 gap-0 rounded-2xl border border-border bg-card p-0 shadow-sm">
         {visibleInterviews.length > 0 ? (
           <Table>
             <TableHeader>
-              <TableRow className="bg-neutral-50 hover:bg-neutral-50">
+              <TableRow className="bg-muted/40 hover:bg-muted/40">
                 <TableHead>Interview</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Status</TableHead>
@@ -457,7 +457,7 @@ export function MyInterviewsBoard({
                       <span
                         className={cn(
                           "flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg text-sm font-bold text-white",
-                          interview.logoUrl ? "bg-white p-1 text-transparent" : "bg-primary",
+                          interview.logoUrl ? "bg-card p-1 text-transparent" : "bg-primary",
                           interview.logoClassName,
                         )}
                       >
@@ -521,7 +521,7 @@ export function MyInterviewsBoard({
                       <Button
                         type="button"
                         variant="outline"
-                        className="h-8 rounded-md border-[#d8dde4] bg-white px-3 text-xs"
+                        className="h-8 rounded-md border-border bg-card px-3 text-xs"
                         onClick={() => setSelectedInterviewId(interview.id)}
                       >
                         View
@@ -530,7 +530,7 @@ export function MyInterviewsBoard({
                         <Button
                           asChild
                           variant="outline"
-                          className="h-8 rounded-md border-[#d8dde4] bg-white px-3 text-xs"
+                          className="h-8 rounded-md border-border bg-card px-3 text-xs"
                         >
                           <Link href={interview.primaryActionHref}>
                             {interview.primaryActionLabel}
@@ -544,7 +544,7 @@ export function MyInterviewsBoard({
             </TableBody>
           </Table>
         ) : (
-          <div className="rounded-xl border border-dashed border-[#d8dde4] p-6 text-sm text-muted-foreground">
+          <div className="rounded-xl border border-dashed border-border p-6 text-sm text-muted-foreground">
             {emptyMessage}
           </div>
         )}
@@ -557,7 +557,7 @@ export function MyInterviewsBoard({
         <SheetContent side="right" className="w-full p-0 sm:max-w-[560px]">
           {selectedInterview ? (
             <div className="flex h-full flex-col">
-              <SheetHeader className="border-b border-[#ececf0] px-4 py-3">
+              <SheetHeader className="border-b border-border px-4 py-3">
                 <SheetTitle className="text-lg font-semibold leading-none tracking-tight text-foreground">
                   Interview Details
                 </SheetTitle>
@@ -568,19 +568,19 @@ export function MyInterviewsBoard({
                   <p className="text-xs text-white/85">{selectedInterview.company}</p>
                   <p className="mt-1 text-lg font-semibold">{selectedInterview.title}</p>
                   <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                    <span className="rounded-md bg-white/20 px-2 py-1">
+                    <span className="rounded-md bg-card/20 px-2 py-1">
                       {selectedInterview.categoryLabel}
                     </span>
-                    <span className="rounded-md bg-white/20 px-2 py-1">
+                    <span className="rounded-md bg-card/20 px-2 py-1">
                       {selectedInterview.takenCount} attempts
                     </span>
-                    <span className="rounded-md bg-white/20 px-2 py-1">
+                    <span className="rounded-md bg-card/20 px-2 py-1">
                       {selectedInterview.scoreLabel}
                     </span>
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-[#e7ebf0] bg-white p-4">
+                <div className="rounded-xl border border-border bg-card p-4">
                   <p className="text-sm font-semibold text-foreground">Description</p>
                   <p className="mt-2 text-sm text-muted-foreground">
                     {selectedInterview.description}
@@ -588,13 +588,13 @@ export function MyInterviewsBoard({
                 </div>
 
                 {selectedInterview.stackTechnologies?.length ? (
-                  <div className="rounded-xl border border-[#e7ebf0] bg-white p-4">
+                  <div className="rounded-xl border border-border bg-card p-4">
                     <p className="text-sm font-semibold text-foreground">Tech Stack</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {selectedInterview.stackTechnologies.map((tech) => (
                         <span
                           key={tech.id}
-                          className="inline-flex items-center gap-1 rounded-md border border-[#e3e8ef] bg-[#f8fbff] px-2.5 py-1 text-xs text-foreground"
+                          className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/35 px-2.5 py-1 text-xs text-foreground"
                         >
                           <Image
                             src={tech.iconUrl}
@@ -611,7 +611,7 @@ export function MyInterviewsBoard({
                   </div>
                 ) : null}
 
-                <div className="rounded-xl border border-[#e7ebf0] bg-white p-4">
+                <div className="rounded-xl border border-border bg-card p-4">
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-sm font-semibold text-foreground">
                       Recent Attempts (Last 3)
@@ -626,10 +626,10 @@ export function MyInterviewsBoard({
                       {selectedAttempts.map((attempt) => (
                         <div
                           key={attempt.id}
-                          className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#ececf0] bg-[#fafbfd] px-3 py-2"
+                          className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2"
                         >
                           <div>
-                            <p className="text-xs font-semibold uppercase text-slate-700">
+                            <p className="text-xs font-semibold uppercase text-foreground">
                               {attempt.status}
                             </p>
                             <p className="text-xs text-muted-foreground">
@@ -642,16 +642,18 @@ export function MyInterviewsBoard({
                                 ? `${attempt.score}/100`
                                 : "-/100"}
                             </Badge>
-                            <Button asChild variant="outline" className="h-7 rounded-md px-2 text-xs">
-                              <Link
-                                href={withReturnTo(
-                                  `/interviews/sessions/${attempt.id}/feedback`,
-                                  "/interviews",
-                                )}
-                              >
-                                Feedback
-                              </Link>
-                            </Button>
+                            {typeof attempt.score === "number" ? (
+                              <Button asChild variant="outline" className="h-7 rounded-md px-2 text-xs">
+                                <Link
+                                  href={withReturnTo(
+                                    `/interviews/sessions/${attempt.id}/feedback`,
+                                    "/interviews",
+                                  )}
+                                >
+                                  Feedback
+                                </Link>
+                              </Button>
+                            ) : null}
                           </div>
                         </div>
                       ))}
@@ -664,7 +666,7 @@ export function MyInterviewsBoard({
                 </div>
               </div>
 
-              <div className="border-t border-[#eceff3] bg-white px-4 py-3">
+              <div className="border-t border-border bg-card px-4 py-3">
                 <div className="flex flex-wrap gap-2">
                   {selectedInterview.primaryActionHref ? (
                     <Button asChild className="h-9 rounded-md">
@@ -690,3 +692,4 @@ export function MyInterviewsBoard({
     </section>
   );
 }
+

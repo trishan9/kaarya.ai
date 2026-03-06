@@ -15,8 +15,6 @@ export type ApiErrorResponse = {
   errors?: unknown;
 };
 
-export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
-
 export const buildSuccessResponse = <T>(
   data: T,
   message: string,

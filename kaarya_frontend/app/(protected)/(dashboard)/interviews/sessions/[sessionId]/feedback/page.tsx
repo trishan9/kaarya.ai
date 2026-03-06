@@ -162,6 +162,46 @@ export default async function SessionFeedbackPage({
   const returnTo = resolveReturnTo(query?.returnTo);
   const feedbackResponse = await getInterviewSessionFeedback(sessionId);
   if (!feedbackResponse?.success) {
+    const feedbackErrorMessage =
+      typeof feedbackResponse?.message === "string"
+        ? feedbackResponse.message.toLowerCase()
+        : "";
+    if (feedbackErrorMessage.includes("feedback not found")) {
+      return (
+        <div className="dashboard-stage">
+          <div className="dashboard-surface">
+            <DashboardHeader
+              title="Interview Feedback"
+              actions={<OverviewHeaderActions />}
+            />
+            <div className="space-y-4 px-3 pb-6 sm:space-y-5 sm:px-4 sm:pb-8">
+              <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
+                <h2 className="text-lg font-semibold text-foreground">
+                  Feedback is not ready for this attempt yet.
+                </h2>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  This attempt does not have an AI evaluation. You can return and
+                  retake the interview to generate fresh feedback.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Button asChild variant="outline" className="h-9 rounded-lg">
+                    <Link href={returnTo ?? "/interview-hub"}>
+                      <ArrowLeft className="h-4 w-4" />
+                      Back
+                    </Link>
+                  </Button>
+                  <Button asChild className="h-9 rounded-lg">
+                    <Link href={returnTo ?? "/interview-hub"}>
+                      Go to Interviews
+                    </Link>
+                  </Button>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      );
+    }
     notFound();
   }
 
@@ -182,8 +222,8 @@ export default async function SessionFeedbackPage({
   const rangeMessage = getScoreRangeMessage(totalScore, benchmark);
 
   return (
-    <div className="min-h-svh bg-neutral-100 p-2 sm:p-4 lg:pl-0 lg:p-5">
-      <div className="rounded-xl bg-white sm:rounded-2xl">
+    <div className="dashboard-stage">
+      <div className="dashboard-surface">
         <DashboardHeader
           title="Interview Feedback"
           actions={<OverviewHeaderActions />}
@@ -218,10 +258,10 @@ export default async function SessionFeedbackPage({
             <div className="grid items-start gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(190px,220px)]">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge className="border-0 bg-white/15 text-white hover:bg-white/15">
+                  <Badge className="border-0 bg-card/15 text-white hover:bg-accent/15">
                     AI Interview Report
                   </Badge>
-                  <Badge className="border-0 bg-white/15 text-white hover:bg-white/15">
+                  <Badge className="border-0 bg-card/15 text-white hover:bg-accent/15">
                     {benchmark.label} level
                   </Badge>
                 </div>
@@ -262,7 +302,7 @@ export default async function SessionFeedbackPage({
                     {performanceBand.label}
                   </Badge>
                 </div>
-                <div className="mt-2 rounded-lg border border-white/15 bg-white/10 px-2 py-1.5 text-center">
+                <div className="mt-2 rounded-lg border border-white/15 bg-card/10 px-2 py-1.5 text-center">
                   <p className="text-[10px] uppercase tracking-wide text-white/70">
                     Recommended score
                   </p>
@@ -298,7 +338,7 @@ export default async function SessionFeedbackPage({
           </section>
 
           <section className="grid gap-4 xl:grid-cols-[1.25fr_1fr]">
-            <div className="rounded-2xl border border-[#ececf0] bg-white p-4 sm:p-6">
+            <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
               <div className="flex items-center justify-between gap-2">
                 <h3 className="text-lg font-semibold text-foreground">
                   Competency Radar
@@ -312,7 +352,7 @@ export default async function SessionFeedbackPage({
               </div>
             </div>
 
-            <div className="rounded-2xl border border-[#ececf0] bg-white p-4 sm:p-6">
+            <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
               <div className="flex items-center justify-between gap-2">
                 <h3 className="text-lg font-semibold text-foreground">
                   Level Benchmark
@@ -320,7 +360,7 @@ export default async function SessionFeedbackPage({
                 <Badge variant="outline">{benchmark.label}</Badge>
               </div>
 
-              <div className="mt-4 space-y-3 rounded-xl border border-[#ececf0] bg-[#f8fbff] p-4">
+              <div className="mt-4 space-y-3 rounded-xl border border-border bg-muted/35 p-4">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">
                   Benchmark Range
                 </p>
@@ -348,7 +388,7 @@ export default async function SessionFeedbackPage({
                 </div>
               </div>
 
-              <div className="mt-4 rounded-xl border border-[#ececf0] bg-[#f8fbff] p-4">
+              <div className="mt-4 rounded-xl border border-border bg-muted/35 p-4">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">
                   Final Assessment
                 </p>
@@ -359,7 +399,7 @@ export default async function SessionFeedbackPage({
             </div>
           </section>
 
-          <section className="rounded-2xl border border-[#ececf0] bg-white p-4 sm:p-6">
+          <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
             <div className="flex items-center justify-between gap-2">
               <h3 className="text-lg font-semibold text-foreground">
                 Detailed Category Analysis
@@ -374,7 +414,7 @@ export default async function SessionFeedbackPage({
                   return (
                     <div
                       key={`${category.name}-${category.score}`}
-                      className="rounded-xl border border-[#ececf0] bg-[#fafbfd] p-3"
+                      className="rounded-xl border border-border bg-muted/30 p-3"
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <p className="text-sm font-semibold text-foreground">
@@ -403,7 +443,7 @@ export default async function SessionFeedbackPage({
           </section>
 
           <section className="grid gap-4 lg:grid-cols-2">
-            <div className="rounded-2xl border border-[#ececf0] bg-white p-4 sm:p-6">
+            <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                 <h3 className="text-lg font-semibold text-foreground">
@@ -426,7 +466,7 @@ export default async function SessionFeedbackPage({
               </ul>
             </div>
 
-            <div className="rounded-2xl border border-[#ececf0] bg-white p-4 sm:p-6">
+            <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
               <div className="flex items-center gap-2">
                 <TriangleAlert className="h-4 w-4 text-amber-600" />
                 <h3 className="text-lg font-semibold text-foreground">
@@ -465,7 +505,7 @@ function MetricPill({
   value: string;
 }) {
   return (
-    <div className="rounded-xl border border-white/20 bg-white/10 px-3 py-2">
+    <div className="rounded-xl border border-white/20 bg-card/10 px-3 py-2">
       <div className="flex items-center gap-1.5 text-xs text-white/85">
         {icon}
         <span>{label}</span>
@@ -492,7 +532,7 @@ function RadarChart({
 
   if (!rows.length) {
     return (
-      <div className="flex h-[320px] items-center justify-center rounded-xl border border-[#ececf0] bg-[#fafbfd] text-sm text-muted-foreground">
+      <div className="flex h-[320px] items-center justify-center rounded-xl border border-border bg-muted/30 text-sm text-muted-foreground">
         No data for chart.
       </div>
     );
@@ -600,3 +640,5 @@ function RadarChart({
     </svg>
   );
 }
+
+

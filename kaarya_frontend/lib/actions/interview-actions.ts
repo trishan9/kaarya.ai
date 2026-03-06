@@ -266,12 +266,14 @@ export async function startInterviewSession(
     });
     return response.data;
   } catch (error: Error | any) {
+    const statusCode = error?.response?.status as number | undefined;
     return {
       success: false,
       message:
         error?.response?.data?.message ||
         error.message ||
         "Failed to start interview session",
+      ...(typeof statusCode === "number" ? { statusCode } : {}),
     };
   }
 }

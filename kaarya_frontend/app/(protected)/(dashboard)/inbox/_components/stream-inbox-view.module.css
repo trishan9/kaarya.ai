@@ -318,3 +318,112 @@
 .streamInbox :global(.str-chat__jump-to-latest-message) {
   display: none;
 }
+
+:global(.dark) .streamInbox {
+  --stream-border: #243140;
+  --stream-border-soft: #202c3a;
+  --stream-muted: #93a3b6;
+  --stream-text: #e4edf7;
+}
+
+:global(.dark) .streamInbox :global(.str-chat) {
+  --str-chat__surface-color: #0f141b;
+  --str-chat__background-color: #101722;
+  --str-chat__secondary-background-color: #121b27;
+  --str-chat__secondary-surface-color: #141f2d;
+  --str-chat__text-color: #e4edf7;
+  --str-chat__text-low-emphasis-color: #93a3b6;
+  --str-chat__message-bubble-background-color: #151f2c;
+  --str-chat__own-message-bubble-background-color: #0b7dd7;
+}
+
+:global(.dark) .streamInbox :global(.str-chat__message-list-scroll) {
+  background: #101722;
+}
+
+:global(.dark) .streamInbox :global(.str-chat__date-separator-line) {
+  background: #223245;
+}
+
+:global(.dark) .streamInbox :global(.str-chat__date-separator-date) {
+  background: #1a2533;
+  color: #95a5b8;
+}
+
+:global(.dark) .streamInbox :global(.str-chat__message .str-chat__message-bubble) {
+  border-color: #223245;
+}
+
+:global(.dark) .streamInbox :global(.str-chat__message-input) {
+  background: #0f1722 !important;
+}
+
+:global(.dark)
+  .streamInbox
+  :global(.str-chat__message-input .str-chat__message-textarea-container) {
+  border-color: #2b3a4d !important;
+  background: #111b28 !important;
+  box-shadow: none !important;
+}
+
+:global(.dark)
+  .streamInbox
+  :global(.str-chat__message-input .str-chat__textarea__textarea) {
+  color: #e4edf7;
+}
+
+:global(.dark)
+  .streamInbox
+  :global(.str-chat__message-input .str-chat__textarea__textarea::placeholder) {
+  color: #8ea0b6;
+}
+
+:global(.dark) .streamInbox :global(.str-chat__message-input .str-chat__file-input-label) {
+  border-color: #2b3a4d;
+  color: #95a7bc;
+  background: #111b28;
+  box-shadow: none;
+}
+
+:global(.dark)
+  .streamInbox
+  :global(.str-chat__message-input .str-chat__file-input-label:hover) {
+  border-color: #36506d;
+  background: #182537;
+  color: #dbe7f4;
+  box-shadow: none;
+}
+
+:global(.dark)
+  .streamInbox
+  :global(.str-chat__message-input .str-chat__emoji-picker-button:hover) {
+  background: #1b2838;
+}
+
+:global(.dark)
+  .streamInbox
+  :global(.str-chat__message-input .str-chat__emoji-picker-button svg path) {
+  fill: #93a3b6 !important;
+}
+
+:global(.dark)
+  .streamInbox
+  :global(.str-chat__message-input .str-chat__start-recording-audio-button) {
+  border-color: #2b3a4d;
+  background: #111b28;
+  box-shadow: none;
+}
+
+:global(.dark) .streamInbox :global(.str-chat__typing-indicator) {
+  background: #1a2533;
+  color: #95a5b8;
+}
+
+:global(.dark) .streamInbox :global(.str-chat__typing-indicator .str-chat__typing-indicator__dot) {
+  background: #95a5b8;
+}
+
+:global(.dark) .streamInbox :global(.str-chat__quoted-message-preview .str-chat__quoted-message-bubble) {
+  border-color: #223245;
+  background: #111b28;
+}

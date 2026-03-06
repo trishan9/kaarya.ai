@@ -27,7 +27,7 @@ export function DashboardHeader({
     >
       <div className="flex items-center gap-3">
         {leadingAction ?? (!hideSidebarTrigger ? (
-          <SidebarTrigger className="border border-border bg-white text-muted-foreground shadow-sm hover:bg-white" />
+          <SidebarTrigger className="border border-border bg-card text-muted-foreground hover:bg-accent" />
         ) : null)}
         <h1 className="text-xl font-semibold text-foreground">{title}</h1>
       </div>

@@ -90,7 +90,7 @@ const Sidebar = React.forwardRef<
             )}
             style={
               {
-                "--sidebar-width": "17rem",
+                "--sidebar-width": "18rem",
                 "--sidebar-collapsed-width": "4rem",
               } as React.CSSProperties
             }
@@ -107,13 +107,13 @@ const Sidebar = React.forwardRef<
       data-state={state}
       data-collapsible={collapsible}
       className={cn(
-        "group/sidebar relative hidden h-svh w-[--sidebar-width] shrink-0 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-200 ease-linear lg:flex",
+        "group/sidebar relative hidden h-svh w-[--sidebar-width] shrink-0 flex-col overflow-hidden bg-sidebar text-sidebar-foreground transition-[width] duration-200 ease-linear lg:flex",
         "data-[state=collapsed]:w-[--sidebar-collapsed-width]",
         className,
       )}
       style={
         {
-          "--sidebar-width": "17rem",
+          "--sidebar-width": "18rem",
           "--sidebar-collapsed-width": "4rem",
         } as React.CSSProperties
       }
@@ -274,7 +274,7 @@ const SidebarInset = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex min-w-0 flex-1 flex-col", className)}
+    className={cn("flex min-w-0 min-h-0 flex-1 flex-col", className)}
     {...props}
   />
 ));

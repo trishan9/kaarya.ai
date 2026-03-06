@@ -110,4 +110,10 @@ export const API_URLS = {
     ENSURE_CHANNELS: "/stream/ensure-channels",
     ENSURE_CHANNEL_WITH: "/stream/ensure-channel-with",
   },
+  PAYMENT: {
+    STRIPE_CHECKOUT_SESSION: "/payments/stripe/checkout-session",
+    STRIPE_VERIFY_SESSION: "/payments/stripe/verify-session",
+    STRIPE_PORTAL_SESSION: "/payments/stripe/portal-session",
+    BILLING_SUMMARY: "/payments/billing-summary",
+  },
 };

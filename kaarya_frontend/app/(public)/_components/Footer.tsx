@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Container } from "./Container";
 import { NavLink } from "./NavLink";
 
@@ -11,7 +12,13 @@ export function Footer() {
       <Container>
         <div className="py-16">
           <div className="flex items-center justify-center gap-2">
-            <img src="/kaarya.svg" alt="Kaarya" width={36} height={36} />
+            <Image
+              src="/kaarya.svg"
+              alt="Kaarya"
+              width={36}
+              height={36}
+              unoptimized
+            />
             <span className="text-xl font-semibold tracking-tight text-slate-900">
               Kaarya<span className="text-primary">.ai</span>
             </span>

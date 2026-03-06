@@ -112,4 +112,11 @@ export const ROUTES = {
     ENSURE_CHANNELS: 'ensure-channels',
     ENSURE_CHANNEL_WITH: 'ensure-channel-with',
   },
+  PAYMENT: {
+    BASE: 'payments',
+    STRIPE_CHECKOUT_SESSION: 'stripe/checkout-session',
+    STRIPE_VERIFY_SESSION: 'stripe/verify-session',
+    STRIPE_PORTAL_SESSION: 'stripe/portal-session',
+    BILLING_SUMMARY: 'billing-summary',
+  },
 } as const;

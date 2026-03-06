@@ -142,6 +142,12 @@ const toStackIcons = (techStack: string[]) =>
 const withReturnTo = (path: string, returnTo: string) =>
   `${path}${path.includes("?") ? "&" : "?"}returnTo=${encodeURIComponent(returnTo)}`;
 
+const resolveFeedbackSessionId = (interview: TInterview) => {
+  const evaluationSessionId = interview.myLatestEvaluation?.sessionId?.trim();
+  if (evaluationSessionId) return evaluationSessionId;
+  return null;
+};
+
 const toCard = (
   interview: TInterview,
   options?: {
@@ -156,6 +162,8 @@ const toCard = (
   const returnTo = options?.returnTo ?? "/interview-hub";
   const company = toCompanyLabel(interview);
   const attempted = canTakeInterview && Boolean(interview.myLatestSessionId);
+  const feedbackSessionId = resolveFeedbackSessionId(interview);
+  const hasFeedback = Boolean(feedbackSessionId);
   const scoreValue =
     canTakeInterview && typeof interview.myLatestScore === "number"
       ? interview.myLatestScore
@@ -178,7 +186,7 @@ const toCard = (
     scoreLabel,
     scoreValue,
     description: canTakeInterview
-      ? attempted
+      ? attempted && hasFeedback
         ? "You've already taken this interview. Revisit your results anytime and keep improving."
         : "You haven't attempted this interview yet. Start now and get AI-driven feedback."
       : "Manage this interview and review participant feedback from the details page.",
@@ -187,20 +195,20 @@ const toCard = (
     logoUrl: resolveInterviewLogoUrl(interview),
     stackTechnologies: toStackIcons(interview.techStack ?? []),
     primaryActionLabel: canTakeInterview
-      ? attempted
+      ? attempted && hasFeedback
         ? "Review Results"
         : "Take Interview"
       : isViewerCreator
         ? "Manage Interview"
         : "View Interview",
     primaryActionHref: canTakeInterview
-      ? attempted && interview.myLatestSessionId
-        ? withReturnTo(`/interviews/sessions/${interview.myLatestSessionId}/feedback`, returnTo)
+      ? attempted && feedbackSessionId
+        ? withReturnTo(`/interviews/sessions/${feedbackSessionId}/feedback`, returnTo)
         : withReturnTo(`/interviews/${interview.id}/take`, returnTo)
       : `/interviews/${interview.id}`,
-    secondaryActionLabel: canTakeInterview && attempted ? "Re-take" : undefined,
+    secondaryActionLabel: canTakeInterview && attempted && hasFeedback ? "Re-take" : undefined,
     secondaryActionHref:
-      canTakeInterview && attempted
+      canTakeInterview && attempted && hasFeedback
         ? withReturnTo(`/interviews/${interview.id}/take`, returnTo)
         : undefined,
     isBookmarked: Boolean(interview.isSaved),

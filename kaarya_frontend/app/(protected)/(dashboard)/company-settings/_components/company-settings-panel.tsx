@@ -126,7 +126,7 @@ export function CompanySettingsPanel({
   return (
     <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
       <div className="space-y-4">
-        <Card className="gap-4 rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5">
+        <Card className="gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
           <div className="space-y-1">
             <h2 className="text-lg font-semibold">Company Profile</h2>
             <p className="text-sm text-muted-foreground">
@@ -139,7 +139,7 @@ export function CompanySettingsPanel({
             <FieldGroup>
               <Field>
                 <FieldLabel>Company Logo</FieldLabel>
-                <div className="flex items-center gap-3 rounded-xl border border-[#ececf0] bg-neutral-50 p-3">
+                <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-3">
                   <Avatar className="h-14 w-14 rounded-xl">
                     <AvatarImage
                       src={logoPreview ?? ""}
@@ -249,7 +249,7 @@ export function CompanySettingsPanel({
           </form>
         </Card>
 
-        <Card className="gap-4 rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5">
+        <Card className="gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
           <div className="space-y-1">
             <h2 className="text-lg font-semibold">Workspace Access</h2>
             <p className="text-sm text-muted-foreground">
@@ -257,7 +257,7 @@ export function CompanySettingsPanel({
             </p>
           </div>
 
-          <div className="rounded-xl border border-dashed border-[#d8dde4] bg-neutral-50 p-3">
+          <div className="rounded-xl border border-dashed border-border bg-muted/40 p-3">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
               Invite Code
             </p>
@@ -355,7 +355,7 @@ export function CompanySettingsPanel({
         </Card>
       </div>
 
-      <Card className="gap-4 rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5">
+      <Card className="gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
         <div className="flex items-center justify-between gap-2">
           <h3 className="text-lg font-semibold">Current Members</h3>
           <Badge variant="secondary">{members.length}</Badge>
@@ -378,7 +378,7 @@ export function CompanySettingsPanel({
               return (
                 <div
                   key={member.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#ececf0] bg-neutral-50 p-3"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 p-3"
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     <Avatar className="h-10 w-10">
@@ -417,3 +417,4 @@ export function CompanySettingsPanel({
     </div>
   );
 }
+

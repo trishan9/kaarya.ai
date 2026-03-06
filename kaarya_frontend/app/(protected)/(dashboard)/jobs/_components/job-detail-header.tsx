@@ -27,7 +27,7 @@ export function JobDetailHeader({ title, actions, className }: JobDetailHeaderPr
         <Button
           variant="outline"
           size="icon"
-          className="h-9 w-9 rounded-lg border-border bg-white text-muted-foreground shadow-sm"
+          className="h-9 w-9 rounded-lg border-border bg-card text-muted-foreground shadow-sm hover:bg-accent"
           onClick={() => {
             if (window.history.length > 1) {
               router.back();

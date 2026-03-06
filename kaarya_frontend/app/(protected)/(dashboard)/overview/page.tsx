@@ -19,9 +19,7 @@ import {
 } from "./overview-data";
 import { getCurrentUser } from "@/lib/dal";
 import { listCollegeWorkspaces } from "@/lib/actions/college-actions";
-import {
-  Role,
-} from "@/lib/definitions";
+import { Role } from "@/lib/definitions";
 import { computeProfileRating } from "@/lib/compute-profile-rating";
 import { listRecruiterWorkspaces } from "@/lib/actions/company-actions";
 import { Button } from "@/components/ui/button";
@@ -69,7 +67,10 @@ const parseSummaryStatuses = (
   return Array.from(new Set(filtered));
 };
 
-const buildOverviewHref = (input: { workspace?: string | null; rangeDays?: number }) => {
+const buildOverviewHref = (input: {
+  workspace?: string | null;
+  rangeDays?: number;
+}) => {
   const query = new URLSearchParams();
   if (input.workspace) query.set("workspace", input.workspace);
   if (typeof input.rangeDays === "number") {
@@ -84,7 +85,7 @@ const getInterviewRatingMeta = (rating: number) => {
     return {
       badgeLabel: "Excellent",
       ratingClassName: "text-emerald-600",
-      badgeClassName: "bg-emerald-50 text-emerald-600",
+      badgeClassName: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-300",
       description:
         "Your interview readiness is consistently strong across attempts.",
       suggestionBody:
@@ -96,7 +97,7 @@ const getInterviewRatingMeta = (rating: number) => {
     return {
       badgeLabel: "Good",
       ratingClassName: "text-sky-600",
-      badgeClassName: "bg-sky-50 text-sky-600",
+      badgeClassName: "bg-sky-50 text-sky-600 dark:bg-sky-500/20 dark:text-sky-300",
       description: "You have a solid interview baseline with room to sharpen.",
       suggestionBody:
         "Focus on weak categories from recent feedback and retake similar interviews.",
@@ -107,7 +108,7 @@ const getInterviewRatingMeta = (rating: number) => {
     return {
       badgeLabel: "Average",
       ratingClassName: "text-amber-600",
-      badgeClassName: "bg-amber-50 text-amber-600",
+      badgeClassName: "bg-amber-50 text-amber-600 dark:bg-amber-500/20 dark:text-amber-300",
       description: "Your fundamentals are visible, but consistency needs work.",
       suggestionBody:
         "Give more mock interviews and improve low-scoring categories first.",
@@ -118,7 +119,7 @@ const getInterviewRatingMeta = (rating: number) => {
     return {
       badgeLabel: "Below Average",
       ratingClassName: "text-rose-500",
-      badgeClassName: "bg-rose-50 text-rose-500",
+      badgeClassName: "bg-rose-50 text-rose-500 dark:bg-rose-500/20 dark:text-rose-300",
       description:
         "Your current performance is below target and needs focused practice.",
       suggestionBody:
@@ -129,7 +130,7 @@ const getInterviewRatingMeta = (rating: number) => {
   return {
     badgeLabel: "Not Started",
     ratingClassName: "text-muted-foreground",
-    badgeClassName: "bg-slate-100 text-slate-600",
+    badgeClassName: "bg-slate-100 text-slate-600 dark:bg-slate-500/20 dark:text-slate-300",
     description:
       "No interview attempts yet. Complete one mock to start your rating.",
     suggestionBody: "Give your first interview in AI Interview Hub.",
@@ -138,9 +139,13 @@ const getInterviewRatingMeta = (rating: number) => {
 
 export default async function OverviewPage({
   searchParams,
-}: OverviewPageProps) {
+}: OverviewPageProps = {}) {
   const user = await getCurrentUser();
   const params = await searchParams;
+
+  if (!user) {
+    redirect("/sign-in");
+  }
 
   if (user?.role === Role.ADMIN) {
     redirect("/admin");
@@ -194,31 +199,26 @@ export default async function OverviewPage({
         label: "Open Jobs",
         value: overviewData.summary.activeJobs,
         helper: "Live roles currently hiring",
-        icon: BriefcaseBusiness,
       },
       {
         label: "Draft Jobs",
         value: overviewData.summary.draftJobs,
         helper: "Roles saved but not published",
-        icon: FileClock,
       },
       {
         label: "Total Applicants",
         value: overviewData.summary.totalApplicants,
         helper: "Applicants across tracked roles",
-        icon: Users,
       },
       {
         label: "Job Views",
         value: overviewData.summary.totalViews,
         helper: "Total visibility across roles",
-        icon: Eye,
       },
       {
         label: "Closing Soon",
         value: overviewData.summary.closingSoon,
         helper: "Open roles closing in 14 days",
-        icon: Target,
       },
     ];
     const maxWorkModeCount = Math.max(
@@ -227,8 +227,8 @@ export default async function OverviewPage({
     );
 
     return (
-      <div className="min-h-svh bg-neutral-100 p-2 sm:p-4 lg:pl-0 lg:p-5">
-        <div className="rounded-xl bg-white sm:rounded-2xl">
+      <div className="dashboard-stage">
+        <div className="dashboard-surface">
           <DashboardHeader
             title={isCollege ? "College Overview" : "Recruiter Overview"}
             actions={
@@ -239,51 +239,17 @@ export default async function OverviewPage({
           />
 
           <div className="space-y-4 px-3 pb-6 sm:px-4 sm:pb-8">
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#ececf0] bg-neutral-50 px-3 py-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm text-muted-foreground">Workspace</span>
-                <Badge variant="secondary">
-                  {overviewData.workspaceName || "No workspace selected"}
-                </Badge>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs text-muted-foreground">Range</span>
-                {[7, 30, 90].map((days) => (
-                  <Button
-                    key={days}
-                    asChild
-                    size="sm"
-                    variant={rangeDays === days ? "default" : "outline"}
-                    className="h-7 rounded-md px-2 text-[11px]"
-                  >
-                    <Link
-                      href={buildOverviewHref({
-                        workspace: activeWorkspaceId,
-                        rangeDays: days,
-                      })}
-                    >
-                      {days}d
-                    </Link>
-                  </Button>
-                ))}
-              </div>
-            </div>
-
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
               {recruiterStats.map((stat) => {
-                const Icon = stat.icon;
                 return (
                   <Card
                     key={stat.label}
-                    className="gap-3 rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm"
+                    className="gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm dark:bg-[#111824] dark:shadow-none"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                         {stat.label}
                       </p>
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                        <Icon className="h-4 w-4" />
-                      </div>
                     </div>
                     <p className="text-2xl font-semibold text-foreground">
                       {stat.value}
@@ -302,7 +268,7 @@ export default async function OverviewPage({
             />
 
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
-              <Card className="gap-4 rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5">
+              <Card className="gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm dark:bg-[#111824] dark:shadow-none sm:p-5">
                 <div className="space-y-1">
                   <h3 className="text-sm font-semibold">Work Mode Split</h3>
                   <p className="text-xs text-muted-foreground">
@@ -320,7 +286,7 @@ export default async function OverviewPage({
                           {item.count}
                         </span>
                       </div>
-                      <div className="h-2 rounded-full bg-neutral-100">
+                      <div className="h-2 rounded-full bg-muted">
                         <div
                           className="h-2 rounded-full bg-primary"
                           style={{
@@ -336,7 +302,7 @@ export default async function OverviewPage({
                 </div>
               </Card>
 
-              <Card className="gap-4 rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5">
+              <Card className="gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm dark:bg-[#111824] dark:shadow-none sm:p-5">
                 <div className="space-y-1">
                   <h3 className="text-sm font-semibold">Top Skills Demand</h3>
                   <p className="text-xs text-muted-foreground">
@@ -362,7 +328,7 @@ export default async function OverviewPage({
                 )}
               </Card>
 
-              <Card className="gap-4 rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5">
+              <Card className="gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm dark:bg-[#111824] dark:shadow-none sm:p-5">
                 <div className="space-y-1">
                   <h3 className="text-sm font-semibold">Upcoming Deadlines</h3>
                   <p className="text-xs text-muted-foreground">
@@ -378,7 +344,7 @@ export default async function OverviewPage({
                     {overviewData.insights.upcomingDeadlines.map((item) => (
                       <div
                         key={item.id}
-                        className="rounded-lg border border-[#ececf0] bg-neutral-50 p-2.5"
+                        className="rounded-lg border border-border bg-muted/40 p-2.5"
                       >
                         <p className="truncate text-sm font-medium text-foreground">
                           {item.title}
@@ -415,12 +381,14 @@ export default async function OverviewPage({
     tabKey: typeof params?.tab === "string" ? params.tab : undefined,
     statuses: candidateStatusesFilter,
   });
-  const interviewRatingMeta = getInterviewRatingMeta(overviewData.ratings.interview);
+  const interviewRatingMeta = getInterviewRatingMeta(
+    overviewData.ratings.interview,
+  );
   const profileRatingMeta = user ? computeProfileRating(user) : null;
 
   return (
-    <div className="min-h-svh bg-neutral-100 p-2 sm:p-4 lg:pl-0 lg:p-5">
-      <div className="bg-white rounded-xl sm:rounded-2xl">
+    <div className="dashboard-stage">
+      <div className="dashboard-surface">
         <DashboardHeader title="Overview" actions={<OverviewHeaderActions />} />
 
         <div className="space-y-4 px-3 pb-6 sm:px-4 sm:pb-8">
@@ -441,11 +409,22 @@ export default async function OverviewPage({
                 title="Your Profile Rating"
                 rating={overviewData.ratings.profile}
                 badgeLabel={profileRatingMeta?.tierLabel ?? "STARTER"}
-                ratingClassName={profileRatingMeta?.tierColor ?? "text-zinc-600"}
-                badgeClassName={profileRatingMeta?.tierBadgeClass ?? "bg-zinc-500/10 text-zinc-600"}
-                description={profileRatingMeta?.summaryText ?? "Complete your profile to get started."}
+                ratingClassName={
+                  profileRatingMeta?.tierColor ?? "text-muted-foreground"
+                }
+                badgeClassName={
+                  profileRatingMeta?.tierBadgeClass ??
+                  "bg-muted text-muted-foreground"
+                }
+                description={
+                  profileRatingMeta?.summaryText ??
+                  "Complete your profile to get started."
+                }
                 suggestionTitle="Our Suggestion"
-                suggestionBody={profileRatingMeta?.suggestionBody ?? "Fill out your profile and resume details."}
+                suggestionBody={
+                  profileRatingMeta?.suggestionBody ??
+                  "Fill out your profile and resume details."
+                }
                 actionLabel="Improve Profile"
                 actionHref="/settings"
                 showAction
@@ -483,3 +462,4 @@ export default async function OverviewPage({
     </div>
   );
 }
+

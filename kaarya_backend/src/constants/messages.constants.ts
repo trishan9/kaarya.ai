@@ -64,8 +64,7 @@ export const COMPANY_MESSAGES = {
   RECRUITER_NOT_IN_COMPANY:
     'Recruiter is not assigned to the specified company.',
   FORBIDDEN_COMPANY_ACCESS: 'You are not allowed to manage this company.',
-  COMPANY_CONTEXT_REQUIRED:
-    'companyId is required to perform this operation.',
+  COMPANY_CONTEXT_REQUIRED: 'companyId is required to perform this operation.',
   WORKSPACES_FETCH_SUCCESS: 'Recruiter workspaces fetched successfully.',
   JOIN_BY_CODE_SUCCESS: 'Joined company workspace successfully.',
   INVITE_CODE_RESET_SUCCESS: 'Company invite code reset successfully.',
@@ -119,8 +118,7 @@ export const JOB_MESSAGES = {
   MY_APPLICATION_FETCH_SUCCESS: 'Your job application fetched successfully.',
   APPLICATION_CREATE_SUCCESS: 'Job application submitted successfully.',
   APPLICATION_UPDATE_SUCCESS: 'Job application updated successfully.',
-  APPLICATION_RESUME_ACTIVITY_UPDATED:
-    'Resume activity updated successfully.',
+  APPLICATION_RESUME_ACTIVITY_UPDATED: 'Resume activity updated successfully.',
   APPLICATION_ALREADY_EXISTS: 'You have already applied for this job.',
   APPLICATION_NOT_FOUND: 'Job application not found.',
   APPLICATION_FORBIDDEN:
@@ -154,6 +152,8 @@ export const INTERVIEW_MESSAGES = {
   SESSION_FORBIDDEN: 'You are not allowed to access this interview session.',
   SESSION_ROLE_FORBIDDEN:
     'Only candidate users can take interview sessions. Recruiters, colleges, and admins can create/manage interviews and review participant feedback.',
+  FREE_PLAN_LIMIT_REACHED:
+    'You have reached your free monthly interview limit (5). Upgrade to Pro to continue.',
   EVALUATION_FETCH_SUCCESS: 'Interview feedback fetched successfully.',
   EVALUATION_NOT_FOUND: 'Interview feedback not found.',
   ANALYTICS_FETCH_SUCCESS: 'Interview analytics fetched successfully.',
@@ -186,12 +186,6 @@ export const BOOKMARK_MESSAGES = {
   FORBIDDEN: 'Only candidate users can manage saved bookmarks.',
 } as const;
 
-export const JOB_MATCH_MESSAGES = {
-  PROCESSING: 'Job matching in progress.',
-  NO_MATCHES: 'No matching candidates found.',
-  NOTIFICATIONS_SENT: 'Match notifications sent successfully.',
-} as const;
-
 export const RESOURCE_MESSAGES = {
   NOT_FOUND: 'Resource course not found.',
   INVALID_ID: 'Invalid resource course id.',
@@ -202,11 +196,22 @@ export const RESOURCE_MESSAGES = {
   FETCH_ALL_SUCCESS: 'Resource courses fetched successfully.',
   FORBIDDEN_ACCESS: 'You are not allowed to access this resource course.',
   FORBIDDEN_MANAGE: 'You are not allowed to manage this resource course.',
-  FORBIDDEN_CREATE: 'You are not allowed to create this type of resource course.',
+  FORBIDDEN_CREATE:
+    'You are not allowed to create this type of resource course.',
   RECRUITER_WORKSPACE_REQUIRED:
     'Recruiter must be linked to a company workspace before creating resource courses.',
   COLLEGE_WORKSPACE_REQUIRED:
     'College user must be linked to a college workspace before creating resource courses.',
+} as const;
+
+export const PAYMENT_MESSAGES = {
+  STRIPE_CHECKOUT_SESSION_CREATED: 'Stripe checkout session created.',
+  STRIPE_SESSION_VERIFIED: 'Stripe payment verified and plan unlocked.',
+  STRIPE_PORTAL_SESSION_CREATED: 'Stripe billing portal session created.',
+  STRIPE_ALREADY_ACTIVE: 'Your Pro plan is already active.',
+  BILLING_NOT_REQUIRED_FOR_ROLE:
+    'Billing upgrade is not required for this role.',
+  BILLING_SUMMARY_FETCHED: 'Billing summary fetched successfully.',
 } as const;
 
 export const RESPONSE_MESSAGES = {

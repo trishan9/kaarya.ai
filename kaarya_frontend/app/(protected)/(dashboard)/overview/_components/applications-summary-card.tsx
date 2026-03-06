@@ -138,7 +138,7 @@ export function ApplicationsSummaryCard({
     delta > 0 ? "text-emerald-500" : delta < 0 ? "text-rose-500" : "text-muted-foreground";
 
   return (
-    <Card className="min-w-0 gap-4 border-border bg-white p-4 shadow-sm sm:p-5">
+    <Card className="min-w-0 gap-4 border-border bg-card p-4 shadow-sm dark:bg-[#111824] dark:shadow-none sm:p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="space-y-0.5">
           <h2 className="text-xl font-semibold text-foreground sm:text-2xl">
@@ -188,7 +188,7 @@ export function ApplicationsSummaryCard({
                 "h-8 rounded-md border border-border px-3 text-xs transition-colors",
                 isActive
                   ? "border-transparent bg-primary font-medium text-white"
-                  : "bg-white text-muted-foreground hover:border-primary hover:text-primary",
+                  : "bg-card text-muted-foreground hover:border-primary hover:text-primary",
               )}
               aria-pressed={isActive}
               type="button"
@@ -208,7 +208,7 @@ export function ApplicationsSummaryCard({
             {recentCompanies.slice(0, 4).map((company) => (
               <span
                 key={company.workspaceId}
-                className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white bg-white text-[10px] font-semibold shadow-sm"
+                className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-background bg-background text-[10px] font-semibold shadow-sm"
               >
                 {company.logo ? (
                   <Image
@@ -224,7 +224,7 @@ export function ApplicationsSummaryCard({
               </span>
             ))}
             {recentCompanies.length > 4 ? (
-              <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white bg-[#e9f2fb] text-xs font-semibold text-[#0b67c2] shadow-sm">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full border border-background bg-primary/15 text-xs font-semibold text-primary shadow-sm">
                 +{recentCompanies.length - 4}
               </span>
             ) : null}
@@ -238,7 +238,7 @@ export function ApplicationsSummaryCard({
       </div>
 
       {recentCompanies.length > 0 ? (
-        <div className="space-y-1.5 rounded-lg border border-[#ececf0] bg-neutral-50 p-3">
+        <div className="space-y-1.5 rounded-lg border border-border bg-muted/40 p-3">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Recently Applied Companies
           </p>
@@ -246,7 +246,7 @@ export function ApplicationsSummaryCard({
             {recentCompanies.map((company) => (
               <span
                 key={`${company.workspaceId}-${company.workspaceType}`}
-                className="rounded-md bg-white px-2 py-1 text-xs text-foreground shadow-sm"
+                className="rounded-md bg-card px-2 py-1 text-xs text-foreground shadow-sm"
               >
                 {company.name} ({company.applicationsCount})
               </span>

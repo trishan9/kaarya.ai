@@ -55,13 +55,13 @@ export function JobCard({
     applyHref && applyHref !== "/jobs" ? applyHref : `/jobs/${id}`;
 
   const badgeToneClassName = {
-    success: "bg-emerald-100 text-emerald-600",
-    warning: "bg-amber-100 text-amber-600",
-    info: "bg-blue-100 text-blue-600",
+    success: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300",
+    warning: "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300",
+    info: "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300",
   }[statusTone];
 
   return (
-    <Card className="min-w-0 gap-3 rounded-2xl border border-[#ececf0] bg-white p-3 shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
+    <Card className="min-w-0 gap-3 rounded-2xl border border-border bg-card p-3 shadow-[0_1px_2px_rgba(15,23,42,0.05)] dark:bg-[#171b22] dark:shadow-none">
       <div className="flex items-center justify-between">
         <div
           className={cn(
@@ -78,7 +78,7 @@ export function JobCard({
         <div
           className={cn(
             "flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-sm font-bold text-white",
-            logoUrl ? "bg-white p-1" : "bg-primary",
+            logoUrl ? "bg-background p-1" : "bg-primary",
             logoClassName,
           )}
         >
@@ -106,29 +106,29 @@ export function JobCard({
 
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <span
-          className="flex max-w-full items-center gap-1 rounded-md bg-neutral-100 px-2 py-1 sm:max-w-[260px]"
+          className="flex max-w-full items-center gap-1 rounded-md bg-muted px-2 py-1 sm:max-w-[260px]"
           title={location}
         >
           <MapPin className="h-3 w-3 shrink-0" />
           <span className="truncate">{location}</span>
         </span>
-        <span className="flex items-center gap-1 rounded-md bg-neutral-100 px-2 py-1">
+        <span className="flex items-center gap-1 rounded-md bg-muted px-2 py-1">
           <Briefcase className="h-3 w-3" />
           {employmentType}
         </span>
-        <span className="flex items-center gap-1 rounded-md bg-neutral-100 px-2 py-1">
+        <span className="flex items-center gap-1 rounded-md bg-muted px-2 py-1">
           <Clock3 className="h-3 w-3" />
           {engagementType}
         </span>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 text-xs">
-        <span className="flex items-center gap-1 rounded-md bg-neutral-100 px-2 py-1">
+        <span className="flex items-center gap-1 rounded-md bg-muted px-2 py-1">
           <Wallet className="h-3 w-3" />
           {salaryRange}
         </span>
         {extraTags.map((tag) => (
-          <span key={tag} className="rounded-md bg-neutral-100 px-2 py-1">
+          <span key={tag} className="rounded-md bg-muted px-2 py-1">
             {tag}
           </span>
         ))}

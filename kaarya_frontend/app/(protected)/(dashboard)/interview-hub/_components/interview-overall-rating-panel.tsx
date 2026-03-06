@@ -23,7 +23,7 @@ export function InterviewOverallRatingPanel({
   return (
     <Card
       className={cn(
-        "min-w-0 gap-4 rounded-2xl border border-border bg-white p-4 shadow-sm sm:p-5",
+        "min-w-0 gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5",
         className,
       )}
     >
@@ -45,3 +45,4 @@ export function InterviewOverallRatingPanel({
     </Card>
   );
 }
+

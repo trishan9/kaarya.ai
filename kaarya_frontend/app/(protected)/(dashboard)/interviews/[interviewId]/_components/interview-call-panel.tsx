@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Vapi from "@vapi-ai/web";
@@ -119,6 +120,9 @@ export function InterviewCallPanel({
   const [sessionQuestionBank, setSessionQuestionBank] =
     useState<string[]>(questionBank);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const showUpgradeCta =
+    typeof error === "string" &&
+    error.toLowerCase().includes("monthly interview limit");
 
   useEffect(() => {
     normalizedQuestionBankRef.current = questionBank
@@ -461,8 +465,8 @@ export function InterviewCallPanel({
     .join("") || "U";
 
   return (
-    <section className="space-y-4 rounded-2xl border border-[#ececf0] bg-white p-3 shadow-sm sm:space-y-5 sm:p-4 lg:p-6">
-      <div className="flex flex-col gap-2 rounded-xl border border-[#e7eef7] bg-[#f7fbff] px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+    <section className="space-y-4 rounded-2xl border border-border bg-card p-3 shadow-sm sm:space-y-5 sm:p-4 lg:p-6">
+      <div className="flex flex-col gap-2 rounded-xl border border-[#e7eef7] bg-muted/40 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           <span className="text-sm font-semibold text-[#0d6fae] sm:text-base">
             {interviewTitle}
@@ -477,7 +481,7 @@ export function InterviewCallPanel({
           </Badge>
         </div>
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <span className="inline-flex items-center gap-1 rounded-md border border-[#d8e4f1] bg-white px-2 py-1 text-xs font-medium text-slate-700">
+          <span className="inline-flex items-center gap-1 rounded-md border border-[#d8e4f1] bg-card px-2 py-1 text-xs font-medium text-foreground">
             <Clock3 className="h-3.5 w-3.5" />
             {formatElapsed(elapsedSeconds)}
           </span>
@@ -537,7 +541,7 @@ export function InterviewCallPanel({
                 {isSpeaking ? "Speaking..." : "Listening..."}
               </p>
             </div>
-            <div className="rounded-full bg-white/30 p-2 text-white backdrop-blur-sm">
+            <div className="rounded-full bg-card/30 p-2 text-white backdrop-blur-sm">
               <Volume2 className="h-4 w-4" />
             </div>
           </div>
@@ -548,7 +552,7 @@ export function InterviewCallPanel({
             "relative overflow-hidden rounded-2xl border bg-[#f3f5f7]",
             activeSpeaker === "user"
               ? "border-emerald-400 shadow-[0_0_0_3px_rgba(16,185,129,0.25)]"
-              : "border-[#e5e7eb]",
+              : "border-border",
           )}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20" />
@@ -562,7 +566,7 @@ export function InterviewCallPanel({
             <div className="absolute inset-0 bg-gradient-to-br from-[#dce8f4] via-[#d2e1ef] to-[#c8d9ea]" />
 
             <div className="absolute inset-0 flex items-center justify-center px-4">
-              <div className="relative h-28 w-28 overflow-hidden rounded-full border-4 border-white/80 bg-white/30 shadow-[0_12px_30px_rgba(15,23,42,0.2)] sm:h-32 sm:w-32 lg:h-36 lg:w-36">
+              <div className="relative h-28 w-28 overflow-hidden rounded-full border-4 border-white/80 bg-card/30 shadow-[0_12px_30px_rgba(15,23,42,0.2)] sm:h-32 sm:w-32 lg:h-36 lg:w-36">
                 {hasCandidatePhoto ? (
                   <div
                     className="h-full w-full bg-cover bg-center"
@@ -590,7 +594,7 @@ export function InterviewCallPanel({
                 {activeSpeaker === "user" ? "Speaking..." : "Listening..."}
               </p>
             </div>
-            <div className="rounded-full bg-white/30 p-2 text-white backdrop-blur-sm">
+            <div className="rounded-full bg-card/30 p-2 text-white backdrop-blur-sm">
               <Mic className="h-4 w-4" />
             </div>
           </div>
@@ -628,24 +632,24 @@ export function InterviewCallPanel({
         </p>
       </div>
 
-      <div className="rounded-2xl border border-[#ececf0] bg-[#f4f5f7] p-3 sm:p-4">
+      <div className="rounded-2xl border border-border bg-muted/40 p-3 sm:p-4">
         <div className="mb-2 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <MessageSquareText className="h-4 w-4 text-primary" />
             <p className="text-sm font-semibold text-foreground">Live Transcript</p>
           </div>
-          <span className="rounded bg-white px-2 py-0.5 text-xs text-muted-foreground">
+          <span className="rounded bg-card px-2 py-0.5 text-xs text-muted-foreground">
             Real-time
           </span>
         </div>
 
         {latestTranscript ? (
-          <div className="mb-2 rounded-lg border border-[#e5e7eb] bg-white px-3 py-2 text-sm text-foreground">
+          <div className="mb-2 rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground">
             {latestTranscript.content}
           </div>
         ) : null}
 
-        <div className="max-h-[40vh] space-y-2 overflow-y-auto rounded-xl border border-[#e5e7eb] bg-white p-3 sm:max-h-64">
+        <div className="max-h-[40vh] space-y-2 overflow-y-auto rounded-xl border border-border bg-card p-3 sm:max-h-64">
           {transcript.length > 0 ? (
             transcript.map((message, index) => (
               <div
@@ -653,28 +657,28 @@ export function InterviewCallPanel({
                 className={cn(
                   "rounded-lg border px-3 py-2 text-sm",
                   message.role === "assistant"
-                    ? "border-[#d7ecff] bg-[#edf7ff]"
+                    ? "border-[#d7ecff] bg-primary/15"
                     : message.role === "user"
                       ? "border-[#e6e9ef] bg-[#f8f9fb]"
                       : "border-amber-200 bg-amber-50",
                 )}
               >
                 <div className="mb-1 flex items-center justify-between gap-2 text-[11px] uppercase tracking-wide">
-                  <span className="font-semibold text-slate-700">
+                  <span className="font-semibold text-foreground">
                     {message.role === "assistant"
                       ? "AI"
                       : message.role === "user"
                         ? "You"
                         : "System"}
                   </span>
-                  <span className="text-slate-500">
+                  <span className="text-muted-foreground">
                     {new Date(message.timestamp).toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
                   </span>
                 </div>
-                <p className="text-slate-700">{message.content}</p>
+                <p className="text-foreground">{message.content}</p>
               </div>
             ))
           ) : (
@@ -689,9 +693,22 @@ export function InterviewCallPanel({
       {error ? (
         <div className="flex items-start gap-2 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-600">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>{error}</span>
+          <div className="space-y-1">
+            <span>{error}</span>
+            {showUpgradeCta ? (
+              <div>
+                <Link
+                  className="font-medium text-rose-700 underline"
+                  href="/payment/checkout"
+                >
+                  Upgrade Plan
+                </Link>
+              </div>
+            ) : null}
+          </div>
         </div>
       ) : null}
     </section>
   );
 }
+

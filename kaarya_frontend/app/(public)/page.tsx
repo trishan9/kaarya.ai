@@ -20,7 +20,7 @@ export default async function Home() {
         <Hero />
         <PrimaryFeatures />
         <Testimonials />
-        <Pricing />
+        <Pricing isLoggedIn={isLoggedIn} />
         <Faqs />
         <CallToAction />
       </main>

@@ -376,7 +376,7 @@ export function JobApplicationSheet({
 
         <SheetContent side="right" className="w-full! sm:max-w-[560px]! p-0">
           <div className="flex h-full flex-col">
-            <SheetHeader className="border-b border-[#ececf0] px-4 py-3 sm:px-5">
+            <SheetHeader className="border-b border-border px-4 py-3 sm:px-5">
               <SheetTitle className="text-left text-xl font-semibold">
                 {sheetTitle}
               </SheetTitle>
@@ -452,9 +452,9 @@ export function JobApplicationSheet({
                                     {resume.fileName} - {formatResumeDate(resume.createdAt)}
                                   </span>
                                   {typeof resume.atsScore === "number" ? (
-                                    <Badge className="rounded-full bg-emerald-100 text-[10px] font-semibold text-emerald-800 hover:bg-emerald-100">
-                                      ATS {resume.atsScore}
-                                    </Badge>
+                                  <Badge className="rounded-full bg-emerald-100 text-[10px] font-semibold text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-500/20 dark:text-emerald-300 dark:hover:bg-emerald-500/20">
+                                    ATS {resume.atsScore}
+                                  </Badge>
                                   ) : null}
                                 </span>
                               </SelectItem>
@@ -467,7 +467,7 @@ export function JobApplicationSheet({
                               <button
                                 key={`${resume.id}-delete`}
                                 type="button"
-                                className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-sm text-rose-700 hover:bg-rose-50"
+                                className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-sm text-rose-700 hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-500/20"
                                 onClick={(event) => {
                                   event.preventDefault();
                                   event.stopPropagation();
@@ -476,7 +476,7 @@ export function JobApplicationSheet({
                               >
                                 <span className="flex min-w-0 items-center gap-2">
                                   <span className="truncate">{resume.fileName}</span>
-                                  <span className="shrink-0 rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-600">
+                                  <span className="shrink-0 rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-600 dark:bg-slate-500/20 dark:text-slate-300">
                                     {resume.type === "ats_scan" ? "ATS Scan" : "Uploaded"}
                                   </span>
                                 </span>
@@ -509,7 +509,7 @@ export function JobApplicationSheet({
                   />
 
                   {selectedFile ? (
-                    <div className="flex items-center justify-between rounded-lg border border-[#ececf0] bg-neutral-50 px-3 py-2">
+                    <div className="flex items-center justify-between rounded-lg border border-border bg-muted/40 px-3 py-2">
                       <div>
                         <p className="truncate text-sm font-medium text-foreground">
                           {selectedFile.name}
@@ -529,7 +529,7 @@ export function JobApplicationSheet({
                     </div>
                   ) : (
                     <div
-                      className="rounded-xl border border-dashed border-[#d8dde4] bg-white p-6 text-center"
+                      className="rounded-xl border border-dashed border-border bg-card p-6 text-center"
                       onDragOver={(event) => event.preventDefault()}
                       onDrop={(event) => {
                         event.preventDefault();
@@ -537,7 +537,7 @@ export function JobApplicationSheet({
                         applyFile(file);
                       }}
                     >
-                      <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 text-muted-foreground">
+                      <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground">
                         <UploadCloud className="h-4 w-4" />
                       </div>
                       <p className="mt-2 text-sm text-foreground">
@@ -594,7 +594,7 @@ export function JobApplicationSheet({
                             type="button"
                             variant="outline"
                             size="icon"
-                            className="h-10 w-10 shrink-0 rounded-lg border-[#d8dde4]"
+                            className="h-10 w-10 shrink-0 rounded-lg border-border"
                             onClick={addPortfolioLink}
                             aria-label={addPortfolioLabel}
                           >
@@ -605,7 +605,7 @@ export function JobApplicationSheet({
                             type="button"
                             variant="outline"
                             size="icon"
-                            className="h-10 w-10 shrink-0 rounded-lg border-rose-200 bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-600"
+                            className="h-10 w-10 shrink-0 rounded-lg border-rose-200 bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-600 dark:border-rose-400/30 dark:bg-rose-500/20 dark:text-rose-300 dark:hover:bg-rose-500/30 dark:hover:text-rose-200"
                             onClick={() => removePortfolioLink(index)}
                             aria-label="Remove portfolio link"
                           >
@@ -621,7 +621,7 @@ export function JobApplicationSheet({
                   <p className="text-xs text-rose-500">{errorMessage}</p>
                 ) : null}
 
-                <div className="sticky bottom-0 bg-white pt-1">
+                <div className="sticky bottom-0 bg-background/95 pt-1 backdrop-blur-sm">
                   <Button
                     type="submit"
                     className="h-10 w-full rounded-xl bg-primary text-sm font-semibold text-white hover:bg-primary/90"

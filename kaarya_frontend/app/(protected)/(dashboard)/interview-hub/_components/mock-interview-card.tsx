@@ -71,7 +71,7 @@ export function MockInterviewCard({
   }, [logoUrl]);
 
   return (
-    <Card className="min-w-0 gap-3 rounded-2xl border border-[#ececf0] bg-white p-3 shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
+    <Card className="min-w-0 gap-3 rounded-2xl border border-border bg-card p-3 shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
       <div className="flex items-center justify-between gap-2">
         <span className="inline-flex h-7 min-w-[92px] items-center justify-center rounded-md bg-[#0b67c2] px-2.5 text-xs font-semibold text-white">
           {categoryLabel}
@@ -119,7 +119,7 @@ export function MockInterviewCard({
               {stackTechnologies.map((technology) => (
                 <span
                   key={technology.id}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-neutral-100 ring-1 ring-[#e5e7eb]"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-muted ring-1 ring-[#e5e7eb]"
                 >
                   <Image
                     src={technology.iconUrl}
@@ -136,11 +136,11 @@ export function MockInterviewCard({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="inline-flex items-center rounded-md bg-neutral-100 px-2 py-1 text-muted-foreground">
+          <span className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-muted-foreground">
             <CircleAlert className="mr-1 h-3.5 w-3.5" />
             {createdAtLabel}
           </span>
-          <span className="inline-flex items-center rounded-md bg-neutral-100 px-2 py-1 text-muted-foreground">
+          <span className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-muted-foreground">
             <Gauge className="mr-1 h-3.5 w-3.5" />
             {scoreLabel}
           </span>
@@ -160,7 +160,7 @@ export function MockInterviewCard({
             <Button
               asChild
               variant="outline"
-              className="h-9 flex-1 rounded-[10px] border-primary bg-white text-sm font-medium text-primary hover:bg-white/90 hover:text-primary"
+              className="h-9 flex-1 rounded-[10px] border-primary bg-card text-sm font-medium text-primary hover:bg-accent/90 hover:text-primary"
             >
               <Link href={secondaryActionHref}>{secondaryActionLabel}</Link>
             </Button>
@@ -177,3 +177,4 @@ export function MockInterviewCard({
     </Card>
   );
 }
+

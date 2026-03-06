@@ -24,6 +24,10 @@ describe('College + Job Applications routes (e2e)', () => {
   let jobId = '';
   let resumeId = '';
   let applicationId = '';
+  const currentMonthKey = () => {
+    const now = new Date();
+    return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
+  };
 
   beforeAll(async () => {
     context = await createE2EApp();
@@ -407,7 +411,7 @@ describe('College + Job Applications routes (e2e)', () => {
     await request(context.app.getHttpServer())
       .get(`${applicationBase}/${ROUTES.APPLICATION.MY_APPLICATIONS_SUMMARY}`)
       .set('Authorization', `Bearer ${studentToken}`)
-      .query({ month: '2026-02', statuses: 'applied' })
+      .query({ month: currentMonthKey(), statuses: 'applied' })
       .expect(200);
   });
 

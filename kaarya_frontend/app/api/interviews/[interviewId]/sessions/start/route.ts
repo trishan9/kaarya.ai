@@ -12,7 +12,12 @@ export async function POST(request: Request, { params }: RouteParams) {
     const { interviewId } = await params;
     const body = await request.json().catch(() => ({}));
     const response = await startInterviewSession(interviewId, body);
-    const status = response?.success ? 200 : 400;
+    const status =
+      response?.success
+        ? 200
+        : typeof response?.statusCode === "number"
+          ? response.statusCode
+          : 400;
     return NextResponse.json(response, { status });
   } catch {
     return NextResponse.json(

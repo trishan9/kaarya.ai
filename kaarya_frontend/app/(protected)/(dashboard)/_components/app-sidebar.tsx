@@ -6,18 +6,19 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTheme } from "next-themes";
 import { toast } from "sonner";
 import {
   Check,
   ChevronDown,
   ChevronsUpDown,
+  CreditCard,
   Loader2,
   LogOut,
   Moon,
   Plus,
   Search,
   Sun,
-  Wallet,
   Workflow,
 } from "lucide-react";
 
@@ -100,7 +101,10 @@ import {
   resolveRecruiterWorkspace,
 } from "@/lib/workspaces";
 import { useLogOut } from "@/app/(auth)/_hooks/use-log-out";
-import { createCompany, joinCompanyByCode } from "@/lib/actions/company-actions";
+import {
+  createCompany,
+  joinCompanyByCode,
+} from "@/lib/actions/company-actions";
 import { LocationPicker } from "@/components/location/location-picker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -166,9 +170,10 @@ export function AppSidebar({
   const searchParams = useSearchParams();
   const router = useRouter();
   const { open } = useSidebar();
+  const { resolvedTheme, setTheme } = useTheme();
+  const [themeReady, setThemeReady] = React.useState(false);
   const { onLogOut, isLoggingOut } = useLogOut();
   const [searchQuery, setSearchQuery] = React.useState("");
-  const [theme, setTheme] = React.useState<"light" | "dark">("light");
   const [profileOpen, setProfileOpen] = React.useState(false);
   const [logoutOpen, setLogoutOpen] = React.useState(false);
   const [createWorkspaceOpen, setCreateWorkspaceOpen] = React.useState(false);
@@ -182,9 +187,8 @@ export function AppSidebar({
     () => extractCollegeWorkspaces(collegeWorkspaces as unknown[]),
     [collegeWorkspaces],
   );
-  const [recruiterWorkspaceOptions, setRecruiterWorkspaceOptions] = React.useState<
-    TRecruiterWorkspace[]
-  >(safeRecruiterWorkspaces);
+  const [recruiterWorkspaceOptions, setRecruiterWorkspaceOptions] =
+    React.useState<TRecruiterWorkspace[]>(safeRecruiterWorkspaces);
 
   const isAdmin = user?.role === Role.ADMIN;
   const isRecruiter = user?.role === Role.RECRUITER;
@@ -195,6 +199,7 @@ export function AppSidebar({
     user?.role === Role.COLLEGE;
   const showCollegeWorkspaceSwitcher =
     canUseCollegeWorkspaces && safeCollegeWorkspaces.length > 0;
+  const theme: "light" | "dark" = resolvedTheme === "light" ? "light" : "dark";
   const sidebarNavGroups = React.useMemo(
     () => getSidebarNavGroups(user?.role),
     [user?.role],
@@ -211,6 +216,10 @@ export function AppSidebar({
   React.useEffect(() => {
     setRecruiterWorkspaceOptions(safeRecruiterWorkspaces);
   }, [safeRecruiterWorkspaces]);
+
+  React.useEffect(() => {
+    setThemeReady(true);
+  }, []);
 
   const activeWorkspaceIdFromQuery = searchParams.get("workspace");
   const activeRecruiterWorkspace = resolveRecruiterWorkspace({
@@ -307,7 +316,9 @@ export function AppSidebar({
         });
 
         if (!response?.success) {
-          toast.error(response?.message || "Failed to create company workspace.");
+          toast.error(
+            response?.message || "Failed to create company workspace.",
+          );
           return;
         }
 
@@ -328,7 +339,9 @@ export function AppSidebar({
 
         if (workspaceId) {
           setRecruiterWorkspaceOptions((current) => {
-            if (current.some((workspace) => workspace.company.id === workspaceId)) {
+            if (
+              current.some((workspace) => workspace.company.id === workspaceId)
+            ) {
               return current;
             }
 
@@ -377,13 +390,18 @@ export function AppSidebar({
           return;
         }
 
-        const workspaceId = (response?.data?.workspace?.id as string | undefined) ?? null;
-        const workspaceName = (response?.data?.workspace?.name as string | undefined) ?? null;
+        const workspaceId =
+          (response?.data?.workspace?.id as string | undefined) ?? null;
+        const workspaceName =
+          (response?.data?.workspace?.name as string | undefined) ?? null;
         const workspaceLogo =
-          (response?.data?.workspace?.logo as string | null | undefined) ?? null;
+          (response?.data?.workspace?.logo as string | null | undefined) ??
+          null;
         const workspaceInviteCode =
-          (response?.data?.workspace?.inviteCode as string | null | undefined) ??
-          values.inviteCode.trim().toUpperCase();
+          (response?.data?.workspace?.inviteCode as
+            | string
+            | null
+            | undefined) ?? values.inviteCode.trim().toUpperCase();
         const membershipId =
           (response?.data?.member?.id as string | undefined) ??
           (response?.data?.member?._id as string | undefined) ??
@@ -452,10 +470,36 @@ export function AppSidebar({
     [createWorkspaceForm, joinWorkspaceForm],
   );
 
+  const currentPlan = user?.plan ?? "free";
+  const planLabel = currentPlan === "pro" ? "Pro" : "Free";
+  const isProPlan = currentPlan === "pro";
+  const planDescription = isProPlan ? "Pro plan" : "Free plan";
+  const roleLabel = isAdmin
+    ? "Admin"
+    : isRecruiter
+      ? "Recruiter"
+      : isCollegeUser
+        ? "College"
+        : null;
+  const accountBadgeLabel = roleLabel ?? planLabel;
+  const accountDescription = roleLabel
+    ? `${roleLabel} access`
+    : planDescription;
+  const showBillingAction = roleLabel === null;
+  const planBadgeClass = cn(
+    "rounded-md border px-1.5 py-0 text-[10px] font-semibold leading-4",
+    roleLabel
+      ? "border-sky-500/70 bg-sky-50 text-sky-700 dark:border-sky-400/50 dark:bg-sky-500/15 dark:text-sky-300"
+      : isProPlan
+        ? "border-emerald-500/70 bg-emerald-50 text-emerald-700 dark:border-emerald-400/50 dark:bg-emerald-500/15 dark:text-emerald-300"
+        : "border-slate-300 bg-slate-50 text-slate-700 dark:border-slate-400/40 dark:bg-slate-500/15 dark:text-slate-300",
+  );
+  const billingHref = "/payment/checkout";
+
   return (
     <Sidebar
       collapsible="icon"
-      className="bg-neutral-100 border-none sticky top-0 left-0"
+      className="sticky left-0 top-0 border-none bg-neutral-100 text-sidebar-foreground dark:bg-[#0b1118]"
     >
       <SidebarHeader className="group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-2">
         <div className="flex w-full items-center gap-3 group-data-[state=collapsed]/sidebar:justify-center">
@@ -482,12 +526,12 @@ export function AppSidebar({
                   isAdmin
                     ? "Search admin records..."
                     : isRecruiter
-                    ? "Search company jobs..."
-                    : isCollegeUser
-                      ? "Search college jobs..."
-                      : "Quick search..."
+                      ? "Search company jobs..."
+                      : isCollegeUser
+                        ? "Search college jobs..."
+                        : "Quick search..."
                 }
-                className="h-9 rounded-lg border-sidebar-border bg-white pl-9 text-sm"
+                className="h-9 rounded-lg border-sidebar-border bg-card/80 pl-9 text-sm"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 onKeyDown={(event) => {
@@ -516,7 +560,7 @@ export function AppSidebar({
                       <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                       <Input
                         placeholder="Search dashboard..."
-                        className="h-9 rounded-lg border-sidebar-border bg-white pl-9 text-sm"
+                        className="h-9 rounded-lg border-sidebar-border bg-card/80 pl-9 text-sm"
                         value={searchQuery}
                         onChange={(event) => setSearchQuery(event.target.value)}
                         onKeyDown={(event) => {
@@ -562,25 +606,31 @@ export function AppSidebar({
             </div>
             <SidebarGroupContent>
               {open ? (
-                <div className="space-y-2 px-1">
+                <div className="space-y-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="outline"
-                        className="h-10 w-full justify-between rounded-lg border-[#d8dde4] bg-white px-3 text-sm"
+                        className="h-11 w-full justify-between rounded-xl border-sidebar-border/70 bg-background px-3 text-sm shadow-none hover:bg-sidebar-accent/45 dark:bg-sidebar-accent/20 dark:hover:bg-sidebar-accent/35"
                       >
                         <span className="flex min-w-0 items-center gap-2">
                           <Avatar className="h-6 w-6 rounded-md">
                             <AvatarImage
                               src={activeRecruiterWorkspace?.company.logo ?? ""}
-                              alt={activeRecruiterWorkspace?.company.name ?? "Workspace"}
+                              alt={
+                                activeRecruiterWorkspace?.company.name ??
+                                "Workspace"
+                              }
                             />
                             <AvatarFallback className="rounded-md bg-primary/10 text-[10px] font-semibold text-primary">
-                              {workspaceInitials(activeRecruiterWorkspace?.company.name)}
+                              {workspaceInitials(
+                                activeRecruiterWorkspace?.company.name,
+                              )}
                             </AvatarFallback>
                           </Avatar>
                           <span className="truncate">
-                            {activeRecruiterWorkspace?.company.name ?? "Select workspace"}
+                            {activeRecruiterWorkspace?.company.name ??
+                              "Select workspace"}
                           </span>
                         </span>
                         <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
@@ -596,7 +646,10 @@ export function AppSidebar({
                         const isActiveWorkspace =
                           workspace.company.id === activeWorkspaceId;
                         return (
-                          <DropdownMenuItem key={workspace.membershipId} asChild>
+                          <DropdownMenuItem
+                            key={workspace.membershipId}
+                            asChild
+                          >
                             <Link
                               href={workspaceSwitchHref(workspace.company.id)}
                               className="flex w-full items-center justify-between gap-2"
@@ -613,7 +666,8 @@ export function AppSidebar({
                                 </Avatar>
                                 <div className="flex min-w-0 flex-col">
                                   <span className="truncate font-medium">
-                                    {workspace.company.name ?? "Untitled company"}
+                                    {workspace.company.name ??
+                                      "Untitled company"}
                                   </span>
                                   <span className="text-xs text-muted-foreground">
                                     {workspace.designation ?? "Recruiter"}
@@ -659,25 +713,31 @@ export function AppSidebar({
             </div>
             <SidebarGroupContent>
               {open ? (
-                <div className="space-y-2 px-1">
+                <div className="space-y-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="outline"
-                        className="h-10 w-full justify-between rounded-lg border-[#d8dde4] bg-white px-3 text-sm"
+                        className="h-11 w-full justify-between rounded-xl border-sidebar-border/70 bg-background px-3 text-sm shadow-none hover:bg-sidebar-accent/45 dark:bg-sidebar-accent/20 dark:hover:bg-sidebar-accent/35"
                       >
                         <span className="flex min-w-0 items-center gap-2">
                           <Avatar className="h-6 w-6 rounded-md">
                             <AvatarImage
                               src={activeCollegeWorkspace?.college.logo ?? ""}
-                              alt={activeCollegeWorkspace?.college.name ?? "College"}
+                              alt={
+                                activeCollegeWorkspace?.college.name ??
+                                "College"
+                              }
                             />
                             <AvatarFallback className="rounded-md bg-primary/10 text-[10px] font-semibold text-primary">
-                              {workspaceInitials(activeCollegeWorkspace?.college.name)}
+                              {workspaceInitials(
+                                activeCollegeWorkspace?.college.name,
+                              )}
                             </AvatarFallback>
                           </Avatar>
                           <span className="truncate">
-                            {activeCollegeWorkspace?.college.name ?? "Select college"}
+                            {activeCollegeWorkspace?.college.name ??
+                              "Select college"}
                           </span>
                         </span>
                         <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
@@ -689,12 +749,18 @@ export function AppSidebar({
                           workspace.college.id === activeWorkspaceId;
                         const membershipLabel = isCollegeUser
                           ? "College Admin"
-                          : [workspace.program, workspace.year ? `Year ${workspace.year}` : null]
+                          : [
+                              workspace.program,
+                              workspace.year ? `Year ${workspace.year}` : null,
+                            ]
                               .filter(Boolean)
                               .join(" - ") || "Student";
 
                         return (
-                          <DropdownMenuItem key={workspace.membershipId} asChild>
+                          <DropdownMenuItem
+                            key={workspace.membershipId}
+                            asChild
+                          >
                             <Link
                               href={workspaceSwitchHref(workspace.college.id)}
                               className="flex w-full items-center justify-between gap-2"
@@ -711,7 +777,8 @@ export function AppSidebar({
                                 </Avatar>
                                 <div className="flex min-w-0 flex-col">
                                   <span className="truncate font-medium">
-                                    {workspace.college.name ?? "College workspace"}
+                                    {workspace.college.name ??
+                                      "College workspace"}
                                   </span>
                                   <span className="text-xs text-muted-foreground">
                                     {membershipLabel}
@@ -750,7 +817,9 @@ export function AppSidebar({
         ) : null}
 
         {sidebarNavGroups.map((group, index) => {
-          const activeHref = getActiveHref(group.items.map((item) => item.href));
+          const activeHref = getActiveHref(
+            group.items.map((item) => item.href),
+          );
 
           return (
             <SidebarGroup
@@ -772,13 +841,17 @@ export function AppSidebar({
                   <ChevronDown
                     className={cn(
                       "h-4 w-4 transition-transform",
-                      groupOpen[group.label] ?? true ? "rotate-0" : "-rotate-90",
+                      (groupOpen[group.label] ?? true)
+                        ? "rotate-0"
+                        : "-rotate-90",
                     )}
                   />
-                  <span className="sr-only">Toggle {group.label} navigation</span>
+                  <span className="sr-only">
+                    Toggle {group.label} navigation
+                  </span>
                 </Button>
               </div>
-              {groupOpen[group.label] ?? true ? (
+              {(groupOpen[group.label] ?? true) ? (
                 <SidebarGroupContent>
                   <SidebarMenu className="group-data-[state=collapsed]/sidebar:items-center group-data-[state=collapsed]/sidebar:justify-center">
                     {group.items.map((item) => {
@@ -792,7 +865,10 @@ export function AppSidebar({
                           isActive={isActive}
                           className="group-data-[state=collapsed]/sidebar:h-9 group-data-[state=collapsed]/sidebar:w-9"
                         >
-                          <Link href={resolvedHref} className="flex w-full items-center">
+                          <Link
+                            href={resolvedHref}
+                            className="flex w-full items-center"
+                          >
                             <Icon className="h-4 w-4" />
                             <span className="truncate group-data-[state=collapsed]/sidebar:hidden">
                               {item.label}
@@ -829,7 +905,7 @@ export function AppSidebar({
       <SidebarFooter className="space-y-3 pt-4 group-data-[state=collapsed]/sidebar:space-y-2">
         {open ? (
           <>
-            <div className="flex items-center gap-3 rounded-xl bg-[#f0f0f0] px-3 py-3">
+            <div className="flex items-center gap-3 rounded-2xl border border-sidebar-border/60 bg-[#efefef] px-3 py-3 dark:border-[#263446] dark:bg-[#17212c]">
               <Avatar className="h-9 w-9">
                 <AvatarImage
                   src={user?.photo ?? ""}
@@ -843,29 +919,19 @@ export function AppSidebar({
                     .join("")}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex-1 text-sm">
-                <div className="font-semibold leading-4">
-                  {user?.name ?? "Trishan Wagle"}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="truncate text-sm font-semibold leading-4">
+                    {user?.name ?? "Trishan Wagle"}
+                  </p>
+                  <Badge variant="outline" className={planBadgeClass}>
+                    {accountBadgeLabel}
+                  </Badge>
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  @
-                  {(user?.name ?? "trishan_wagle9")
-                    .toLowerCase()
-                    .replace(/\s+/g, "_")}
-                </div>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {accountDescription}
+                </p>
               </div>
-              <Badge
-                variant="secondary"
-                className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
-              >
-                {isRecruiter
-                  ? "Recruiter"
-                  : isAdmin
-                    ? "Admin"
-                    : isCollegeUser
-                    ? "College"
-                    : "Candidate"}
-              </Badge>
               <Popover open={profileOpen} onOpenChange={setProfileOpen}>
                 <PopoverTrigger asChild>
                   <Button
@@ -879,13 +945,21 @@ export function AppSidebar({
                 </PopoverTrigger>
                 <PopoverContent align="end" className="w-56 p-2">
                   <div className="space-y-1">
-                    <Button
-                      variant="ghost"
-                      className="h-9 w-full justify-start gap-2 text-sm"
-                    >
-                      <Wallet className="h-4 w-4" />
-                      Plans
-                    </Button>
+                    {showBillingAction ? (
+                      <Button
+                        asChild
+                        variant="ghost"
+                        className="h-9 w-full justify-start gap-2 text-sm"
+                      >
+                        <Link
+                          href={billingHref}
+                          onClick={() => setProfileOpen(false)}
+                        >
+                          <CreditCard className="h-4 w-4" />
+                          {isProPlan ? "Billing" : "Upgrade to Pro"}
+                        </Link>
+                      </Button>
+                    ) : null}
                     <Button
                       variant="ghost"
                       className="h-9 w-full justify-start gap-2 text-sm text-rose-500 hover:text-rose-500"
@@ -902,32 +976,32 @@ export function AppSidebar({
               </Popover>
             </div>
 
-            <div className="flex items-center gap-2 bg-[#f0f0f0] rounded-lg p-1">
+            <div className="flex items-center gap-2 rounded-2xl border border-sidebar-border/60 bg-[#efefef] p-1 dark:border-[#263446] dark:bg-[#111922]">
               <Button
-                variant={theme === "light" ? "outline" : "ghost"}
+                variant={themeReady && theme === "light" ? "outline" : "ghost"}
                 size="sm"
                 className={cn(
-                  "h-9 flex-1 rounded-lg text-xs font-semibold",
-                  theme === "light"
-                    ? "border-sidebar-border bg-white text-foreground"
-                    : "text-muted-foreground",
+                  "h-10 flex-1 rounded-xl text-xs font-semibold",
+                  themeReady && theme === "light"
+                    ? "border-transparent bg-white text-foreground"
+                    : "border-transparent text-muted-foreground dark:text-slate-300",
                 )}
-                aria-pressed={theme === "light"}
+                aria-pressed={themeReady ? theme === "light" : undefined}
                 onClick={() => setTheme("light")}
               >
                 <Sun className="mr-2 h-4 w-4" />
                 Light
               </Button>
               <Button
-                variant={theme === "dark" ? "outline" : "ghost"}
+                variant={themeReady && theme === "dark" ? "outline" : "ghost"}
                 size="sm"
                 className={cn(
-                  "h-9 flex-1 rounded-lg text-xs font-semibold",
-                  theme === "dark"
-                    ? "border-sidebar-border bg-white text-foreground"
+                  "h-10 flex-1 rounded-xl text-xs font-semibold",
+                  themeReady && theme === "dark"
+                    ? "border-transparent bg-[#0b121a] text-white"
                     : "text-muted-foreground",
                 )}
-                aria-pressed={theme === "dark"}
+                aria-pressed={themeReady ? theme === "dark" : undefined}
                 onClick={() => setTheme("dark")}
               >
                 <Moon className="mr-2 h-4 w-4" />
@@ -943,7 +1017,7 @@ export function AppSidebar({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-10 w-10 rounded-full p-0 hover:bg-white/70"
+                    className="h-10 w-10 rounded-full p-0 hover:bg-sidebar-accent"
                   >
                     <Avatar className="h-9 w-9">
                       <AvatarImage
@@ -968,13 +1042,21 @@ export function AppSidebar({
                   className="w-56 p-2"
                 >
                   <div className="space-y-1">
-                    <Button
-                      variant="ghost"
-                      className="h-9 w-full justify-start gap-2 text-sm"
-                    >
-                      <Wallet className="h-4 w-4" />
-                      Plans
-                    </Button>
+                    {showBillingAction ? (
+                      <Button
+                        asChild
+                        variant="ghost"
+                        className="h-9 w-full justify-start gap-2 text-sm"
+                      >
+                        <Link
+                          href={billingHref}
+                          onClick={() => setProfileOpen(false)}
+                        >
+                          <CreditCard className="h-4 w-4" />
+                          {isProPlan ? "Billing" : "Upgrade to Pro"}
+                        </Link>
+                      </Button>
+                    ) : null}
                     <Button
                       variant="ghost"
                       className="h-9 w-full justify-start gap-2 text-sm text-rose-500 hover:text-rose-500"
@@ -994,10 +1076,8 @@ export function AppSidebar({
             <div className="rounded-xl bg-transparent p-0 flex items-center justify-center">
               <Button
                 variant="outline"
-                className="h-9 w-9 justify-center rounded-lg border-sidebar-border bg-white p-0 text-foreground hover:bg-white"
-                onClick={() =>
-                  setTheme((prev) => (prev === "light" ? "dark" : "light"))
-                }
+                className="h-9 w-9 justify-center rounded-lg border-sidebar-border bg-card p-0 text-foreground hover:bg-accent dark:border-[#263446] dark:bg-[#111922] dark:text-slate-200 dark:hover:bg-[#17212c]"
+                onClick={() => setTheme(theme === "light" ? "dark" : "light")}
                 aria-pressed={theme === "dark"}
               >
                 {theme === "light" ? (
@@ -1021,7 +1101,8 @@ export function AppSidebar({
             <DialogHeader>
               <DialogTitle>Create or Join Workspace</DialogTitle>
               <DialogDescription>
-                Create a new company workspace or join an existing one via invite code.
+                Create a new company workspace or join an existing one via
+                invite code.
               </DialogDescription>
             </DialogHeader>
 
@@ -1042,14 +1123,18 @@ export function AppSidebar({
                       control={createWorkspaceForm.control}
                       render={({ field, fieldState }) => (
                         <Field>
-                          <FieldLabel htmlFor="newWorkspaceName">Company Name</FieldLabel>
+                          <FieldLabel htmlFor="newWorkspaceName">
+                            Company Name
+                          </FieldLabel>
                           <Input
                             {...field}
                             id="newWorkspaceName"
                             placeholder="Kaarya AI"
                             aria-invalid={fieldState.invalid}
                           />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                          {fieldState.invalid && (
+                            <FieldError errors={[fieldState.error]} />
+                          )}
                         </Field>
                       )}
                     />
@@ -1059,10 +1144,14 @@ export function AppSidebar({
                       control={createWorkspaceForm.control}
                       render={({ field, fieldState }) => (
                         <Field>
-                          <FieldLabel htmlFor="newWorkspaceIndustry">Industry</FieldLabel>
+                          <FieldLabel htmlFor="newWorkspaceIndustry">
+                            Industry
+                          </FieldLabel>
                           <Select
                             value={field.value || ""}
-                            onValueChange={(nextValue) => field.onChange(nextValue)}
+                            onValueChange={(nextValue) =>
+                              field.onChange(nextValue)
+                            }
                           >
                             <SelectTrigger
                               id="newWorkspaceIndustry"
@@ -1079,7 +1168,9 @@ export function AppSidebar({
                               ))}
                             </SelectContent>
                           </Select>
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                          {fieldState.invalid && (
+                            <FieldError errors={[fieldState.error]} />
+                          )}
                         </Field>
                       )}
                     />
@@ -1089,13 +1180,17 @@ export function AppSidebar({
                       control={createWorkspaceForm.control}
                       render={({ field, fieldState }) => (
                         <Field>
-                          <FieldLabel htmlFor="newWorkspaceLocation">Location</FieldLabel>
+                          <FieldLabel htmlFor="newWorkspaceLocation">
+                            Location
+                          </FieldLabel>
                           <LocationPicker
                             value={field.value}
                             onChange={field.onChange}
                             placeholder="Search city, office, or click on map"
                           />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                          {fieldState.invalid && (
+                            <FieldError errors={[fieldState.error]} />
+                          )}
                         </Field>
                       )}
                     />
@@ -1114,12 +1209,17 @@ export function AppSidebar({
                             placeholder="Hiring Manager"
                             aria-invalid={fieldState.invalid}
                           />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                          {fieldState.invalid && (
+                            <FieldError errors={[fieldState.error]} />
+                          )}
                         </Field>
                       )}
                     />
 
-                    <Button type="submit" disabled={isCreatingWorkspace || isJoiningWorkspace}>
+                    <Button
+                      type="submit"
+                      disabled={isCreatingWorkspace || isJoiningWorkspace}
+                    >
                       {isCreatingWorkspace ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -1144,14 +1244,18 @@ export function AppSidebar({
                       control={joinWorkspaceForm.control}
                       render={({ field, fieldState }) => (
                         <Field>
-                          <FieldLabel htmlFor="sidebarJoinInviteCode">Invite Code</FieldLabel>
+                          <FieldLabel htmlFor="sidebarJoinInviteCode">
+                            Invite Code
+                          </FieldLabel>
                           <Input
                             {...field}
                             id="sidebarJoinInviteCode"
                             placeholder="KR-AB12CD34"
                             aria-invalid={fieldState.invalid}
                           />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                          {fieldState.invalid && (
+                            <FieldError errors={[fieldState.error]} />
+                          )}
                         </Field>
                       )}
                     />
@@ -1161,14 +1265,18 @@ export function AppSidebar({
                       control={joinWorkspaceForm.control}
                       render={({ field, fieldState }) => (
                         <Field>
-                          <FieldLabel htmlFor="sidebarJoinDesignation">Designation</FieldLabel>
+                          <FieldLabel htmlFor="sidebarJoinDesignation">
+                            Designation
+                          </FieldLabel>
                           <Input
                             {...field}
                             id="sidebarJoinDesignation"
                             placeholder="Talent Partner"
                             aria-invalid={fieldState.invalid}
                           />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                          {fieldState.invalid && (
+                            <FieldError errors={[fieldState.error]} />
+                          )}
                         </Field>
                       )}
                     />

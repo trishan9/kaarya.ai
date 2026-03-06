@@ -23,13 +23,15 @@ export function DashboardShell({
 }: DashboardShellProps) {
   return (
     <SidebarProvider defaultOpen>
-      <div className="flex min-h-svh w-full bg-[#f5f6f8]">
+      <div className="flex min-h-svh w-full bg-neutral-100 dark:bg-[#060a0f]">
         <AppSidebar
           user={user}
           recruiterWorkspaces={recruiterWorkspaces}
           collegeWorkspaces={collegeWorkspaces}
         />
-        <SidebarInset className="min-h-svh">{children}</SidebarInset>
+        <SidebarInset className="min-h-svh">
+          {children}
+        </SidebarInset>
       </div>
     </SidebarProvider>
   );

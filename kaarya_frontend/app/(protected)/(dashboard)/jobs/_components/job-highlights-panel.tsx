@@ -15,7 +15,7 @@ export type JobHighlightsPanelProps = {
 
 function HighlightItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-[#ececf0] bg-white p-4 text-center">
+    <div className="rounded-xl border border-border bg-card/70 p-4 text-center">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="mt-1 text-sm font-semibold text-foreground">{value}</p>
     </div>
@@ -35,7 +35,7 @@ export function JobHighlightsPanel({
   salaryRange,
 }: JobHighlightsPanelProps) {
   return (
-    <Card className="gap-3 rounded-2xl border border-[#ececf0] bg-white p-3 shadow-sm">
+    <Card className="gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm dark:bg-[#111824] dark:shadow-none">
       <div className="grid grid-cols-2 gap-2">
         <HighlightItem label={levelLabel} value={level} />
         <HighlightItem label={experienceLabel} value={experience} />
@@ -43,7 +43,7 @@ export function JobHighlightsPanel({
         <HighlightItem label={workTypeLabel} value={workType} />
       </div>
 
-      <div className="rounded-xl border border-[#ececf0] bg-white p-4 text-center">
+      <div className="rounded-xl border border-border bg-card/70 p-4 text-center">
         <p className="text-xs text-muted-foreground">{salaryRangeLabel}</p>
         <p className="mt-1 text-base font-semibold text-foreground">{salaryRange}</p>
       </div>

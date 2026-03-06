@@ -13,6 +13,32 @@ import type {
   AtsScanCategory,
   AtsScanResult,
 } from 'src/types/resume-builder.types';
+import {
+  extractYoutubeVideoId as extractYoutubeVideoIdUtil,
+  searchYoutubeVideoCandidates,
+  verifyYoutubeUrlExists as verifyYoutubeUrlExistsUtil,
+} from './gemini/youtube.utils';
+import type {
+  AtsScanResponse,
+  BulletsResponse,
+  GeminiGenerationConfig,
+  InterviewPrepCourseChapter,
+  InterviewPrepCourseChapterSection,
+  InterviewPrepCourseChapterVideo,
+  InterviewPrepCourseCoreConcept,
+  InterviewPrepCourseInterviewQuestion,
+  InterviewPrepCourseResponse,
+  InterviewPrepCourseResult,
+  SuggestionsResponse,
+} from './gemini/gemini.types';
+export type {
+  InterviewPrepCourseChapter,
+  InterviewPrepCourseChapterSection,
+  InterviewPrepCourseChapterVideo,
+  InterviewPrepCourseCoreConcept,
+  InterviewPrepCourseInterviewQuestion,
+  InterviewPrepCourseResult,
+} from './gemini/gemini.types';
 
 const ATS_RESPONSE_JSON_SCHEMA = `{
   "documentType": "resume" | "not_resume",
@@ -35,97 +61,6 @@ const DEFAULT_GEMINI_MODELS = [
 
 const DEFAULT_OPENAI_MODEL = 'gpt-4o-mini';
 const DEFAULT_OPENAI_COURSE_MODEL = 'gpt-4o';
-
-type GeminiGenerationConfig = {
-  temperature?: number;
-  maxOutputTokens?: number;
-  responseMimeType?: string;
-};
-
-type BulletsResponse = {
-  bullets?: unknown;
-  bulletPoints?: unknown;
-};
-
-type SuggestionsResponse = {
-  targetRole?: unknown;
-  jobTitle?: unknown;
-  professionalSummary?: unknown;
-  skills?: unknown;
-};
-
-type AtsScanResponse = {
-  documentType?: unknown;
-  classificationReason?: unknown;
-  overallScore?: unknown;
-  ATS?: unknown;
-  toneAndStyle?: unknown;
-  content?: unknown;
-  structure?: unknown;
-  skills?: unknown;
-};
-
-type InterviewPrepCourseResponse = {
-  learningOutcomes?: unknown;
-  chapters?: unknown;
-  aiModel?: unknown;
-  model?: unknown;
-};
-
-export type InterviewPrepCourseChapterSection = {
-  heading: string;
-  subheadings: string[];
-  summary: string | null;
-  content: string[];
-};
-
-export type InterviewPrepCourseChapterVideo = {
-  title: string;
-  youtubeUrl: string;
-  reason: string | null;
-};
-
-export type InterviewPrepCourseCoreConcept = {
-  concept: string;
-  theory: string | null;
-  explanation: string | null;
-  interviewApplication: string | null;
-};
-
-export type InterviewPrepCourseInterviewQuestion = {
-  question: string;
-  whyAsked: string | null;
-  answerFramework: string | null;
-  sampleAnswer: string | null;
-};
-
-export type InterviewPrepCourseChapter = {
-  title: string;
-  overview?: string | null;
-  estimatedMinutes: number;
-  material: string[];
-  sections: InterviewPrepCourseChapterSection[];
-  learningObjectives: string[];
-  coreConcepts: InterviewPrepCourseCoreConcept[];
-  interviewQuestions: InterviewPrepCourseInterviewQuestion[];
-  practicePrompts: string[];
-  youtubeVideos: InterviewPrepCourseChapterVideo[];
-};
-
-export type InterviewPrepCourseResult = {
-  learningOutcomes: string[];
-  chapters: InterviewPrepCourseChapter[];
-  aiModel?: string | null;
-};
-
-type FallbackChapterTemplate = {
-  title: string;
-  overview: string;
-  learnMaterial: string[];
-  interviewMaterial: string[];
-  interviewQuestions: InterviewPrepCourseInterviewQuestion[];
-  estimatedMinutes?: number;
-};
 
 @Injectable()
 export class GeminiService {
@@ -2563,100 +2498,37 @@ Rules:
   }
 
   private extractYoutubeVideoId(url: string) {
-    try {
-      const parsed = new URL(url);
-      const host = parsed.hostname.toLowerCase();
-
-      if (host.includes('youtu.be')) {
-        const id = parsed.pathname.replace('/', '').trim();
-        return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : null;
-      }
-
-      if (host.includes('youtube.com')) {
-        const fromQuery = parsed.searchParams.get('v')?.trim();
-        if (fromQuery && /^[a-zA-Z0-9_-]{11}$/.test(fromQuery)) {
-          return fromQuery;
-        }
-
-        const segments = parsed.pathname.split('/').filter(Boolean);
-        const isShorts = segments[0] === 'shorts' && segments[1];
-        const isEmbed = segments[0] === 'embed' && segments[1];
-        const candidate = isShorts ? segments[1] : isEmbed ? segments[1] : null;
-        if (candidate && /^[a-zA-Z0-9_-]{11}$/.test(candidate)) {
-          return candidate;
-        }
-      }
-
-      return null;
-    } catch {
-      return null;
-    }
+    return extractYoutubeVideoIdUtil(url);
   }
 
   private async verifyYoutubeUrlExists(url: string) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500);
-
-    try {
-      const response = await fetch(
-        `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`,
-        { signal: controller.signal },
-      );
-      return response.ok;
-    } catch {
-      return false;
-    } finally {
-      clearTimeout(timeoutId);
-    }
+    return verifyYoutubeUrlExistsUtil(url);
   }
 
   private async searchYoutubeVideos(query: string, maxResults = 3) {
     if (!this.youtubeApiKey) return [];
 
     try {
-      const url = new URL('https://www.googleapis.com/youtube/v3/search');
-      url.searchParams.set('part', 'snippet');
-      url.searchParams.set('type', 'video');
-      url.searchParams.set('q', query);
-      url.searchParams.set('maxResults', String(Math.max(1, Math.min(5, maxResults))));
-      url.searchParams.set('videoEmbeddable', 'true');
-      url.searchParams.set('safeSearch', 'moderate');
-      url.searchParams.set('key', this.youtubeApiKey);
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-      let response: Response;
-      try {
-        response = await fetch(url.toString(), { signal: controller.signal });
-      } finally {
-        clearTimeout(timeoutId);
-      }
-      if (!response.ok) return [];
-
-      const payload = (await response.json()) as {
-        items?: Array<{
-          id?: { videoId?: string };
-          snippet?: { title?: string; channelTitle?: string };
-        }>;
-      };
+      const candidates = await searchYoutubeVideoCandidates({
+        apiKey: this.youtubeApiKey,
+        query,
+        maxResults,
+      });
 
       const videos: InterviewPrepCourseChapterVideo[] = [];
-      for (const item of payload.items ?? []) {
-        const videoId = item.id?.videoId?.trim();
-        if (!videoId) continue;
-
-        const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
+      for (const candidate of candidates) {
+        const youtubeUrl = candidate.youtubeUrl;
         const isValid = await this.verifyYoutubeUrlExists(youtubeUrl);
         if (!isValid) continue;
 
         videos.push({
           title:
-            this.sanitizeSuggestionText(item.snippet?.title, 180) ??
+            this.sanitizeSuggestionText(candidate.title, 180) ??
             'Interview preparation video',
           youtubeUrl,
-          reason: item.snippet?.channelTitle
+          reason: candidate.channelTitle
             ? this.sanitizeSuggestionText(
-                `Recommended from ${item.snippet.channelTitle}`,
+                `Recommended from ${candidate.channelTitle}`,
                 400,
               ) ?? 'Recommended by trusted channel.'
             : 'Recommended based on chapter topic relevance.',
@@ -2669,5 +2541,3 @@ Rules:
     }
   }
 }
-
-

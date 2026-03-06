@@ -17,7 +17,24 @@ const toTrimmedString = (value: unknown) => {
   return trimmed.length > 0 ? trimmed : null;
 };
 
-export default async function SettingsPage() {
+type SettingsPageProps = {
+  searchParams?: Promise<{
+    tab?: string;
+  }>;
+};
+
+const resolveInitialTab = (value?: string) => {
+  if (value === "security") return "security";
+  if (value === "linked-apps") return "linked-apps";
+  if (value === "preferences") return "preferences";
+  return "profile";
+};
+
+export default async function SettingsPage(
+  { searchParams }: SettingsPageProps = {},
+) {
+  const query = await searchParams;
+  const tab = resolveInitialTab(query?.tab);
   const user = await getCurrentUser();
 
   if (!user) {
@@ -80,11 +97,11 @@ export default async function SettingsPage() {
     );
 
   return (
-    <div className="min-h-svh bg-neutral-100 lg:pl-0 lg:p-5">
-      <div className="bg-white rounded-2xl">
+    <div className="dashboard-stage">
+      <div className="dashboard-surface">
         <DashboardHeader title="Settings" />
 
-        <div className="space-y-6 px-4 pb-8 sm:px-6">
+        <div className="space-y-6 px-3 pb-6 sm:px-4 sm:pb-8">
           {/* <Card className="border-border/70 bg-white">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-xl">
@@ -103,7 +120,11 @@ export default async function SettingsPage() {
           </CardContent>
         </Card> */}
 
-          <SettingsTabs user={user} resumeOptions={resumeOptions} />
+          <SettingsTabs
+            user={user}
+            resumeOptions={resumeOptions}
+            initialTab={tab}
+          />
         </div>
       </div>
     </div>

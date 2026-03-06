@@ -18,7 +18,7 @@ export function JobSimilarJobsSection({
   jobs,
 }: JobSimilarJobsSectionProps) {
   return (
-    <Card className="gap-4 rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5">
+    <Card className="gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm dark:bg-[#111824] dark:shadow-none sm:p-5">
       <div className="flex items-center justify-between">
         <h3 className="text-2xl font-semibold text-foreground">{title}</h3>
         <Link
@@ -37,7 +37,7 @@ export function JobSimilarJobsSection({
           ))}
         </div>
       ) : (
-        <div className="rounded-xl border border-dashed border-[#d8dde4] p-5 text-sm text-muted-foreground">
+        <div className="rounded-xl border border-dashed border-border/70 p-5 text-sm text-muted-foreground">
           No similar jobs available right now.
         </div>
       )}

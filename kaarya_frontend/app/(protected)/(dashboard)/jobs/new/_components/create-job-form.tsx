@@ -172,7 +172,7 @@ function SkillsInput({ value, onChange }: SkillsInputProps) {
 
   return (
     <div className="space-y-2">
-      <div className="flex min-h-10 flex-wrap items-center gap-1 rounded-xl border border-input bg-white px-2 py-1.5">
+      <div className="flex min-h-10 flex-wrap items-center gap-1 rounded-xl border border-input bg-card px-2 py-1.5">
         {value.map((skill) => (
           <Badge key={skill} variant="secondary" className="gap-1 rounded-md">
             {skill}
@@ -289,7 +289,7 @@ export function CreateJobForm({
               <FieldLabel>Job Description</FieldLabel>
               <div
                 className={cn(
-                  "overflow-hidden rounded-xl border border-input bg-white shadow-sm",
+                  "overflow-hidden rounded-xl border border-input bg-card shadow-sm",
                   fieldState.invalid && "border-destructive",
                 )}
               >
@@ -411,7 +411,7 @@ export function CreateJobForm({
             render={({ field, fieldState }) => (
               <Field>
                 <FieldLabel>Salary Range</FieldLabel>
-                <div className="space-y-3 rounded-xl border border-input bg-white p-3">
+                <div className="space-y-3 rounded-xl border border-input bg-card p-3">
                   <Slider
                     min={salaryMinBound}
                     max={salaryMaxBound}
@@ -453,7 +453,7 @@ export function CreateJobForm({
                         type="button"
                         variant="outline"
                         className={cn(
-                          "h-10 w-full justify-start rounded-md border-input bg-white px-3 text-sm font-normal",
+                          "h-10 w-full justify-start rounded-md border-input bg-card px-3 text-sm font-normal",
                           !selectedDate && "text-muted-foreground",
                         )}
                       >
@@ -520,3 +520,4 @@ export function CreateJobForm({
     </form>
   );
 }
+

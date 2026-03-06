@@ -1,0 +1,18 @@
+{
+  "candidate": {
+    "email": "mailtotrishan@gmail.com",
+    "password": "Password123!!"
+  },
+  "recruiter": {
+    "email": "trishanwagle5@gmail.com",
+    "password": "trishan1122@S"
+  },
+  "college": {
+    "email": "nischay@test.com",
+    "password": "trishan1122@S"
+  },
+  "admin": {
+    "email": "trishan@example.com",
+    "password": "Password123!"
+  }
+}

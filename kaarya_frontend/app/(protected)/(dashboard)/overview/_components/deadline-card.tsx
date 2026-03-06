@@ -73,7 +73,7 @@ export function DeadlineCard({
 
   if (isHidden) {
     return (
-      <Card className="gap-3 border-border bg-white p-4 shadow-sm sm:p-5">
+      <Card className="gap-3 border-border bg-card p-4 shadow-sm dark:bg-[#111824] dark:shadow-none sm:p-5">
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="text-sm font-semibold text-foreground">
@@ -97,7 +97,7 @@ export function DeadlineCard({
   }
 
   return (
-    <Card className="min-w-0 gap-3 border-border bg-white p-4 shadow-sm sm:p-5">
+    <Card className="min-w-0 gap-3 border-border bg-card p-4 shadow-sm dark:bg-[#111824] dark:shadow-none sm:p-5">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-semibold text-foreground">{heading}</h3>
@@ -132,13 +132,13 @@ export function DeadlineCard({
         </DropdownMenu>
       </div>
 
-      <div className="flex items-center gap-3 rounded-lg bg-neutral-50 p-3">
+      <div className="flex items-center gap-3 rounded-lg bg-muted/40 p-3">
         <Image
           src={logoUrl}
           alt={logoAlt}
           width={32}
           height={32}
-          className="object-cover border border-white shadow-sm h-10 w-10 rounded-xl"
+          className="h-10 w-10 rounded-xl border border-background object-cover shadow-sm"
         />
         <div className="min-w-0 flex-1">
           <div className="font-semibold text-foreground break-words">{title}</div>
@@ -159,7 +159,7 @@ export function DeadlineCard({
         {reminderText}{" "}
         <Button
           variant="link"
-          className="h-auto p-0 text-sm font-semibold text-[#0b67c2]"
+          className="h-auto p-0 text-sm font-semibold text-primary"
           onClick={() => router.push(ctaHref)}
         >
           {ctaLabel}

@@ -135,7 +135,8 @@ const analyticsCopy: Record<
 > = {
   candidate: {
     momentumTitle: "Application Momentum",
-    momentumDescription: "Weekly activity overview with interview conversion trend.",
+    momentumDescription:
+      "Weekly activity overview with interview conversion trend.",
     primaryLabel: "This Week Applications",
     secondaryLabel: "Interview Conversion",
     pipelineTitle: "Application Progress",
@@ -199,7 +200,7 @@ export function OverviewAnalyticsCharts({
 
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-      <Card className="min-w-0 gap-4 border-border bg-linear-to-br from-white via-[#f7fbff] to-[#eef5fb] p-4 shadow-sm sm:p-5 lg:row-span-2">
+      <Card className="min-w-0 gap-4 border-border bg-linear-to-br from-white via-[#f7fbff] to-[#eef5fb] p-4 shadow-sm dark:from-[#111824] dark:via-[#131d2a] dark:to-[#102233] dark:shadow-none sm:p-5 lg:row-span-2">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <h3 className="font-semibold text-foreground">
@@ -209,13 +210,10 @@ export function OverviewAnalyticsCharts({
               {copy.momentumDescription}
             </p>
           </div>
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Activity className="h-5 w-5" />
-          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="rounded-lg bg-white/80 px-3 py-2">
+          <div className="rounded-lg bg-white/80 px-3 py-2 dark:bg-black/20">
             <div className="text-[11px] text-muted-foreground">
               {copy.primaryLabel}
             </div>
@@ -223,7 +221,7 @@ export function OverviewAnalyticsCharts({
               {data.summary.applicationsThisWeek}
             </div>
           </div>
-          <div className="rounded-lg bg-white/80 px-3 py-2">
+          <div className="rounded-lg bg-white/80 px-3 py-2 dark:bg-black/20">
             <div className="text-[11px] text-muted-foreground">
               {copy.secondaryLabel}
             </div>
@@ -326,7 +324,7 @@ export function OverviewAnalyticsCharts({
         </ChartContainer>
       </Card>
 
-      <Card className="min-w-0 gap-4 border-border bg-white p-4 shadow-sm sm:p-5">
+      <Card className="min-w-0 gap-4 border-border bg-card p-4 shadow-sm dark:bg-[#111824] dark:shadow-none sm:p-5">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <h3 className="text-sm font-semibold text-foreground">
@@ -335,9 +333,6 @@ export function OverviewAnalyticsCharts({
             <p className="text-xs text-muted-foreground">
               {copy.pipelineDescription}
             </p>
-          </div>
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#e8f1fb] text-primary">
-            <BriefcaseBusiness className="h-4 w-4" />
           </div>
         </div>
 
@@ -392,7 +387,7 @@ export function OverviewAnalyticsCharts({
         </ChartContainer>
       </Card>
 
-      <Card className="min-w-0 gap-4 border-border bg-white p-4 shadow-sm sm:p-5">
+      <Card className="min-w-0 gap-4 border-border bg-card p-4 shadow-sm dark:bg-[#111824] dark:shadow-none sm:p-5">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <h3 className="text-sm font-semibold text-foreground">
@@ -401,9 +396,6 @@ export function OverviewAnalyticsCharts({
             <p className="text-xs text-muted-foreground">
               {copy.mixDescription}
             </p>
-          </div>
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#e8f1fb] text-primary">
-            <MailCheck className="h-4 w-4" />
           </div>
         </div>
 

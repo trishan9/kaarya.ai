@@ -258,21 +258,21 @@ export function VoiceInterviewCreatePanel({
     .join("") || "U";
 
   return (
-    <section className="space-y-4 rounded-2xl border border-[#ececf0] bg-white p-3 shadow-sm sm:space-y-5 sm:p-4 lg:p-6">
-      <div className="flex flex-col gap-2 rounded-xl border border-[#e7eef7] bg-[#f7fbff] px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+    <section className="space-y-4 rounded-2xl border border-border bg-card p-3 shadow-sm sm:space-y-5 sm:p-4 lg:p-6">
+      <div className="flex flex-col gap-2 rounded-xl border border-[#e7eef7] bg-muted/40 px-3 py-2.5 dark:border-border dark:bg-muted/25 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-          <span className="text-sm font-semibold text-[#0d6fae] sm:text-base">
+          <span className="text-sm font-semibold text-[#0d6fae] dark:text-[#8ac8f5] sm:text-base">
             Voice Interview Creator
           </span>
-          <Badge className="border-0 bg-[#0d6fae]/10 text-[#0d6fae] hover:bg-[#0d6fae]/10">
+          <Badge className="border-0 bg-[#0d6fae]/10 text-[#0d6fae] hover:bg-[#0d6fae]/10 dark:bg-[#0d6fae]/20 dark:text-[#8ac8f5]">
             AI Setup Call
           </Badge>
-          <Badge className="border-0 bg-[#0d6fae]/10 text-[#0d6fae] hover:bg-[#0d6fae]/10">
+          <Badge className="border-0 bg-[#0d6fae]/10 text-[#0d6fae] hover:bg-[#0d6fae]/10 dark:bg-[#0d6fae]/20 dark:text-[#8ac8f5]">
             Auto Interview Build
           </Badge>
         </div>
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <span className="inline-flex items-center gap-1 rounded-md border border-[#d8e4f1] bg-white px-2 py-1 text-xs font-medium text-slate-700">
+          <span className="inline-flex items-center gap-1 rounded-md border border-[#d8e4f1] bg-card px-2 py-1 text-xs font-medium text-foreground dark:border-border dark:bg-muted/20">
             <Clock3 className="h-3.5 w-3.5" />
             {formatElapsed(elapsedSeconds)}
           </span>
@@ -309,7 +309,7 @@ export function VoiceInterviewCreatePanel({
             "relative overflow-hidden rounded-2xl border bg-[#0c6daf]",
             activeSpeaker === "assistant"
               ? "border-emerald-400 shadow-[0_0_0_3px_rgba(16,185,129,0.25)]"
-              : "border-[#d9e5f2]",
+              : "border-border",
           )}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20" />
@@ -336,7 +336,7 @@ export function VoiceInterviewCreatePanel({
                 {isSpeaking ? "Speaking..." : "Listening..."}
               </p>
             </div>
-            <div className="rounded-full bg-white/30 p-2 text-white backdrop-blur-sm">
+            <div className="rounded-full bg-card/30 p-2 text-white backdrop-blur-sm">
               <Volume2 className="h-4 w-4" />
             </div>
           </div>
@@ -344,24 +344,24 @@ export function VoiceInterviewCreatePanel({
 
         <div
           className={cn(
-            "relative overflow-hidden rounded-2xl border bg-[#f3f5f7]",
+            "relative overflow-hidden rounded-2xl border bg-[#f3f5f7] dark:bg-[#0f1e2d]",
             activeSpeaker === "user"
               ? "border-emerald-400 shadow-[0_0_0_3px_rgba(16,185,129,0.25)]"
-              : "border-[#e5e7eb]",
+              : "border-border",
           )}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20" />
-          <div className="relative aspect-[4/3] overflow-hidden bg-[#dbe6f2] sm:aspect-[16/11]">
+          <div className="relative aspect-[4/3] overflow-hidden bg-[#dbe6f2] dark:bg-[#18324a] sm:aspect-[16/11]">
             {hasCandidatePhoto ? (
               <div
                 className="absolute inset-0 scale-110 bg-cover bg-center opacity-25 blur-2xl"
                 style={{ backgroundImage: `url(${candidatePhoto})` }}
               />
             ) : null}
-            <div className="absolute inset-0 bg-gradient-to-br from-[#dce8f4] via-[#d2e1ef] to-[#c8d9ea]" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#dce8f4] via-[#d2e1ef] to-[#c8d9ea] dark:from-[#1b3b57] dark:via-[#1a3550] dark:to-[#183049]" />
 
             <div className="absolute inset-0 flex items-center justify-center px-4">
-              <div className="relative h-28 w-28 overflow-hidden rounded-full border-4 border-white/80 bg-white/30 shadow-[0_12px_30px_rgba(15,23,42,0.2)] sm:h-32 sm:w-32 lg:h-36 lg:w-36">
+              <div className="relative h-28 w-28 overflow-hidden rounded-full border-4 border-white/80 bg-card/30 shadow-[0_12px_30px_rgba(15,23,42,0.2)] sm:h-32 sm:w-32 lg:h-36 lg:w-36">
                 {hasCandidatePhoto ? (
                   <div
                     className="h-full w-full bg-cover bg-center"
@@ -389,7 +389,7 @@ export function VoiceInterviewCreatePanel({
                 {activeSpeaker === "user" ? "Speaking..." : "Listening..."}
               </p>
             </div>
-            <div className="rounded-full bg-white/30 p-2 text-white backdrop-blur-sm">
+            <div className="rounded-full bg-card/30 p-2 text-white backdrop-blur-sm">
               <Mic className="h-4 w-4" />
             </div>
           </div>
@@ -427,24 +427,24 @@ export function VoiceInterviewCreatePanel({
         </p>
       </div>
 
-      <div className="rounded-2xl border border-[#ececf0] bg-[#f4f5f7] p-3 sm:p-4">
+      <div className="rounded-2xl border border-border bg-muted/40 p-3 sm:p-4">
         <div className="mb-2 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <MessageSquareText className="h-4 w-4 text-primary" />
             <p className="text-sm font-semibold text-foreground">Live Transcript</p>
           </div>
-          <span className="rounded bg-white px-2 py-0.5 text-xs text-muted-foreground">
+          <span className="rounded bg-card px-2 py-0.5 text-xs text-muted-foreground">
             Real-time
           </span>
         </div>
 
         {latestTranscript ? (
-          <div className="mb-2 rounded-lg border border-[#e5e7eb] bg-white px-3 py-2 text-sm text-foreground">
+          <div className="mb-2 rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground">
             {latestTranscript.content}
           </div>
         ) : null}
 
-        <div className="max-h-[40vh] space-y-2 overflow-y-auto rounded-xl border border-[#e5e7eb] bg-white p-3 sm:max-h-64">
+        <div className="max-h-[40vh] space-y-2 overflow-y-auto rounded-xl border border-border bg-card p-3 sm:max-h-64">
           {transcript.length > 0 ? (
             transcript.map((message, index) => (
               <div
@@ -452,28 +452,28 @@ export function VoiceInterviewCreatePanel({
                 className={cn(
                   "rounded-lg border px-3 py-2 text-sm",
                   message.role === "assistant"
-                    ? "border-[#d7ecff] bg-[#edf7ff]"
+                    ? "border-[#d7ecff] bg-primary/15 dark:border-primary/30 dark:bg-primary/20"
                     : message.role === "user"
-                      ? "border-[#e6e9ef] bg-[#f8f9fb]"
-                      : "border-amber-200 bg-amber-50",
+                      ? "border-[#e6e9ef] bg-[#f8f9fb] dark:border-border dark:bg-muted/35"
+                      : "border-amber-200 bg-amber-50 dark:border-amber-500/40 dark:bg-amber-500/12",
                 )}
               >
                 <div className="mb-1 flex items-center justify-between gap-2 text-[11px] uppercase tracking-wide">
-                  <span className="font-semibold text-slate-700">
+                  <span className="font-semibold text-foreground">
                     {message.role === "assistant"
                       ? "AI"
                       : message.role === "user"
                         ? "You"
                         : "System"}
                   </span>
-                  <span className="text-slate-500">
+                  <span className="text-muted-foreground">
                     {new Date(message.timestamp).toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
                   </span>
                 </div>
-                <p className="text-slate-700">{message.content}</p>
+                <p className="text-foreground">{message.content}</p>
               </div>
             ))
           ) : (
@@ -486,13 +486,13 @@ export function VoiceInterviewCreatePanel({
       </div>
 
       {status === "completed" ? (
-        <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+        <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/12 dark:text-emerald-300">
           Interview creation completed. Redirecting to your interview library...
         </div>
       ) : null}
 
       {error ? (
-        <div className="flex items-start gap-2 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-600">
+        <div className="flex items-start gap-2 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-600 dark:border-rose-500/40 dark:bg-rose-500/12 dark:text-rose-300">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>
@@ -500,3 +500,4 @@ export function VoiceInterviewCreatePanel({
     </section>
   );
 }
+

@@ -57,6 +57,25 @@ $ bun run test:e2e
 $ bun run test:cov
 ```
 
+## GitHub Actions deploy to Azure VM
+
+Workflow file:
+
+- `.github/workflows/deploy-backend-azure-vm.yml`
+
+It runs on each push to `main` (for backend changes) and:
+
+1. Copies `kaarya_backend` to your Azure VM over SSH.
+2. Brings up the backend Docker stack on the VM.
+
+Required GitHub repository secrets:
+
+- `AZURE_VM_HOST` (public IP or DNS)
+- `AZURE_VM_PORT` (usually `22`)
+- `AZURE_VM_USERNAME`
+- `AZURE_VM_SSH_PRIVATE_KEY` (private key content)
+- `AZURE_VM_APP_DIR` (example: `/opt/kaarya.ai`)
+
 ## Deployment
 
 When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.

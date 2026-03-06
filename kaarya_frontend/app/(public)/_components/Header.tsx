@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Container } from "./Container";
@@ -128,7 +129,14 @@ export function Header({ isLoggedIn }: { isLoggedIn: boolean }) {
               aria-label="Home"
               className="flex items-center gap-2 transition-opacity duration-200 hover:opacity-80"
             >
-              <img src="/kaarya.svg" alt="Kaarya" width={36} height={36} />
+              <Image
+                src="/kaarya.svg"
+                alt="Kaarya"
+                width={36}
+                height={36}
+                priority
+                unoptimized
+              />
               <span className="text-xl font-semibold tracking-tight text-slate-900">
                 Kaarya<span className="text-primary">.ai</span>
               </span>

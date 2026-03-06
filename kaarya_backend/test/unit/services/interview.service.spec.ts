@@ -141,6 +141,7 @@ describe('InterviewService', () => {
         ...baseSession(),
         status: InterviewSessionStatus.COMPLETED,
       }),
+      countByUserAndCreatedBetween: jest.fn().mockResolvedValue(0),
       findAllByInterviewId: jest.fn().mockResolvedValue({
         sessions: [{ ...baseSession(), status: InterviewSessionStatus.COMPLETED }],
         total: 1,

@@ -32,7 +32,10 @@ export function ExploreJobsHero({
           <p className="max-w-2xl text-sm text-white/90">{description}</p>
         </div>
 
-        <form action="/jobs" className="rounded-xl bg-white p-1.5 shadow-sm">
+        <form
+          action="/jobs"
+          className="rounded-xl bg-white p-1.5 shadow-sm dark:bg-[#f8fbff]/95"
+        >
           {workspaceId ? (
             <input type="hidden" name="workspace" value={workspaceId} />
           ) : null}

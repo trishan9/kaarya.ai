@@ -48,7 +48,7 @@ export function InboxConversationPanel({
 
   if (!conversation) {
     return (
-      <section className="flex h-full min-h-0 items-center justify-center rounded-2xl border border-[#ececf0] bg-white p-6 text-center shadow-sm">
+      <section className="flex h-full min-h-0 items-center justify-center rounded-2xl border border-border bg-card dark:bg-[#111824] p-6 text-center shadow-sm">
         <div className="max-w-sm space-y-2">
           <h3 className="text-2xl font-semibold text-foreground">{emptyStateTitle}</h3>
           <p className="text-sm text-muted-foreground">{emptyStateDescription}</p>
@@ -65,8 +65,8 @@ export function InboxConversationPanel({
   };
 
   return (
-    <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-[#ececf0] bg-white shadow-sm">
-      <div className="flex items-center justify-between border-b border-[#ececf0] px-3 py-3 sm:px-4">
+    <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-card dark:bg-[#111824] shadow-sm">
+      <div className="flex items-center justify-between border-b border-border px-3 py-3 sm:px-4">
         <div className="flex min-w-0 items-center gap-2.5">
           {showMobileBack ? (
             <Button
@@ -86,7 +86,7 @@ export function InboxConversationPanel({
               src={conversation.participant.avatarUrl ?? ""}
               alt={conversation.participant.name}
             />
-            <AvatarFallback className="rounded-lg bg-[#dbe7f4] text-xs font-semibold text-[#2c4d74]">
+            <AvatarFallback className="rounded-lg bg-primary/20 text-xs font-semibold text-primary">
               {conversation.participant.initials}
             </AvatarFallback>
           </Avatar>
@@ -128,13 +128,13 @@ export function InboxConversationPanel({
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-3 py-4 sm:px-4">
         <div className="flex justify-center">
-          <span className="rounded-md bg-neutral-100 px-3 py-1 text-xs text-muted-foreground">
+          <span className="rounded-md bg-muted px-3 py-1 text-xs text-muted-foreground">
             {datePillLabel}
           </span>
         </div>
 
         {conversation.jobContext ? (
-          <Card className="gap-1 rounded-xl border border-[#ececf0] bg-neutral-50 p-3 shadow-none">
+          <Card className="gap-1 rounded-xl border border-border bg-muted/40 dark:bg-[#131b26] p-3 shadow-none">
             <p className="text-sm font-semibold text-foreground">
               {conversation.jobContext.roleTitle}
             </p>
@@ -160,7 +160,7 @@ export function InboxConversationPanel({
                       "rounded-xl px-3 py-2 text-sm leading-6",
                       isMine
                         ? "bg-primary text-white"
-                        : "border border-[#ececf0] bg-neutral-50 text-foreground",
+                        : "border border-border bg-muted/40 dark:bg-[#131b26] text-foreground",
                     )}
                   >
                     {message.body}
@@ -173,13 +173,13 @@ export function InboxConversationPanel({
         </div>
       </div>
 
-      <div className="border-t border-[#ececf0] px-3 py-3 sm:px-4">
+      <div className="border-t border-border px-3 py-3 sm:px-4">
         <div className="space-y-2">
           <Input
             value={draftMessage}
             onChange={(event) => setDraftMessage(event.target.value)}
             placeholder={messageInputPlaceholder}
-            className="h-10 border-[#d8dde4]"
+            className="h-10 border-border"
             onKeyDown={(event) => {
               if (event.key === "Enter") {
                 event.preventDefault();
@@ -234,3 +234,5 @@ export function InboxConversationPanel({
     </section>
   );
 }
+
+

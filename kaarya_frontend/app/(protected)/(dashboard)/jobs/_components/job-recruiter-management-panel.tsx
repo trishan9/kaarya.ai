@@ -437,7 +437,7 @@ export function JobRecruiterManagementPanel({
 
   return (
     <section id="recruiter-management" className="space-y-4">
-      <Card className="gap-4 rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5">
+      <Card className="gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h3 className="text-lg font-semibold text-foreground">
@@ -502,7 +502,7 @@ export function JobRecruiterManagementPanel({
         </div>
       </Card>
 
-      <Card className="gap-4 rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5">
+      <Card className="gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
         <div className="space-y-1">
           <h3 className="text-lg font-semibold text-foreground">
             Applicants Pipeline
@@ -514,12 +514,12 @@ export function JobRecruiterManagementPanel({
         </div>
 
         {applicants.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-[#d8dde4] p-5 text-sm text-muted-foreground">
+          <div className="rounded-lg border border-dashed border-border p-5 text-sm text-muted-foreground">
             No applications received for this role yet.
           </div>
         ) : (
           <div className="grid gap-4 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
-            <div className="space-y-2 rounded-xl border border-[#ececf0] bg-neutral-50 p-2.5">
+            <div className="space-y-2 rounded-xl border border-border bg-muted/40 p-2.5">
               {applicants.map((applicant) => {
                 const state = applicantState[applicant.id];
                 const isActive = applicant.id === selectedApplicantId;
@@ -530,8 +530,8 @@ export function JobRecruiterManagementPanel({
                     onClick={() => setSelectedApplicantId(applicant.id)}
                     className={`w-full rounded-lg border p-3 text-left transition ${
                       isActive
-                        ? "border-primary/40 bg-white shadow-sm"
-                        : "border-transparent bg-transparent hover:border-[#d8dde4] hover:bg-white"
+                        ? "border-primary/40 bg-card shadow-sm"
+                        : "border-transparent bg-transparent hover:border-border hover:bg-card"
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -563,7 +563,7 @@ export function JobRecruiterManagementPanel({
             </div>
 
             {selectedApplicant && selectedState ? (
-              <div className="space-y-4 rounded-xl border border-[#ececf0] bg-white p-4">
+              <div className="space-y-4 rounded-xl border border-border bg-card p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="flex items-start gap-3">
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
@@ -651,7 +651,7 @@ export function JobRecruiterManagementPanel({
                 </div>
 
                 {selectedApplicant.resumeFileName ? (
-                  <div className="rounded-lg border border-[#e6e8ee] bg-neutral-50 p-3 text-xs text-muted-foreground">
+                  <div className="rounded-lg border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
                     <p className="font-medium text-foreground">
                       {selectedApplicant.resumeFileName}
                     </p>
@@ -677,7 +677,7 @@ export function JobRecruiterManagementPanel({
                     <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Cover Letter
                     </p>
-                    <p className="rounded-lg border border-[#e6e8ee] bg-neutral-50 p-3 text-sm leading-6 text-foreground">
+                    <p className="rounded-lg border border-border bg-muted/40 p-3 text-sm leading-6 text-foreground">
                       {selectedApplicant.coverLetter}
                     </p>
                   </div>
@@ -705,7 +705,7 @@ export function JobRecruiterManagementPanel({
                 ) : null}
 
                 {selectedApplicantProfile ? (
-                  <div className="space-y-3 rounded-lg border border-[#e6e8ee] bg-neutral-50 p-3">
+                  <div className="space-y-3 rounded-lg border border-border bg-muted/40 p-3">
                     <div className="space-y-1">
                       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                         Candidate Profile
@@ -724,17 +724,17 @@ export function JobRecruiterManagementPanel({
 
                     <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                       {selectedApplicantProfile.location ? (
-                        <span className="rounded-md border bg-white px-2 py-1">
+                        <span className="rounded-md border bg-card px-2 py-1">
                           Location: {selectedApplicantProfile.location}
                         </span>
                       ) : null}
                       {selectedApplicantProfile.phone ? (
-                        <span className="rounded-md border bg-white px-2 py-1">
+                        <span className="rounded-md border bg-card px-2 py-1">
                           Phone: {selectedApplicantProfile.phone}
                         </span>
                       ) : null}
                       {selectedApplicantProfile.openToWork !== undefined ? (
-                        <span className="rounded-md border bg-white px-2 py-1">
+                        <span className="rounded-md border bg-card px-2 py-1">
                           Open to work:{" "}
                           {selectedApplicantProfile.openToWork ? "Yes" : "No"}
                         </span>
@@ -832,7 +832,7 @@ export function JobRecruiterManagementPanel({
                             .map((item) => (
                               <div
                                 key={item.id}
-                                className="rounded-md border bg-white p-2 text-xs"
+                                className="rounded-md border bg-card p-2 text-xs"
                               >
                                 <p className="font-medium text-foreground">
                                   {item.jobTitle} - {item.companyName}
@@ -861,7 +861,7 @@ export function JobRecruiterManagementPanel({
                             .map((item) => (
                               <div
                                 key={item.id}
-                                className="rounded-md border bg-white p-2 text-xs"
+                                className="rounded-md border bg-card p-2 text-xs"
                               >
                                 <p className="font-medium text-foreground">
                                   {item.degree}{" "}
@@ -892,7 +892,7 @@ export function JobRecruiterManagementPanel({
                             .map((item) => (
                               <div
                                 key={item.id}
-                                className="rounded-md border bg-white p-2 text-xs"
+                                className="rounded-md border bg-card p-2 text-xs"
                               >
                                 <p className="font-medium text-foreground">
                                   {item.name} - {item.issuer}
@@ -966,7 +966,7 @@ export function JobRecruiterManagementPanel({
                         <Button
                           type="button"
                           variant="outline"
-                          className="justify-start rounded-md border-[#d8dde4] font-normal"
+                          className="justify-start rounded-md border-border font-normal"
                         >
                           <CalendarDays className="h-4 w-4" />
                           {toInterviewDate(
@@ -1079,3 +1079,4 @@ export function JobRecruiterManagementPanel({
     </section>
   );
 }
+

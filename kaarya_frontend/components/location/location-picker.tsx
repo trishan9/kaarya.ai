@@ -298,7 +298,7 @@ export function LocationPicker({
       </div>
 
       {suggestions.length > 0 ? (
-        <div className="relative z-20 space-y-1 rounded-lg border border-border bg-white p-2 shadow-sm">
+        <div className="relative z-20 space-y-1 rounded-lg border border-border bg-card p-2 shadow-sm">
           {suggestions.map((suggestion) => (
             <Button
               key={`${suggestion.lat}-${suggestion.lon}-${suggestion.displayName}`}

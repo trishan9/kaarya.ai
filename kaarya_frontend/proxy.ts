@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const publicRoutes = ["/", "/sign-in", "/sign-up", "/oauth/callback"];
+const publicRoutes = [
+  "/",
+  "/sign-in",
+  "/sign-up",
+  "/forgot-password",
+  "/oauth/callback",
+  "/oauth/finalize",
+];
 const adminRoutes = ["/admin"];
 
 const decodeJwtPayload = (token: string): Record<string, unknown> | null => {
@@ -61,5 +68,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)"],
 };

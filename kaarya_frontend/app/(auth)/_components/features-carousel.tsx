@@ -122,7 +122,7 @@ export function FeatureCarousel() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.4 }}
-              className="md:pr-4"
+              className="space-y-8 md:pr-4"
             >
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">
                 {currentFeature.title}
@@ -130,16 +130,17 @@ export function FeatureCarousel() {
               <p className="text-lg leading-relaxed text-slate-700">
                 {currentFeature.description}
               </p>
+              <Image
+                src={currentFeature.image}
+                alt={currentFeature.alt}
+                width={1920}
+                height={1080}
+                unoptimized
+                sizes="(max-width: 1024px) 100vw, 58vw"
+                className="w-full self-end rounded-3xl object-cover"
+                priority={index === 0}
+              />
             </motion.div>
-
-            <Image
-              src={currentFeature.image}
-              alt={currentFeature.alt}
-              width={1920}
-              height={1080}
-              className="w-full object-cover self-end rounded-3xl"
-              priority={index === 0}
-            />
           </AnimatePresence>
         </div>
       </div>

@@ -27,7 +27,7 @@ export function JobDescriptionPanel({
   const shouldCollapse = plainTextLength > 420 || qualifications.length > 5;
 
   return (
-    <section className="space-y-5 rounded-2xl border border-[#ececf0] bg-white p-4 shadow-sm sm:p-5">
+    <section className="space-y-5 rounded-2xl border border-border bg-card p-4 shadow-sm dark:bg-[#111824] dark:shadow-none sm:p-5">
       <div className="relative">
         <div
           className={`space-y-5 ${
@@ -53,7 +53,7 @@ export function JobDescriptionPanel({
         </div>
 
         {!expanded && shouldCollapse ? (
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-white" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-card" />
         ) : null}
       </div>
 

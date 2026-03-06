@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Container } from "./Container";
@@ -28,24 +28,6 @@ const features = [
 
 export function PrimaryFeatures() {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [tabOrientation, setTabOrientation] = useState<
-    "horizontal" | "vertical"
-  >("horizontal");
-
-  useEffect(() => {
-    const lgMediaQuery = window.matchMedia("(min-width: 1024px)");
-
-    function onMediaQueryChange({ matches }: { matches: boolean }) {
-      setTabOrientation(matches ? "vertical" : "horizontal");
-    }
-
-    onMediaQueryChange(lgMediaQuery);
-    lgMediaQuery.addEventListener("change", onMediaQueryChange);
-
-    return () => {
-      lgMediaQuery.removeEventListener("change", onMediaQueryChange);
-    };
-  }, []);
 
   return (
     <section
@@ -136,6 +118,8 @@ export function PrimaryFeatures() {
                     alt={feature.title}
                     width={1920}
                     height={1080}
+                    unoptimized
+                    sizes="(max-width: 1024px) 100vw, 68vw"
                   />
                 </div>
               </div>

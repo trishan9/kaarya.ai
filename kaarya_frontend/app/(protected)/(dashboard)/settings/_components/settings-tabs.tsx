@@ -22,10 +22,27 @@ const CANDIDATE_ROLES: ReadonlySet<string> = new Set([
 type SettingsTabsProps = {
   user: TUser;
   resumeOptions: TSettingsResumeOption[];
+  initialTab?: "profile" | "security" | "linked-apps" | "preferences";
 };
 
-export function SettingsTabs({ user, resumeOptions }: SettingsTabsProps) {
-  const [activeTab, setActiveTab] = useState("profile");
+const VALID_SETTINGS_TABS = new Set([
+  "profile",
+  "security",
+  "linked-apps",
+  "preferences",
+] as const);
+
+type TSettingsTab = "profile" | "security" | "linked-apps" | "preferences";
+
+const isSettingsTab = (value: string): value is TSettingsTab =>
+  VALID_SETTINGS_TABS.has(value as TSettingsTab);
+
+export function SettingsTabs({
+  user,
+  resumeOptions,
+  initialTab = "profile",
+}: SettingsTabsProps) {
+  const [activeTab, setActiveTab] = useState<TSettingsTab>(initialTab);
 
   const isCandidate = CANDIDATE_ROLES.has(user.role ?? "");
 
@@ -33,7 +50,15 @@ export function SettingsTabs({ user, resumeOptions }: SettingsTabsProps) {
     "gap-1.5 cursor-pointer rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm";
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+    <Tabs
+      value={activeTab}
+      onValueChange={(value) => {
+        if (isSettingsTab(value)) {
+          setActiveTab(value);
+        }
+      }}
+      className="w-full"
+    >
       <TabsList className="inline-flex h-10 w-full items-center justify-start gap-0 rounded-lg border bg-background p-0">
         <TabsTrigger value="profile" className={triggerClass}>
           <UserRound className="h-4 w-4" />
@@ -54,6 +79,7 @@ export function SettingsTabs({ user, resumeOptions }: SettingsTabsProps) {
           <Settings className="h-4 w-4" />
           Preferences
         </TabsTrigger>
+
       </TabsList>
 
       <TabsContent value="profile" className="mt-5 space-y-5">
@@ -89,6 +115,7 @@ export function SettingsTabs({ user, resumeOptions }: SettingsTabsProps) {
       <TabsContent value="preferences" className="mt-5">
         <PreferencesSettings />
       </TabsContent>
+
     </Tabs>
   );
 }

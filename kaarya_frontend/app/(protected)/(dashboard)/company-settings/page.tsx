@@ -53,11 +53,11 @@ export default async function CompanySettingsPage({
 
   if (!activeWorkspace?.company?.id) {
     return (
-      <div className="min-h-svh bg-neutral-100 p-2 sm:p-4 lg:pl-0 lg:p-5">
-        <div className="rounded-xl bg-white sm:rounded-2xl">
+      <div className="dashboard-stage">
+        <div className="dashboard-surface">
           <DashboardHeader title="Company Settings" />
           <div className="px-3 pb-6 sm:px-4 sm:pb-8">
-            <Card className="gap-3 rounded-2xl border border-[#ececf0] bg-white p-6 shadow-sm">
+            <Card className="gap-3 rounded-2xl border border-border bg-card p-6 shadow-sm">
               <h2 className="text-lg font-semibold">No workspace selected</h2>
               <p className="text-sm text-muted-foreground">
                 Create or join a company workspace before managing company
@@ -110,8 +110,8 @@ export default async function CompanySettingsPage({
     typeof companyData?.location === "string" ? companyData.location : null;
 
   return (
-    <div className="min-h-svh bg-neutral-100 p-2 sm:p-4 lg:pl-0 lg:p-5">
-      <div className="rounded-xl bg-white sm:rounded-2xl">
+    <div className="dashboard-stage">
+      <div className="dashboard-surface">
         <DashboardHeader title="Company Settings" />
         <div className="space-y-4 px-3 pb-6 sm:px-4 sm:pb-8">
           <CompanySettingsPanel
@@ -129,3 +129,5 @@ export default async function CompanySettingsPage({
     </div>
   );
 }
+
+

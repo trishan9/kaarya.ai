@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   BookOpen,
   Check,
@@ -85,6 +85,29 @@ const getCreatorInitials = (name?: string | null) => {
 const completionStorageKey = (courseId: string) =>
   `kaarya_resource_completion_${courseId}`;
 
+const readStoredCompletion = (courseId: string, maxLength: number) => {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const raw = window.localStorage.getItem(completionStorageKey(courseId));
+    if (!raw) return [];
+
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+
+    return Array.from(
+      new Set(
+        parsed
+          .map((value) => Number(value))
+          .filter((value) => Number.isInteger(value))
+          .filter((value) => value >= 0 && value < maxLength),
+      ),
+    );
+  } catch {
+    return [];
+  }
+};
+
 function ChapterContent({
   chapter,
   chapterIndex,
@@ -119,7 +142,7 @@ function ChapterContent({
 
       {chapter.overview ? (
         <div className="rounded-2xl border border-[#dce6f3] bg-[#f7fbff] p-4">
-          <p className="text-sm leading-7 text-slate-700">{chapter.overview}</p>
+          <p className="text-sm leading-7 text-foreground">{chapter.overview}</p>
         </div>
       ) : null}
 
@@ -128,7 +151,7 @@ function ChapterContent({
           <h4 className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
             Chapter Lessons
           </h4>
-          <div className="rounded-2xl border border-[#dbe4f2] bg-white">
+          <div className="rounded-2xl border border-border bg-card">
             {lessonRows.map((lesson, index) => (
               <div
                 key={`${chapter.title}-lesson-${index}`}
@@ -138,10 +161,10 @@ function ChapterContent({
                     "border-b border-[#ecf1f8]",
                 )}
               >
-                <span className="mt-1 rounded-full bg-[#e8f4ff] p-1 text-[#0d5d9b]">
+                <span className="mt-1 rounded-full bg-primary/15 p-1 text-primary">
                   <BookOpen className="h-3.5 w-3.5" />
                 </span>
-                <p className="text-sm leading-7 text-slate-700">{lesson}</p>
+                <p className="text-sm leading-7 text-foreground">{lesson}</p>
               </div>
             ))}
           </div>
@@ -152,11 +175,11 @@ function ChapterContent({
         <h4 className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
           Reading Material
         </h4>
-        <div className="space-y-4 rounded-2xl border border-[#e0e8f3] bg-white p-4">
+        <div className="space-y-4 rounded-2xl border border-border bg-card p-4">
           {material.map((paragraph, index) => (
             <p
               key={`${chapter.title}-material-${index}`}
-              className="text-sm leading-8 text-slate-700"
+              className="text-sm leading-8 text-foreground"
             >
               {paragraph}
             </p>
@@ -172,17 +195,17 @@ function ChapterContent({
           {interviewQuestions.map((qa, index) => (
             <div
               key={`${qa.question}-${index}`}
-              className="rounded-2xl border border-[#e1e8f2] bg-[#fbfdff] p-4"
+              className="rounded-2xl border border-[#e1e8f2] bg-muted/30 p-4"
             >
               <p className="text-base font-semibold text-foreground">
                 Q. {qa.question}
               </p>
               {qa.sampleAnswer ? (
-                <div className="mt-3 rounded-xl bg-white p-3">
+                <div className="mt-3 rounded-xl bg-card p-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Sample Answer
                   </p>
-                  <p className="mt-2 text-sm leading-8 text-slate-700">
+                  <p className="mt-2 text-sm leading-8 text-foreground">
                     {qa.sampleAnswer}
                   </p>
                 </div>
@@ -214,38 +237,9 @@ export function CourseDetailClientView({
     0,
   );
 
-  const [completedChapterIndexes, setCompletedChapterIndexes] = useState<
-    number[]
-  >([]);
-
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(completionStorageKey(course.id));
-      if (!raw) {
-        setCompletedChapterIndexes([]);
-        return;
-      }
-
-      const parsed = JSON.parse(raw) as unknown;
-      if (!Array.isArray(parsed)) {
-        setCompletedChapterIndexes([]);
-        return;
-      }
-
-      const normalized = Array.from(
-        new Set(
-          parsed
-            .map((value) => Number(value))
-            .filter((value) => Number.isInteger(value))
-            .filter((value) => value >= 0 && value < chapters.length),
-        ),
-      );
-
-      setCompletedChapterIndexes(normalized);
-    } catch {
-      setCompletedChapterIndexes([]);
-    }
-  }, [course.id, chapters.length]);
+  const [completedChapterIndexes, setCompletedChapterIndexes] = useState<number[]>(
+    () => readStoredCompletion(course.id, chapters.length),
+  );
 
   const completedSet = useMemo(
     () => new Set(completedChapterIndexes),
@@ -292,14 +286,14 @@ export function CourseDetailClientView({
           <div className="flex flex-wrap items-center gap-2">
             <Badge
               variant="outline"
-              className="border-white/20 bg-white/10 font-medium text-white"
+              className="border-white/20 bg-card/10 font-medium text-white"
             >
               {course.generationMode === "learn" ? "Learn" : "Interview Prep"}
             </Badge>
-            <Badge className="border-0 bg-white/15 capitalize text-white hover:bg-white/15">
+            <Badge className="border-0 bg-card/15 capitalize text-white hover:bg-accent/15">
               {course.difficulty}
             </Badge>
-            <Badge className="border-0 bg-white/15 text-white hover:bg-white/15">
+            <Badge className="border-0 bg-card/15 text-white hover:bg-accent/15">
               {course.visibility === "public" ? (
                 <Globe2 className="h-3.5 w-3.5 mr-1" />
               ) : (
@@ -320,14 +314,14 @@ export function CourseDetailClientView({
             ))}
           </div>
           <div className="flex flex-wrap gap-2.5">
-            <div className="flex items-center gap-2.5 rounded-xl border border-white/15 bg-white/10 px-3 py-2">
+            <div className="flex items-center gap-2.5 rounded-xl border border-white/15 bg-card/10 px-3 py-2">
               <Clock3 className="h-4 w-4 text-white/90" />
               <span className="text-sm text-white/90">
                 <span className="font-semibold text-white">{totalHours}</span>{" "}
                 hours
               </span>
             </div>
-            <div className="flex items-center gap-2.5 rounded-xl border border-white/15 bg-white/10 px-3 py-2">
+            <div className="flex items-center gap-2.5 rounded-xl border border-white/15 bg-card/10 px-3 py-2">
               <BookOpen className="h-4 w-4 text-white/90" />
               <span className="text-sm text-white/90">
                 <span className="font-semibold text-white">
@@ -336,7 +330,7 @@ export function CourseDetailClientView({
                 chapters
               </span>
             </div>
-            <div className="flex items-center gap-2.5 rounded-xl border border-white/15 bg-white/10 px-3 py-2">
+            <div className="flex items-center gap-2.5 rounded-xl border border-white/15 bg-card/10 px-3 py-2">
               <CheckCircle2 className="h-4 w-4 text-white/90" />
               <span className="text-sm text-white/90">
                 <span className="font-semibold text-white">
@@ -356,7 +350,7 @@ export function CourseDetailClientView({
             <div className="flex items-center gap-3">
               <Progress
                 value={completionPercent}
-                className="h-2.5 bg-white/15 [&_[data-slot=progress-indicator]]:bg-[#28e780]"
+                className="h-2.5 bg-card/15 [&_[data-slot=progress-indicator]]:bg-[#28e780]"
               />
               <span className="text-sm font-semibold text-white/90">
                 {completionPercent}%
@@ -375,7 +369,7 @@ export function CourseDetailClientView({
                     "inline-flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold",
                     completedSet.has(index)
                       ? "bg-[#28e780] text-[#033620]"
-                      : "bg-white/20 text-white/70",
+                      : "bg-card/20 text-white/70",
                   )}
                 >
                   {index + 1}
@@ -388,26 +382,26 @@ export function CourseDetailClientView({
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
         <div className="space-y-5">
-          <Card className="rounded-3xl border border-[#dce5f1] bg-white p-5 sm:p-6">
+          <Card className="rounded-3xl border border-border bg-card p-5 sm:p-6">
             <p className="text-lg font-semibold text-foreground">
               Resource Description
             </p>
-            <p className="mt-2 text-sm leading-8 text-slate-700">
+            <p className="mt-2 text-sm leading-8 text-foreground">
               {course.description || "No description provided."}
             </p>
             {course.jobDescriptionContext ? (
-              <div className="mt-4 rounded-2xl border border-[#d8e3f1] bg-[#f8fbff] p-4">
+              <div className="mt-4 rounded-2xl border border-[#d8e3f1] bg-muted/35 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#355b82]">
                   Job Perspective Context
                 </p>
-                <p className="mt-2 text-sm leading-8 text-slate-700">
+                <p className="mt-2 text-sm leading-8 text-foreground">
                   {course.jobDescriptionContext}
                 </p>
               </div>
             ) : null}
           </Card>
 
-          <Card className="rounded-3xl border border-[#dce5f1] bg-white p-3 sm:p-4">
+          <Card className="rounded-3xl border border-border bg-card p-3 sm:p-4">
             <div className="flex flex-wrap items-center justify-between gap-3 px-2 pb-3 pt-1">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#4d6988]">
@@ -417,7 +411,7 @@ export function CourseDetailClientView({
                   Learning Path
                 </p>
               </div>
-              <Badge className="border-0 bg-[#eaf4ff] text-[#0d5d9b] hover:bg-[#eaf4ff]">
+              <Badge className="border-0 bg-primary/15 text-primary hover:bg-primary/15">
                 {chapters.length} Chapters
               </Badge>
             </div>
@@ -433,7 +427,7 @@ export function CourseDetailClientView({
                   <AccordionItem
                     key={`${chapter.title}-${index}`}
                     value={`chapter-${index + 1}`}
-                    className="overflow-hidden rounded-3xl border border-[#dbe5f2] bg-white"
+                    className="overflow-hidden rounded-3xl border border-[#dbe5f2] bg-card"
                   >
                     <AccordionTrigger className="px-4 py-4 hover:no-underline sm:px-5">
                       <div className="flex flex-1 items-center justify-between gap-3 text-left">
@@ -448,7 +442,7 @@ export function CourseDetailClientView({
                         <div className="flex shrink-0 items-center gap-2">
                           <Badge
                             variant="outline"
-                            className="rounded-full border-[#d3dfec] bg-white"
+                            className="rounded-full border-border bg-card"
                           >
                             <Clock3 className="mr-1 h-3.5 w-3.5" />
                             {chapter.estimatedMinutes} min
@@ -462,7 +456,7 @@ export function CourseDetailClientView({
                         </div>
                       </div>
                     </AccordionTrigger>
-                    <AccordionContent className="border-t border-[#e8eef7] bg-[#fbfdff] px-4 pb-6 pt-5 sm:px-5">
+                    <AccordionContent className="border-t border-[#e8eef7] bg-muted/30 px-4 pb-6 pt-5 sm:px-5">
                       <ChapterContent
                         chapter={chapter}
                         chapterIndex={index}
@@ -478,33 +472,33 @@ export function CourseDetailClientView({
         </div>
 
         <div className="space-y-4">
-          <Card className="rounded-2xl border border-[#dce5f1] bg-white p-4">
+          <Card className="rounded-2xl border border-border bg-card p-4">
             <p className="text-base font-semibold text-foreground">
               Resource Snapshot
             </p>
             <div className="mt-3 space-y-2 text-sm">
-              <div className="flex items-center justify-between rounded-lg bg-[#f8fbff] px-3 py-2">
-                <span className="text-slate-600">Category</span>
+              <div className="flex items-center justify-between rounded-lg bg-muted/35 px-3 py-2">
+                <span className="text-muted-foreground">Category</span>
                 <span className="font-medium text-foreground">
                   {course.category}
                 </span>
               </div>
-              <div className="flex items-center justify-between rounded-lg bg-[#f8fbff] px-3 py-2">
-                <span className="text-slate-600">Mode</span>
+              <div className="flex items-center justify-between rounded-lg bg-muted/35 px-3 py-2">
+                <span className="text-muted-foreground">Mode</span>
                 <span className="font-medium text-foreground">
                   {course.generationMode === "learn"
                     ? "Learn"
                     : "Interview Prep"}
                 </span>
               </div>
-              <div className="flex items-center justify-between rounded-lg bg-[#f8fbff] px-3 py-2">
-                <span className="text-slate-600">Source</span>
+              <div className="flex items-center justify-between rounded-lg bg-muted/35 px-3 py-2">
+                <span className="text-muted-foreground">Source</span>
                 <span className="font-medium capitalize text-foreground">
                   {course.source}
                 </span>
               </div>
-              <div className="flex items-center justify-between rounded-lg bg-[#f8fbff] px-3 py-2">
-                <span className="text-slate-600">AI Model</span>
+              <div className="flex items-center justify-between rounded-lg bg-muted/35 px-3 py-2">
+                <span className="text-muted-foreground">AI Model</span>
                 <span className="font-medium text-foreground">
                   {course.aiModel || "Kaarya AI Engine"}
                 </span>
@@ -512,18 +506,18 @@ export function CourseDetailClientView({
             </div>
           </Card>
 
-          <Card className="rounded-2xl border border-[#dce5f1] bg-white p-4">
+          <Card className="rounded-2xl border border-border bg-card p-4">
             <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.12em] text-[#1f3f60]">
               <Users className="h-4 w-4" />
               Creator
             </p>
-            <div className="mt-3 flex items-center gap-3 rounded-xl border border-[#e3ebf5] bg-[#fafdff] p-3">
+            <div className="mt-3 flex items-center gap-3 rounded-xl border border-[#e3ebf5] bg-muted/30 p-3">
               <Avatar className="h-11 w-11 border border-[#d6e2ef]">
                 <AvatarImage
                   src={course.creator?.photo ?? ""}
                   alt={course.creator?.name ?? "Creator"}
                 />
-                <AvatarFallback className="bg-[#e8f2ff] text-[#0d5d9b]">
+                <AvatarFallback className="bg-[#e8f2ff] text-primary">
                   {getCreatorInitials(course.creator?.name)}
                 </AvatarFallback>
               </Avatar>
@@ -531,12 +525,12 @@ export function CourseDetailClientView({
                 <p className="text-sm font-semibold text-foreground">
                   {course.creator?.name || "Kaarya AI Course Engine"}
                 </p>
-                <p className="text-xs capitalize text-slate-600">
+                <p className="text-xs capitalize text-muted-foreground">
                   {course.creator?.role || "resource creator"}
                 </p>
               </div>
             </div>
-            <p className="mt-3 text-sm leading-7 text-slate-600">
+            <p className="mt-3 text-sm leading-7 text-muted-foreground">
               This material is aligned to the title, description, and target
               role context used during generation.
             </p>
@@ -546,3 +540,4 @@ export function CourseDetailClientView({
     </>
   );
 }
+

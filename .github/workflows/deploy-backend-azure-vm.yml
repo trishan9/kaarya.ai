@@ -1,0 +1,61 @@
+name: Deploy Kaarya Backend To Azure VM
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "kaarya_backend/**"
+      - ".github/workflows/deploy-backend-azure-vm.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-backend-azure-vm
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Copy backend files to Azure VM
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.AZURE_VM_HOST }}
+          username: ${{ secrets.AZURE_VM_USERNAME }}
+          key: ${{ secrets.AZURE_VM_SSH_PRIVATE_KEY }}
+          port: 22
+          source: "kaarya_backend"
+          target: ${{ secrets.AZURE_VM_APP_DIR }}
+          overwrite: true
+          strip_components: 0
+
+      - name: Deploy stack on Azure VM
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.AZURE_VM_HOST }}
+          username: ${{ secrets.AZURE_VM_USERNAME }}
+          key: ${{ secrets.AZURE_VM_SSH_PRIVATE_KEY }}
+          port: 22
+          script_stop: true
+          script: |
+            set -e
+            cd "${{ secrets.AZURE_VM_APP_DIR }}/kaarya_backend"
+
+            if [ ! -f ".env" ]; then
+              echo "Missing .env on server at $(pwd)/.env"
+              exit 1
+            fi
+
+            docker compose up -d --build --remove-orphans
+            docker image prune -f
+
+            echo "Waiting for API to start..."
+            sleep 10
+            curl -f http://localhost:3000/api/health || echo "Health check failed - API may still be starting"
+
+            docker compose ps

@@ -285,9 +285,9 @@ export function CreateInterviewForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-5 rounded-2xl border border-[#e5e9f0] bg-white p-4 sm:p-6"
+      className="space-y-5 rounded-2xl border border-border bg-card p-4 sm:p-6"
     >
-      <div className="rounded-xl border border-[#d9e5f2] bg-[#f7fbff] px-3 py-3 sm:px-4">
+      <div className="rounded-xl border border-[#d9e5f2] bg-muted/40 px-3 py-3 sm:px-4">
         <p className="text-sm font-semibold text-[#0d6fae]">Manual Interview Setup</p>
         <p className="mt-1 text-xs text-muted-foreground">
           Use manual mode when voice workflow is unavailable or when precise field
@@ -295,7 +295,7 @@ export function CreateInterviewForm({
         </p>
       </div>
 
-      <div className="space-y-4 rounded-xl border border-[#ececf0] bg-[#fafbfd] p-3 sm:p-4">
+      <div className="space-y-4 rounded-xl border border-border bg-muted/30 p-3 sm:p-4">
         <p className="text-sm font-semibold text-foreground">Interview Basics</p>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2 sm:col-span-2">
@@ -450,7 +450,7 @@ export function CreateInterviewForm({
         </div>
       </div>
 
-      <div className="space-y-4 rounded-xl border border-[#ececf0] bg-[#fafbfd] p-3 sm:p-4">
+      <div className="space-y-4 rounded-xl border border-border bg-muted/30 p-3 sm:p-4">
         <p className="text-sm font-semibold text-foreground">Interview Guidance</p>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2 sm:col-span-2">
@@ -477,7 +477,7 @@ export function CreateInterviewForm({
         </div>
       </div>
 
-      <div className="space-y-3 rounded-xl border border-[#ececf0] bg-[#fafbfd] p-3 sm:p-4">
+      <div className="space-y-3 rounded-xl border border-border bg-muted/30 p-3 sm:p-4">
         <p className="text-sm font-semibold text-foreground">Question Strategy</p>
         <label className="flex items-center gap-2 text-sm font-medium text-foreground">
           <input
@@ -537,3 +537,4 @@ export function CreateInterviewForm({
     </form>
   );
 }
+
