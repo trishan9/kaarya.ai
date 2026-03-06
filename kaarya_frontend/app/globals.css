@@ -270,6 +270,27 @@
     background-color: oklch(1 0 0) !important;
   }
 
+  .dark .landing-page {
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.1450 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.1450 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.1450 0 0);
+    --primary: oklch(0.5324 0.1366 246.3421);
+    --primary-foreground: oklch(1 0 0);
+    --secondary: oklch(0.9547 0.0142 231.2071);
+    --secondary-foreground: oklch(0.5324 0.1366 246.3421);
+    --muted: oklch(0.9700 0 0);
+    --muted-foreground: oklch(0.5560 0 0);
+    --accent: oklch(0.9700 0 0);
+    --accent-foreground: oklch(0.2050 0 0);
+    --border: oklch(0.9220 0 0);
+    --input: oklch(0.9220 0 0);
+    --ring: oklch(0.7080 0 0);
+    color-scheme: light;
+  }
+
   .dark .landing-page .text-slate-900,
   .dark .landing-page .text-slate-800,
   .dark .landing-page .text-slate-700 {
@@ -288,6 +309,17 @@
 
   .dark .landing-page .bg-slate-50 {
     background-color: color-mix(in oklab, oklch(0.9700 0 0) 72%, transparent) !important;
+  }
+
+  .dark .landing-page [data-slot="button"][data-variant="outline"] {
+    background-color: oklch(1 0 0);
+    border-color: oklch(0.9220 0 0);
+    color: oklch(0.1450 0 0);
+  }
+
+  .dark .landing-page [data-slot="button"][data-variant="outline"]:hover {
+    background-color: oklch(0.9700 0 0);
+    color: oklch(0.2050 0 0);
   }
 }
 
