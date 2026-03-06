@@ -265,6 +265,30 @@
   .dark .bg-slate-50 {
     background-color: color-mix(in oklab, var(--muted) 72%, transparent) !important;
   }
+
+  .dark .landing-page .bg-white {
+    background-color: oklch(1 0 0) !important;
+  }
+
+  .dark .landing-page .text-slate-900,
+  .dark .landing-page .text-slate-800,
+  .dark .landing-page .text-slate-700 {
+    color: oklch(0.1450 0 0) !important;
+  }
+
+  .dark .landing-page .text-slate-600,
+  .dark .landing-page .text-slate-500,
+  .dark .landing-page .text-slate-400 {
+    color: oklch(0.5560 0 0) !important;
+  }
+
+  .dark .landing-page .bg-slate-100 {
+    background-color: oklch(0.9700 0 0) !important;
+  }
+
+  .dark .landing-page .bg-slate-50 {
+    background-color: color-mix(in oklab, oklch(0.9700 0 0) 72%, transparent) !important;
+  }
 }
 
 @layer utilities {

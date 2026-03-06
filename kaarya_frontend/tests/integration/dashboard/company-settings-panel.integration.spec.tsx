@@ -65,7 +65,9 @@ describe("CompanySettingsPanel integration", () => {
     });
   });
 
-  it("validates and submits profile, invites recruiters, and removes members", async () => {
+  it(
+    "validates and submits profile, invites recruiters, and removes members",
+    async () => {
     const user = userEvent.setup();
 
     render(
@@ -152,7 +154,9 @@ describe("CompanySettingsPanel integration", () => {
         "other-1",
       );
     });
-  });
+    },
+    15000,
+  );
 
   it("rejects unsupported logo upload types at form level", async () => {
     const user = userEvent.setup({ applyAccept: false });

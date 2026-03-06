@@ -13,7 +13,7 @@ export default async function Home() {
   const isLoggedIn = !!currentUser;
 
   return (
-    <div className="flex h-full flex-col scroll-smooth bg-white antialiased">
+    <div className="landing-page flex h-full flex-col scroll-smooth bg-white antialiased">
       <Header isLoggedIn={isLoggedIn} />
 
       <main>

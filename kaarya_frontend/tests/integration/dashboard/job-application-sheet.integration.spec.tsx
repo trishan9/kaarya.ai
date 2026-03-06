@@ -119,18 +119,20 @@ describe("JobApplicationSheet integration", () => {
     await waitFor(() => {
       expect(createJobApplicationMock).toHaveBeenCalledWith(
         "job-1",
-        expect.objectContaining({
-          resumeId: "resume-1",
-          coverLetter:
-            "I have delivered distributed systems at scale with measurable results.",
-          portfolioLinks: ["portfolio.example.com/me"],
-        }),
+        expect.any(FormData),
       );
       expect(routerMock.refresh).toHaveBeenCalled();
       expect(toastMock.success).toHaveBeenCalledWith(
         "Application submitted successfully",
       );
     });
+
+    const formData = createJobApplicationMock.mock.calls[0]?.[1] as FormData;
+    expect(formData.get("resumeId")).toBe("resume-1");
+    expect(formData.get("coverLetter")).toBe(
+      "I have delivered distributed systems at scale with measurable results.",
+    );
+    expect(formData.getAll("portfolioLinks")).toEqual(["portfolio.example.com/me"]);
 
     expect(screen.getByText("Application Sent")).toBeInTheDocument();
     },
